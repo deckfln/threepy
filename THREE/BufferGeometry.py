@@ -1,0 +1,616 @@
+"""
+	/**
+	 * @author mrdoob / http://mrdoob.com/
+	 */
+"""
+
+import math
+import THREE._Math as _Math
+from THREE.Matrix3 import *
+from THREE.Matrix4 import *
+import THREE.Box3
+import THREE.Sphere
+from THREE.BufferAttribute import *
+
+
+gIdcount = 0
+def GeometryIdCount():
+    global gIdcount
+    gIdcount += 1
+    return gIdcount
+
+    
+class _attributesList(object):
+    def __init__(self):
+        super().__setattr__('attr', {})
+        
+    def __getattr__(self, k):
+        try:
+            return self.attr[k]
+        except KeyError:
+            raise AttributeError        
+            
+    def __setattr__(self, key, value):
+        self.attr[key] = value
+
+    def __delattr__(self, key):
+        del self.attr[key]
+
+        
+class BufferGeometry:
+    MaxIndex = 65535
+    count = 0
+    isBufferGeometry = True
+
+    def __init__(self):
+        self.id =  GeometryIdCount()
+
+        self.uuid = _Math.generateUUID()
+        self.name = ''
+        self.type = 'BufferGeometry'
+        self.index = None
+        self.attributes = _attributesList()
+        self.morphAttributes = {}
+        self.groups = []
+        self.boundingBox = None    
+        self.boundingSphere = None
+        self.drawRange = { 'start': 0, 'count': float('+inf') }
+
+    def getIndex(self):
+        return self.index
+        
+    def setIndex(self, index ):
+        if type(index) is list:
+            if THREE.arrayMax(index) > 65535:
+                self.index = Uint32BufferAttribute( index, 1 )
+            else:
+                self.index = Uint16BufferAttribute(index, 1)
+        else:
+            self.index = index
+
+    def addAttribute(self, name, attribute ):
+        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.isInterleavedBufferAttribute ):
+            print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
+            self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
+            return
+
+        if name == 'index':
+            print( 'THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.' )                
+            self.setIndex( attribute )
+            return
+
+        self.attributes.__setattr__(name, attribute)
+        return self
+        
+    def getAttribute(self, name ):
+        return self.attributes.name
+
+    def removeAttribute(self, name ):
+        del self.attributes.name
+        return self
+        
+    def addGroup(self, start, count, materialIndex ):
+        mi = materialIndex
+        if mi is  None:
+            mi = 0
+        self.groups.append( {
+            'start': start,
+            'count': count,
+            'materialIndex': mi
+        } )
+        
+    def clearGroups(self):
+        self.groups = []
+        
+    def setDrawRange(self, start, count ):
+        self.drawRange.start = start
+        self.drawRange.count = count
+        
+    def applyMatrix(self, matrix ):
+        position = self.attributes.position
+        if position is not None:
+            matrix.applyToBufferAttribute( position )
+            position.needsUpdate = True
+
+        normal = self.attributes.normal
+        if normal is not None:
+            normalMatrix = Matrix3().getNormalMatrix( matrix )
+            normalMatrix.applyToBufferAttribute( normal )
+            normal.needsUpdate = True
+
+        if self.boundingBox is not None:
+            self.computeBoundingBox()
+
+        if self.boundingSphere is not None:
+            self.computeBoundingSphere()
+
+        return self
+        
+    def rotateX(self, angle):
+        # // rotate geometry around world x-axis
+        m1 = Matrix4()
+        m1.makeRotationX( angle )
+        self.applyMatrix( m1 )
+        return self
+
+    def rotateY(self, angle):
+        # // rotate geometry around world y-axis
+        m1 = Matrix4()
+        m1.makeRotationY( angle )
+        self.applyMatrix( m1 )
+        return self
+
+    def rotateZ(self, angle):
+        # // rotate geometry around world z-axis
+        m1 = Matrix4()
+        m1.makeRotationZ( angle )
+        self.applyMatrix( m1 )
+        return self
+
+    def translate(self, x, y, z):
+        # // translate geometry
+        m1 = Matrix4()
+        m1.makeTranslation( x, y, z )
+        self.applyMatrix( m1 )
+        return self
+
+    def scale(self, x, y, z):
+        # // scale geometry
+        m1 = Matrix4()
+        m1.makeScale( x, y, z )
+        self.applyMatrix( m1 )
+        return self
+
+    def lookAt(self, vector):
+        obj = Object3D()
+        obj.lookAt( vector )
+        obj.updateMatrix()
+        self.applyMatrix( obj.matrix )
+
+    def center(self):
+        self.computeBoundingBox()
+        offset = self.boundingBox.getCenter().negate()
+        self.translate( offset.x, offset.y, offset.z )
+        return offset
+        
+    def setFromObject(self, object ):
+        # // console.log( 'THREE.BufferGeometry.setFromObject(). Converting', object, self )
+        geometry = object.geometry
+        if object.isPoints or object.isLine:
+            positions = Float32BufferAttribute( geometry.vertices.length * 3, 3 )
+            colors = Float32BufferAttribute( geometry.colors.length * 3, 3 )
+            self.addAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) )
+            self.addAttribute( 'color', colors.copyColorsArray( geometry.colors ) )
+            if geometry.lineDistances and geometry.lineDistances.length == geometry.vertices.length:
+                lineDistances = Float32BufferAttribute( geometry.lineDistances.length, 1 )
+                self.addAttribute( 'lineDistance', lineDistances.copyArray( geometry.lineDistances ) )
+
+            if geometry.boundingSphere is not None:
+                self.boundingSphere = geometry.boundingSphere.clone()
+
+            if geometry.boundingBox is not None:
+                self.boundingBox = geometry.boundingBox.clone()
+        elif object.isMesh:
+            if geometry and geometry.isGeometry:
+                self.fromGeometry( geometry )
+
+        return self
+        
+    def updateFromObject(self, object ):
+        geometry = object.geometry
+        if object.isMesh:
+            direct = geometry.__directGeometry
+            if geometry.elementsNeedUpdate:
+                direct = None
+                geometry.elementsNeedUpdate = False
+
+            if direct is None:
+                return self.fromGeometry( geometry )
+
+            direct.verticesNeedUpdate = geometry.verticesNeedUpdate
+            direct.normalsNeedUpdate = geometry.normalsNeedUpdate            
+            direct.colorsNeedUpdate = geometry.colorsNeedUpdate            
+            direct.uvsNeedUpdate = geometry.uvsNeedUpdate
+            direct.groupsNeedUpdate = geometry.groupsNeedUpdate
+            geometry.verticesNeedUpdate = False
+            geometry.normalsNeedUpdate = False
+            geometry.colorsNeedUpdate = False
+            geometry.uvsNeedUpdate = False
+            geometry.groupsNeedUpdate = False
+            geometry = direct
+
+        if geometry.verticesNeedUpdate:
+            attribute = self.attributes.position
+            if attribute is not None:
+                attribute.copyVector3sArray( geometry.vertices )
+                attribute.needsUpdate = True
+
+            geometry.verticesNeedUpdate = False
+
+        if geometry.normalsNeedUpdate:
+            attribute = self.attributes.normal
+            if attribute is not None:
+                attribute.copyVector3sArray( geometry.normals )
+                attribute.needsUpdate = True
+
+            geometry.normalsNeedUpdate = False
+
+        if geometry.colorsNeedUpdate:
+            attribute = self.attributes.color
+            if attribute is not None:
+                attribute.copyColorsArray( geometry.colors )
+                attribute.needsUpdate = True
+
+            geometry.colorsNeedUpdate = False
+
+        if geometry.uvsNeedUpdate:
+            attribute = self.attributes.uv
+            if attribute is not None:
+                attribute.copyVector2sArray( geometry.uvs )
+                attribute.needsUpdate = True
+
+            geometry.uvsNeedUpdate = False
+
+        if geometry.lineDistancesNeedUpdate:
+            attribute = self.attributes.lineDistance
+            if attribute is not None:
+                attribute.copyArray( geometry.lineDistances )
+                attribute.needsUpdate = True
+
+            geometry.lineDistancesNeedUpdate = False
+
+        if geometry.groupsNeedUpdate:
+            geometry.computeGroups( object.geometry )
+            self.groups = geometry.groups
+            geometry.groupsNeedUpdate = False
+
+        return self
+        
+    def fromGeometry(self, geometry ):
+        geometry.__directGeometry = DirectGeometry().fromGeometry( geometry )
+        return self.fromDirectGeometry( geometry.__directGeometry )
+        
+    def fromDirectGeometry(self, geometry ):
+        positions = Float32Array( geometry.vertices.length * 3 )
+        self.addAttribute( 'position', BufferAttribute( positions, 3 ).copyVector3sArray( geometry.vertices ) )
+        if geometry.normals.length > 0:
+            normals = Float32Array( geometry.normals.length * 3 )
+            self.addAttribute( 'normal', BufferAttribute( normals, 3 ).copyVector3sArray( geometry.normals ) )
+
+        if geometry.colors.length > 0:
+            colors = Float32Array( geometry.colors.length * 3 )
+            self.addAttribute( 'color', BufferAttribute( colors, 3 ).copyColorsArray( geometry.colors ) )
+
+        if geometry.uvs.length > 0:
+            uvs = Float32Array( geometry.uvs.length * 2 )
+            self.addAttribute( 'uv', BufferAttribute( uvs, 2 ).copyVector2sArray( geometry.uvs ) )
+
+        if geometry.uvs2.length > 0:
+            uvs2 = Float32Array( geometry.uvs2.length * 2 )
+            self.addAttribute( 'uv2', BufferAttribute( uvs2, 2 ).copyVector2sArray( geometry.uvs2 ) )
+
+        if geometry.indices.length > 0:
+            if geometry.indices.count > 65535:
+                indices = Uint32Array(geometry.indices.length * 3 )
+            else:
+                indices = Uint16Array(geometry.indices.length * 3 )
+            self.setIndex( BufferAttribute( indices, 1 ).copyIndicesArray( geometry.indices ) )
+
+        # // groups
+        self.groups = geometry.groups
+        # // morphs
+        for name in geometry.morphTargets:
+            array = []
+            morphTargets = geometry.morphTargets[ name ]
+            for i in range(morphTargets.length):
+                morphTarget = morphTargets[ i ]
+                attribute = Float32BufferAttribute( morphTarget.length * 3, 3 )
+                array.append( attribute.copyVector3sArray( morphTarget ) )
+
+            self.morphAttributes[ name ] = array
+
+        # // skinning
+        if geometry.skinIndices.length > 0:
+            skinIndices = Float32BufferAttribute( geometry.skinIndices.length * 4, 4 )
+            self.addAttribute( 'skinIndex', skinIndices.copyVector4sArray( geometry.skinIndices ) )
+
+        if geometry.skinWeights.length > 0:
+            skinWeights = Float32BufferAttribute( geometry.skinWeights.length * 4, 4 )
+            self.addAttribute( 'skinWeight', skinWeights.copyVector4sArray( geometry.skinWeights ) )
+
+        # //
+        if geometry.boundingSphere is not None:
+            self.boundingSphere = geometry.boundingSphere.clone()
+
+        if geometry.boundingBox is not None:
+            self.boundingBox = geometry.boundingBox.clone()
+
+        return self
+        
+    def computeBoundingBox(self):
+        if self.boundingBox is None:
+            self.boundingBox = Box3()
+
+        position = self.attributes.position
+        if position is not None:
+            self.boundingBox.setFromBufferAttribute( position )
+        else:
+            self.boundingBox.makeEmpty()
+
+        if isNaN( self.boundingBox.min.x ) or isNaN( self.boundingBox.min.y ) or isNaN( self.boundingBox.min.z ):
+            print( 'THREE.BufferGeometry.computeBoundingBox: Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', self )
+
+    def computeBoundingSphere(self):
+        box = Box3()
+        vector = Vector3()
+        if self.boundingSphere is None:
+            self.boundingSphere = Sphere()
+
+        position = self.attributes.position
+        if position:
+            center = self.boundingSphere.center
+            box.setFromBufferAttribute( position )
+            box.getCenter( center )
+            # // hoping to find a boundingSphere with a radius smaller than the
+            # // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
+
+            maxRadiusSq = 0
+            for i in range(position.count):
+                vector.x = position.getX( i )
+                vector.y = position.getY( i )
+                vector.z = position.getZ( i )
+                maxRadiusSq = math.max( maxRadiusSq, center.distanceToSquared( vector ) )
+
+            self.boundingSphere.radius = math.sqrt( maxRadiusSq )
+            if isNaN( self.boundingSphere.radius ):
+                print( 'THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', self )
+
+    def computeFaceNormals(self):
+        # // backwards compatibility
+        return None
+
+    def computeVertexNormals(self):
+        index = self.index
+        attributes = self.attributes
+        groups = self.groups
+        if attributes.position:
+            positions = attributes.position.array
+            if attributes.normal is None:
+                self.addAttribute( 'normal', BufferAttribute( Float32Array( positions.length ), 3 ) )
+            else:
+                # // reset existing normals to zero
+                array = attributes.normal.array
+                for i in range(len(array)):
+                    array[ i ] = 0
+
+            normals = attributes.normal.array
+            
+            pA = Vector3()
+            pB = Vector3()
+            pC = Vector3()
+            cb = Vector3()
+            ab = Vector3()
+            # // indexed elements
+            if index:
+                indices = index.array
+                if groups.length == 0:
+                    self.addGroup( 0, indices.length )
+
+                for j in range(groups.length):
+                    group = groups[ j ]
+                    start = group.start
+                    count = group.count
+                    for i in range(start, start + count, 3 ):
+                        vA = indices[ i + 0 ] * 3
+                        vB = indices[ i + 1 ] * 3
+                        vC = indices[ i + 2 ] * 3
+                        pA.fromArray( positions, vA )
+                        pB.fromArray( positions, vB )
+                        pC.fromArray( positions, vC )
+                        cb.subVectors( pC, pB )
+                        ab.subVectors( pA, pB )
+                        cb.cross( ab )
+                        normals[ vA ] += cb.x
+                        normals[ vA + 1 ] += cb.y
+                        normals[ vA + 2 ] += cb.z
+                        normals[ vB ] += cb.x
+                        normals[ vB + 1 ] += cb.y
+                        normals[ vB + 2 ] += cb.z
+                        normals[ vC ] += cb.x
+                        normals[ vC + 1 ] += cb.y
+                        normals[ vC + 2 ] += cb.z
+            else:
+                # // non-indexed elements (unconnected triangle soup)
+                for i in range(0, positions.length, 9):
+                    pA.fromArray( positions, i )
+                    pB.fromArray( positions, i + 3 )
+                    pC.fromArray( positions, i + 6 )
+                    cb.subVectors( pC, pB )
+                    ab.subVectors( pA, pB )
+                    cb.cross( ab )
+                    normals[ i ] = cb.x
+                    normals[ i + 1 ] = cb.y
+                    normals[ i + 2 ] = cb.z
+                    normals[ i + 3 ] = cb.x
+                    normals[ i + 4 ] = cb.y
+                    normals[ i + 5 ] = cb.z
+                    normals[ i + 6 ] = cb.x
+                    normals[ i + 7 ] = cb.y
+                    normals[ i + 8 ] = cb.z
+
+            self.normalizeNormals()
+            attributes.normal.needsUpdate = True
+
+    def merge(self, geometry, offset=0 ):
+        if not ( geometry and geometry.isBufferGeometry ):
+            print( 'THREE.BufferGeometry.merge(): geometry not an instance of THREE.BufferGeometry.', geometry )
+            return
+
+        attributes = self.attributes
+        for key in attributes:
+            if geometry.attributes[ key ] is None:
+                continue
+            attribute1 = attributes[ key ]
+            attributeArray1 = attribute1.array
+            attribute2 = geometry.attributes[ key ]
+            attributeArray2 = attribute2.array
+            attributeSize = attribute2.itemSize
+            j = j = attributeSize * offset
+            for i in range (attributeArray2.length):
+                attributeArray1[ j ] = attributeArray2[ i ]
+                j += 1
+
+        return self
+        
+    def normalizeNormals(self):
+        vector = Vector3()
+        normals = self.attributes.normal
+        for i in range(normals.count):
+            vector.x = normals.getX( i )
+            vector.y = normals.getY( i )
+            vector.z = normals.getZ( i )
+            vector.normalize()
+            normals.setXYZ( i, vector.x, vector.y, vector.z )
+
+    def toNonIndexed(self):
+        if self.index == None:
+            print( 'THREE.BufferGeometry.toNonIndexed(): Geometry is already non-indexed.' )
+            return self
+
+        geometry2 = BufferGeometry()
+        indices = self.index.array
+        attributes = self.attributes
+        for name in attributes:
+            attribute = attributes[ name ]
+            array = attribute.array
+            itemSize = attribute.itemSize
+            array2 = array.constructor( indices.length * itemSize )
+            index = 0
+            index2 = 0
+            for i in range(indices.length):
+                index = indices[ i ] * itemSize
+                for j in range(itemSize):
+                    array2[ index2 ] = array[ index ]
+                    index2 += 1
+                    index += 1
+
+            geometry2.addAttribute( name, BufferAttribute( array2, itemSize ) )
+
+        return geometry2
+        
+    def toJSON(self):
+        data = {
+            'metadata': {
+                'version': '4.5',
+                'type': 'BufferGeometry',
+                'generator': 'BufferGeometry.toJSON'
+            }
+        }
+        # // standard BufferGeometry serialization
+        data.uuid = self.uuid
+        data.type = self.type
+        if self.name != '':
+            data.name = self.name
+        if self.parameters is not None:
+            parameters = self.parameters
+            for key in parameters:
+                if parameters[ key ] is not None:
+                    data[ key ] = parameters[ key ]
+
+            return data
+
+        data.data = { attributes: {} }
+        index = self.index
+        if index != None:
+            array = Array.prototype.slice.call( index.array )
+            data.data.index = {
+                'type': index.array.constructor.name,
+                'array': array
+            }
+
+        attributes = self.attributes
+        for key in attributes:
+            attribute = attributes[ key ]
+            array = Array.prototype.slice.call( attribute.array )
+            data.data.attributes[ key ] = {
+                'itemSize': attribute.itemSize,
+                'type': attribute.array.constructor.name,
+                'array': array,
+                'normalized': attribute.normalized
+            }
+
+        groups = self.groups
+        if groups.length > 0:
+            data.data.groups = JSON.parse( JSON.stringify( groups ) )
+
+        boundingSphere = self.boundingSphere
+        if boundingSphere is not None:
+            data.data.boundingSphere = {
+                'center': boundingSphere.center.toArray(),
+                'radius': boundingSphere.radius
+            }
+
+        return data
+        
+    def clone(self):
+        return BufferGeometry().copy( self )
+        
+    def copy(self, source ):
+        # // reset
+        self.index = None
+        self.attributes = {}
+        self.morphAttributes = {}
+        self.groups = []
+        self.boundingBox = None
+        self.boundingSphere = None
+
+        # // name
+        self.name = source.name
+
+        # // index
+        index = source.index
+        if index is not None:
+            self.setIndex( index.clone() )
+
+        # // attributes
+        attributes = source.attributes
+        for name in attributes:
+            attribute = attributes[ name ]
+            self.addAttribute( name, attribute.clone() )
+
+        # // morph attributes
+        morphAttributes = source.morphAttributes
+        for name in morphAttributes:
+            array = []
+            morphAttribute = morphAttributes[ name ]; # // morphAttribute: array of Float32BufferAttributes
+
+            for i in range(morphAttribute.length):
+                array.append( morphAttribute[ i ].clone() )
+
+            self.morphAttributes[ name ] = array
+
+        # // groups
+        groups = source.groups
+        for i in range(groups.length):
+            group = groups[ i ]
+            self.addGroup( group.start, group.count, group.materialIndex )
+
+        # // bounding box
+        boundingBox = source.boundingBox
+        if boundingBox is not None:
+            self.boundingBox = boundingBox.clone()
+
+        # // bounding sphere
+        boundingSphere = source.boundingSphere
+        if boundingSphere is not None:
+            self.boundingSphere = boundingSphere.clone()
+
+        # // draw range
+        self.drawRange.start = source.drawRange.start
+        self.drawRange.count = source.drawRange.count
+
+        return self
+        
+    def dispose(self):
+        return None
+        
