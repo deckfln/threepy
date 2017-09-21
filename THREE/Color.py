@@ -65,7 +65,7 @@ class Color:
         self.setRGB( r, g, b )
 
     def set(self, value ):
-        if value and value.isColor:
+        if value and hasattr(value, 'isColor'):
             self.copy( value )
         elif type(value) == 'float':
             self.setHex( value )

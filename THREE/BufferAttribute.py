@@ -36,11 +36,19 @@ class BufferAttribute:
         self.version = 0
         self.needsUpdate = False
 
+        self.onUploadCallback = self._onUploadCallback
+
     def setUpdate(self, value):
         if value:
             self.version += 1
 
     needsUpdate = property(None, setUpdate)    
+
+    def _onUploadCallback(self):
+        return True
+
+    def onUpload(self, callback):
+        self.onUploadCalback =callback
 
     def setArray(self, array):
         if type(array) is list:

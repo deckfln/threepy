@@ -14,6 +14,8 @@ from THREE.BufferAttribute import *
 
 
 gIdcount = 0
+
+
 def GeometryIdCount():
     global gIdcount
     gIdcount += 1
@@ -22,28 +24,55 @@ def GeometryIdCount():
     
 class _attributesList(object):
     def __init__(self):
-        super().__setattr__('attr', {})
-        
+        super().__setattr__('_attr', {})
+
+    def __getitem__(self, item):
+        if isinstance(item, bytes):
+            item = item.decode("utf-8")
+        return self._attr[item]
+
+    def __setitem__(self, item, value):
+        self._attr[item] = value
+
     def __getattr__(self, k):
+        if type(k) == 'bytes':
+            k = k.decode("utf-8")
+
         try:
-            return self.attr[k]
+            return self._attr[k]
         except KeyError:
             raise AttributeError        
             
     def __setattr__(self, key, value):
-        self.attr[key] = value
+        self._attr[key] = value
 
     def __delattr__(self, key):
-        del self.attr[key]
+        del self._attr[key]
 
-        
+    def __iter__(self):
+        return iter(self._attr)
+
+
+class _drawRange:
+    def __init__(self, start, count):
+        self.start = start
+        self.count = count
+
+
+class _groups:
+    def __init__(self, start, count, mi):
+        self.start = start
+        self.count = count
+        self.materialIndex = mi
+
+
 class BufferGeometry:
     MaxIndex = 65535
     count = 0
     isBufferGeometry = True
 
     def __init__(self):
-        self.id =  GeometryIdCount()
+        self.id = GeometryIdCount()
 
         self.uuid = _Math.generateUUID()
         self.name = ''
@@ -54,7 +83,8 @@ class BufferGeometry:
         self.groups = []
         self.boundingBox = None    
         self.boundingSphere = None
-        self.drawRange = { 'start': 0, 'count': float('+inf') }
+        self.drawRange = _drawRange(0, float('+inf'))
+        self.callback = None
 
     def getIndex(self):
         return self.index
@@ -79,7 +109,7 @@ class BufferGeometry:
             self.setIndex( attribute )
             return
 
-        self.attributes.__setattr__(name, attribute)
+        self.attributes[name] = attribute
         return self
         
     def getAttribute(self, name ):
@@ -90,15 +120,9 @@ class BufferGeometry:
         return self
         
     def addGroup(self, start, count, materialIndex ):
-        mi = materialIndex
-        if mi is  None:
-            mi = 0
-        self.groups.append( {
-            'start': start,
-            'count': count,
-            'materialIndex': mi
-        } )
-        
+        mi = 0 if materialIndex is None else materialIndex
+        self.groups.append( _groups(start, count, mi))
+
     def clearGroups(self):
         self.groups = []
         
@@ -610,7 +634,9 @@ class BufferGeometry:
         self.drawRange.count = source.drawRange.count
 
         return self
-        
+
+    def onDispose(self, callback):
+        self.callback = callback
+
     def dispose(self):
-        return None
-        
+        return self.callback(self)

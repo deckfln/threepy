@@ -67,7 +67,13 @@ class Object3D():
         self.material = None
 
         self.userData = {}
-        
+
+    def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
+        return True
+
+    def onAfterRender(self, renderer, scene, camera, geometry, material, group):
+        return True
+
     def onRotationChange(self, rotation):
         self._rotation = rotation
         self._quaternion.setFromEuler(rotation, False)

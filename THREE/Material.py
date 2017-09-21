@@ -9,9 +9,9 @@ from THREE.Constants import *
 
 _materialId = 0
 
-
-
 # // TODO: Copied from Object3D.toJSON
+
+
 def _extractFromCache( cache ):
     values = []
 
@@ -21,6 +21,38 @@ def _extractFromCache( cache ):
         values.push( data )
 
     return values
+
+
+class _uniform:
+    def __init__(self, dict):
+        self.type = dict['type']
+        self.value = dict['value']
+        self.needsUpdate = True
+
+
+class _uniforms:
+    def __init__(self, lst):
+        super().__setattr__('_uniforms', {})
+        for uniform in lst:
+            self._uniforms[uniform] = _uniform(lst[uniform])
+
+    def __getattr__(self, item):
+        try:
+            return self._uniforms[item]
+        except KeyError:
+            raise AttributeError
+
+    def __setattr__(self, key, value):
+        self._uniforms[key] = value
+
+    def __delattr__(self, item):
+        del self._uniforms[item]
+
+    def __iter__(self):
+        return iter(self._uniforms)
+
+    def __getitem__(self, item):
+        return self._uniforms[item]
 
 
 class Material():
@@ -82,10 +114,32 @@ class Material():
 
         self.needsUpdate = True
 
+        #FDE addition
         self.defines = None
+        self.map = None
+        self.envMap = None
+        self.lightMap = None
+        self.aoMap = None
+        self.emissiveMap = None
+        self.bumpMap = None
+        self.normalMap = None
+        self.displacementMap = None
+        self.roughnessMap = None
+        self.metalnessMap = None
+        self.specularMap = None
+        self.alphaMap = None
+        self.gradientMap = None
+        self.combine = False
+        self.sizeAttenuation = 0
+        self.depthPacking = False
 
-    def onBeforeCompile(self):
+        self.callback = None
+
+    def onBeforeCompile(self, shader):
         return True
+
+    def onDispose(self, callback):
+        self.callback = callback
 
     def __getitem__(self, item):
         return self.__dict__[item]
@@ -123,6 +177,8 @@ class Material():
             elif key == 'overdraw':
                 # // ensure overdraw is backwards-compatible with legacy boolean type
                 self[ key ] = Number( newValue )
+            elif key == 'uniforms':
+                self[key] = _uniforms(newValue)
             else:
                 self[ key ] = newValue
 
@@ -326,5 +382,6 @@ class Material():
 
         return self
 
-    def dispose(self):
-        return True
+    def dispose(self, callback):
+        if self.callback:
+            self.callback(self)

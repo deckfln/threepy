@@ -60,6 +60,7 @@ emptyCubeTexture = CubeTexture()
 
 # // --- Base for inner nodes (including the root) ---
 
+
 class UniformContainer():
     def __init__(self):
         self.seq = []
@@ -126,6 +127,7 @@ def allocTexUnits( renderer, n ):
 
 # // --- Uniform Classes ---
 
+
 class SingleUniform:
     def __init__(self, id, activeInfo, addr ):
         self.id = id
@@ -160,21 +162,21 @@ class SingleUniform:
 
     # // Single scalar
 
-    def setValue1f(self, v):
+    def setValue1f(self, v, renderer=None):
         glUniform1f(self.addr, v)
 
-    def setValue1i(self, v):
+    def setValue1i(self, v, renderer=None):
         glUniform1i(self.addr, v)
 
         # // Single float vector (from flat array or THREE.VectorN)
 
-    def setValue2fv(self, v):
+    def setValue2fv(self, v, renderer=None):
         if v.x is None:
             glUniform2fv(self.addr, v)
         else:
             glUniform2f(self.addr, v.x, v.y)
 
-    def setValue3fv(self, v):
+    def setValue3fv(self, v, renderer=None):
         if v.x is not None:
             glUniform3f(self.addr, v.x, v.y, v.z)
         elif v.r is not None:
@@ -182,7 +184,7 @@ class SingleUniform:
         else:
             glUniform3fv(self.addr, v)
 
-    def setValue4fv(self, v):
+    def setValue4fv(self, v, renderer=None):
         if v.x is None:
             glUniform4fv(self.addr, v)
         else:
@@ -190,17 +192,17 @@ class SingleUniform:
 
     # // Single matrix (from flat array or MatrixN)
 
-    def setValue2fm(self, v):
+    def setValue2fm(self, v, renderer=None):
         glUniformMatrix2fv(self.addr, 1, GL_FALSE, v.elements or v)
 
-    def setValue3fm(self, v):
+    def setValue3fm(self, v, renderer=None):
         if v.elements is None:
             glUniformMatrix3fv(self.addr, GL_FALSE, v)
         else:
             mat3array.set(v.elements)
             glUniformMatrix3fv(self.addr, 1, GL_FALSE, mat3array)
 
-    def setValue4fm(self, v):
+    def setValue4fm(self, v, renderer=None):
         if v.elements is None:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
         else:
@@ -223,13 +225,13 @@ class SingleUniform:
 
     # // Integer / Boolean vectors or arrays thereof (always flat arrays)
 
-    def setValue2iv(self, v):
+    def setValue2iv(self, v, renderer=None):
         glUniform2iv(self.addr, v)
 
-    def setValue3iv(self, v):
+    def setValue3iv(self, v, renderer=None):
         glUniform3iv(self.addr, v)
 
-    def setValue4iv(self, v):
+    def setValue4iv(self, v, renderer=None):
         glUniform4iv(self.addr, v)
 
     # // self.path = activeInfo.name; # // DEBUG
@@ -268,32 +270,32 @@ class PureArrayUniform():
 
     # // Array of scalars
 
-    def setValue1fv(self, v):
+    def setValue1fv(self, v, renderer=None):
         glUniform1fv(self.addr, v)
 
-    def setValue1iv(self, v):
+    def setValue1iv(self, v, renderer=None):
         glUniform1iv(self.addr, v)
 
     # // Array of vectors (flat or from THREE classes)
 
-    def setValueV2a(self, v):
+    def setValueV2a(self, v, renderer=None):
         glUniform2fv(self.addr, flatten(v, self.size, 2))
 
-    def setValueV3a(self, v):
+    def setValueV3a(self, v, renderer=None):
         glUniform3fv(self.addr, flatten(v, self.size, 3))
 
-    def setValueV4a(self, v):
+    def setValueV4a(self, v, renderer=None):
         glUniform4fv(self.addr, flatten(v, self.size, 4))
 
     # // Array of matrices (flat or from THREE clases)
 
-    def setValueM2a(self, v):
+    def setValueM2a(self, v, renderer=None):
         glUniformMatrix2fv(self.addr, GL_FALSE, flatten(v, self.size, 4))
 
-    def setValueM3a(self, v):
+    def setValueM3a(self, v, renderer=None):
         glUniformMatrix3fv(self.addr, GL_FALSE, flatten(v, self.size, 9))
 
-    def setValueM4a(self, v):
+    def setValueM4a(self, v, renderer=None):
         glUniformMatrix4fv(self.addr, GL_FALSE, flatten(v, self.size, 16))
 
     # // Array of textures (2D / Cube)
@@ -410,31 +412,30 @@ class pyOpenGLUniforms( UniformContainer ):
             parseUniform( info, addr, self )
 
     def setValue(self, gl, name, value ):
-        u = self.map[ name ]
+        if name in self.map:
+            u = self.map[ name ]
 
-        if u is not None:
             # TODO, what is self.renderer used for ?
             # u.setValue( value, self.renderer )
-            u.setValue( value )
+            u.setValue(value)
 
     def setOptional(self, gl, object, name ):
-        v = object[ name ]
-
-        if v is not None:
+        if name in object:
+            v = object[ name ]
             self.setValue( gl, name, v )
 
 # // Static interface
 
-    def upload(self, gl, seq, values, renderer ):
+    def upload(gl, seq, values, renderer ):
         for i in range(len(seq)):
             u = seq[ i ]
             v = values[ u.id ]
 
             if v.needsUpdate:
                 # // note: always updating when .needsUpdate is undefined
-                u.setValue( gl, v.value, renderer )
+                u.setValue( v.value, renderer )
 
-    def seqWithValue(self, seq, values ):
+    def seqWithValue(seq, values):
         r = []
 
         for i in range(len(seq)):
@@ -443,3 +444,4 @@ class pyOpenGLUniforms( UniformContainer ):
                 r.append( u )
 
         return r
+

@@ -31,7 +31,9 @@ def pyOpenGLShader(type, string):
             t = 'vertex'
         else:
             t = 'fragment'
-        print('THREE.WebGLShader: gl.getShaderInfoLog()', t, glGetShaderInfoLog(shader), addLineNumbers(string))
+        log = glGetShaderInfoLog(shader)
+        print(log.decode("utf-8"))
+        print(addLineNumbers(string))
         raise RuntimeError('THREE.WebGLShader: Shader couldn\'t compile.')
 
 
@@ -58,17 +60,18 @@ def getEncodingComponents(encoding):
     if encoding in _enc:
         return _enc[encoding]
         
-    raise('unsupported encoding: ' + encoding)
+    print('getEncodingComponents: unsupported encoding: %s ' % encoding)
+    return ""
 
 
 def getTexelDecodingFunction(functionName, encoding):
     components = getEncodingComponents(encoding)
-    return "vec4 " + functionName + "(vec4 value) { return " + components[0] + "ToLinear" + components[1] + "; }"
+    return "vec4 %s (vec4 value) { return %sToLinear%s; }" % (functionName, components[0], components[1])
 
 
 def getTexelEncodingFunction(functionName, encoding):
     components = getEncodingComponents(encoding)
-    return "vec4 " + functionName + "(vec4 value) { return LinearTo" + components[0] + components[1] + "; }"
+    return "vec4 %s (vec4 value) { return LinearTo%s%s;}" % (functionName, components[0], components[1])
 
 
 _tone_mapping = {
@@ -200,16 +203,22 @@ class _AttributeLocations:
             self._attributes[ name ] = glGetAttribLocation( program, name )
 
     def __getattr__(self, item):
-        bytes = item.encode("utf-8")
+        bytes = item.decode("utf-8")
         if bytes in self._attributes:
             return self._attributes[bytes]
 
         #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
         return None
 
-    def has(self, item):
-        bytes = item.encode("utf-8")
-        return bytes in self._attributes
+    def __iter__(self):
+        return iter(self._attributes)
+
+    def __getitem__(self, item):
+        if item in self._attributes:
+            return self._attributes[item]
+
+        #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
+        return None
 
 
 class pyOpenGLProgram:
@@ -222,15 +231,15 @@ class pyOpenGLProgram:
 
         defines = material.defines
 
-        vertexShader = shader.vertexShader
-        fragmentShader = shader.fragmentShader
+        vertexShader = shader['vertexShader']
+        fragmentShader = shader['fragmentShader']
 
         shadowMapTypeDefine = 'SHADOWMAP_TYPE_BASIC'
 
         if 'shadowMapType' in parameters:
-            if parameters.shadowMapType == PCFShadowMap:
+            if parameters['shadowMapType'] == PCFShadowMap:
                 shadowMapTypeDefine = 'SHADOWMAP_TYPE_PCF'
-            elif parameters.shadowMapType == PCFSoftShadowMap:
+            elif parameters['shadowMapType'] == PCFSoftShadowMap:
                 shadowMapTypeDefine = 'SHADOWMAP_TYPE_PCF_SOFT'
 
         envMapTypeDefine = 'ENVMAP_TYPE_CUBE'
@@ -290,7 +299,7 @@ class pyOpenGLProgram:
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
-                '#define SHADER_NAME ' + shader.name,
+                '#define SHADER_NAME ' + shader['name'],
 
                 customDefines,
 
@@ -396,7 +405,7 @@ class pyOpenGLProgram:
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
-                '#define SHADER_NAME ' + shader.name,
+                '#define SHADER_NAME ' + shader['name'],
 
                 customDefines,
 

@@ -35,7 +35,7 @@ def _allocateBones(object, capabilities):
         
 def _getTextureEncodingFromMap(map, gammaOverrideLinear):
     if not map:
-        encoding = LinearEncoding
+        encoding = 'LinearEncoding'
     elif map.isTexture:
         encoding = map.encoding
     elif map.isWebGLRenderTarget:
@@ -43,7 +43,7 @@ def _getTextureEncodingFromMap(map, gammaOverrideLinear):
         encoding = map.texture.encoding
 
     # // add backwards compatibility for WebGLRenderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
-    if encoding == LinearEncoding and gammaOverrideLinear:
+    if encoding == 'LinearEncoding' and gammaOverrideLinear:
         encoding = GammaEncoding
 
     return encoding
@@ -86,7 +86,7 @@ class pyOpenGLPrograms:
         self.renderer = renderer
 
     def getParameters(self, material, lights, shadows, fog, nClipPlanes, nClipIntersection, object):
-        shaderID = self.shaderIDs[ material.type ]
+        shaderID = self.shaderIDs[ material.type ] if material.type in self.shaderIDs else None
 
         # // heuristics to create shader parameters according to lights in the scene
         # // (not to blow over maxLights budget)
@@ -108,7 +108,7 @@ class pyOpenGLPrograms:
 
             'precision': precision,
             'supportsVertexTextures': self.capabilities.vertexTextures,
-            'outputEncoding': _getTextureEncodingFromMap(currentRenderTarget.texture if not currentRenderTarget else None , self.renderer.gammaOutput),
+            'outputEncoding': _getTextureEncodingFromMap(currentRenderTarget.texture if currentRenderTarget else None, self.renderer.gammaOutput),
             'map': not not material.map,
             'mapEncoding': _getTextureEncodingFromMap(material.map, self.renderer.gammaInput),
             'envMap': not not material.envMap,
@@ -151,11 +151,11 @@ class pyOpenGLPrograms:
             'maxMorphTargets': self.renderer.maxMorphTargets,
             'maxMorphNormals': self.renderer.maxMorphNormals,
 
-            'numDirLights': lights.directional.length,
-            'numPointLights': lights.point.length,
-            'numSpotLights': lights.spot.length,
-            'numRectAreaLights': lights.rectArea.length,
-            'numHemiLights': lights.hemi.length,
+            'numDirLights': len(lights.directional),
+            'numPointLights': len(lights.point),
+            'numSpotLights': len(lights.spot),
+            'numRectAreaLights': len(lights.rectArea),
+            'numHemiLights': len(lights.hemi),
 
             'numClippingPlanes': nClipPlanes,
             'numClipIntersection': nClipIntersection,
@@ -182,11 +182,11 @@ class pyOpenGLPrograms:
     def getProgramCode(self, material, parameters ):
         array = []
 
-        if parameters.shaderID:
-            array.append(parameters.shaderID)
+        if parameters['shaderID']:
+            array.append(parameters['shaderID'])
         else:
-            array.append(material.fragmentShader)
-            array.append(material.vertexShader)
+            array.append(material['fragmentShader'])
+            array.append(material['vertexShader'])
 
         if material.defines is not None:
             for name in material.defines:
@@ -194,13 +194,13 @@ class pyOpenGLPrograms:
                 array.append(material.defines[name])
 
         for i in range(len(self.parameterNames)):
-            array.append(parameters[ self.parameterNames[i]])
+            array.append(str(parameters[ self.parameterNames[i]]))
 
-        array.append(material.onBeforeCompile.toString())
+        array.append(str(material.onBeforeCompile))
 
-        array.append(self.renderer.gammaOutput)
+        array.append(str(self.renderer.gammaOutput))
 
-        return " ".join(array)
+        return "\n".join(array)
 
     def acquireProgram(self,  material, shader, parameters, code):
         program = None

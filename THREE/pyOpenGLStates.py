@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from array import *
+import numpy as np
 import re
 from OpenGL.GL import *
 from THREE.Constants import *
@@ -26,15 +26,17 @@ class _ColorBuffer:
     def setLocked(self, lock ):
         self.locked = lock
 
-    def setClear(self, r, g, b, a, premultipliedAlpha=None ):
-        if  premultipliedAlpha:
-            r *= a; g *= a; b *= a
+    def setClear(self, r, g, b, a, premultipliedAlpha=None):
+        if premultipliedAlpha:
+            r *= a
+            g *= a
+            b *= a
 
-        self.color.set( r, g, b, a )
+        self.color.set(r, g, b, a)
 
-        if  not self.currentColorClear.equals( self.color ):
-            glClearColor( r, g, b, a )
-            self.currentColorClear.copy( self.color )
+        if not self.currentColorClear.equals(self.color):
+            glClearColor(r, g, b, a)
+            self.currentColorClear.copy(self.color)
 
         return self
 
@@ -45,6 +47,7 @@ class _ColorBuffer:
         self.currentColorClear.set( - 1, 0, 0, 0 ) # // set to invalid state
         return self
 
+
 class _DepthBuffer():
     def __init__(self, parent):
         self.locked = False
@@ -54,49 +57,49 @@ class _DepthBuffer():
         self.currentDepthFunc = None
         self.currentDepthClear = None
 
-    def setTest(self, depthTest ):
+    def setTest(self, depthTest):
         if  depthTest:
-            self.parent.enable( GL_DEPTH_TEST )
+            self.parent.enable(GL_DEPTH_TEST)
         else:
-            self.parent.disable( GL_DEPTH_TEST )
+            self.parent.disable(GL_DEPTH_TEST)
 
-    def setMask(self, depthMask ):
+    def setMask(self, depthMask):
         if  self.currentDepthMask != depthMask and not self.locked:
-            glDepthMask( depthMask )
+            glDepthMask( depthMask)
             self.currentDepthMask = depthMask
 
-    def setFunc(self, depthFunc ):
+    def setFunc(self, depthFunc):
         if self.currentDepthFunc != depthFunc:
             if depthFunc:
                 if depthFunc == NeverDepth:
-                        glDepthFunc( GL_NEVER )
+                        glDepthFunc(GL_NEVER)
                 elif depthFunc == AlwaysDepth:
-                        glDepthFunc( GL_ALWAYS )
+                        glDepthFunc(GL_ALWAYS)
                 elif depthFunc == LessDepth:
-                        glDepthFunc( GL_LESS )
+                        glDepthFunc(GL_LESS)
                 elif depthFunc == LessEqualDepth:
-                        glDepthFunc( GL_LEQUAL )
+                        glDepthFunc(GL_LEQUAL)
                 elif depthFunc == EqualDepth:
-                        glDepthFunc( GL_EQUAL )
+                        glDepthFunc(GL_EQUAL)
                 elif depthFunc == GreaterEqualDepth:
-                        glDepthFunc( GL_GEQUAL )
+                        glDepthFunc(GL_GEQUAL)
                 elif depthFunc == GreaterDepth:
-                        glDepthFunc( GL_GREATER )
+                        glDepthFunc(GL_GREATER)
                 elif depthFunc == NotEqualDepth:
-                        glDepthFunc( GL_NOTEQUAL )
+                        glDepthFunc(GL_NOTEQUAL)
                 else:
-                        glDepthFunc( GL_LEQUAL )
+                        glDepthFunc(GL_LEQUAL)
             else:
-                glDepthFunc( GL_LEQUAL )
+                glDepthFunc(GL_LEQUAL)
 
             self.currentDepthFunc = depthFunc
 
-    def setLocked(self, lock ):
-        locked = lock
+    def setLocked(self, lock):
+        self.locked = lock
 
-    def setClear(self, depth ):
-        if  self.currentDepthClear != depth:
-            glClearDepth( depth )
+    def setClear(self, depth):
+        if self.currentDepthClear != depth:
+            glClearDepth(depth)
             self.currentDepthClear = depth
         return self
 
@@ -121,11 +124,11 @@ class _StencilBuffer:
         self.currentStencilZPass = None
         self.currentStencilClear = None
 
-    def setTest(self, stencilTest ):
-        if  stencilTest:
-            self.parent.enable( GL_STENCIL_TEST )
+    def setTest(self, stencilTest):
+        if stencilTest:
+            self.parent.enable(GL_STENCIL_TEST)
         else:
-            self.parent.disable( GL_STENCIL_TEST )
+            self.parent.disable(GL_STENCIL_TEST)
 
     def setMask(self, stencilMask ):
         if  self.currentStencilMask != stencilMask and not self.locked:
@@ -190,15 +193,15 @@ class _Buffers:
     
     
 def createTexture( type, target, count ):
-    data = array('B', 4 )     # // 4 is required to match default unpack alignment of 4.
-    texture = glCreateTextures(1)
+    data = np.zeros(4, 'B')     # // 4 is required to match default unpack alignment of 4.
+    texture = glGenTextures(1)
 
-    glBindTexture( type, texture )
-    glTexParameteri( type, GL_TEXTURE_MIN_FILTER, GL_NEAREST )
-    glTexParameteri( type, GL_TEXTURE_MAG_FILTER, GL_NEAREST )
+    glBindTexture(type, texture)
+    glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
     for i in range(count):
-        glTexImage2D( target + i, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data )
+        glTexImage2D( target + i, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
     return texture
 
@@ -206,9 +209,9 @@ def createTexture( type, target, count ):
 class pyOpenGLState:
     def __init__(self, extensions, utils):
         maxVertexAttributes = glGetIntegerv( GL_MAX_VERTEX_ATTRIBS )
-        self.newAttributes = array('B', maxVertexAttributes )
-        self.enabledAttributes = array('B', maxVertexAttributes )
-        self.attributeDivisors = array('B', maxVertexAttributes )
+        self.newAttributes = np.zeros(maxVertexAttributes, 'B')
+        self.enabledAttributes = np.zeros(maxVertexAttributes, 'B')
+        self.attributeDivisors = np.zeros(maxVertexAttributes, 'B')
 
         self.capabilities = {}
 
@@ -252,7 +255,7 @@ class pyOpenGLState:
         }
 
         # // init
-        self.colorBuffer = _ColorBuffer(self).setClear( 0, 0, 0, 1 )
+        self.colorBuffer = _ColorBuffer().setClear( 0, 0, 0, 1 )
         self.depthBuffer = _DepthBuffer(self).setClear( 1 )
         self.stencilBuffer = _StencilBuffer(self).setClear( 0 )
         self.buffers = _Buffers(self.colorBuffer, self.depthBuffer, self.stencilBuffer)
@@ -304,14 +307,20 @@ class pyOpenGLState:
                 self.enabledAttributes[ i ] = 0
 
     def enable(self, id ):
-        if not self.capabilities[ id ] != True:
-            glEnable( id )
-            self.capabilities[ id ] = True
+        if id not in self.capabilities:
+            self.capabilities[id] = False
+
+        if not self.capabilities[id]:
+            glEnable(id)
+            self.capabilities[id] = True
 
     def disable(self, id ):
-        if  self.capabilities[ id ] != False:
-            glDisable( id )
-            self.capabilities[ id ] = False
+        if not id in self.capabilities:
+            return
+
+        if self.capabilities[id]:
+            glDisable(id)
+            self.capabilities[id] = False
 
     def getCompressedTextureFormats(self):
         if  self.compressedTextureFormats is None:
@@ -328,7 +337,7 @@ class pyOpenGLState:
         return self.compressedTextureFormats
 
     def useProgram(self, program ):
-        if  self.currentProgram != program:
+        if self.currentProgram != program:
             glUseProgram( program )
             self.currentProgram = program
             return True
@@ -452,7 +461,7 @@ class pyOpenGLState:
 
             self.currentLineWidth = width
 
-    def setPolygonOffset(self, polygonOffset, factor, units ):
+    def setPolygonOffset(self, polygonOffset, factor=None, units=None):
         if  polygonOffset:
             self.enable( GL_POLYGON_OFFSET_FILL )
             if self.currentPolygonOffsetFactor != factor or self.currentPolygonOffsetUnits != units:
