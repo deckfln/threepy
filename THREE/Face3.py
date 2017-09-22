@@ -14,11 +14,11 @@ class Face3:
         self.b = b
         self.c = c
 
-        self.normal = normal if ( normal and hasattr(normal, 'isVector3' )) else Vector3()
-        self.vertexNormals = normal if type( normal ) == 'array' else []
+        self.normal = normal if ( normal and normal.isVector3) else Vector3()
+        self.vertexNormals = normal if isinstance( normal, list) else []
 
-        self.color = color if ( color and hasattr(color, 'isColor')) else Color()
-        self.vertexColors = color if type(color) == 'array' else []
+        self.color = color if ( color and color.isColor) else Color()
+        self.vertexColors = color if isinstance(color, list) else []
 
         self.materialIndex = materialIndex if materialIndex is not None else 0
 

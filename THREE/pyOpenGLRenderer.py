@@ -10,21 +10,55 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from THREE import *
+import THREE._Math as _Math
 from ctypes import c_void_p
+from THREE.ShaderLib import *
+from THREE.Javascript import *
 
 
 """
-****************************************************
+stubs
 """
 class pyOpenGLShadowMap:
-    def __init__(self):
+    def __init__(self, _renderer, _objects, maxTextureSize):
         self.enabled = False
         self.type = 0
 
-    def render(self):
+    def render(self, lights, scene, camera):
         return True
 
 
+class pyOpenGLBackground:
+    def __init__(self, renderer, state, geometries, premultipliedAlpha):
+        self.renderer = renderer
+
+    def render(self, renderList, scene, camera, forceClear):
+        return True
+
+
+class pyOpenGLSpriteRenderer:
+    def __init__(self, renderer, state, textures, capabilities ):
+        self.renderer = renderer
+
+    def render(self, sprites, scene, camera):
+        return True
+
+
+class pyOpenGLFlareRenderer:
+    def __init__(self, renderer, state, textures, capabilities ) :
+        self.renderer = renderer
+
+    def render(self, flares, scene, camera, viewport):
+        return True
+
+
+class pyOpenGLTextures:
+    def __init__(self, extensions, state, properties, capabilities, utils, infoMemory ):
+        self.extensions = extensions
+
+
+"""
+"""
 class RenderTarget:
     def __init__(self):
         self.texture = None
@@ -162,238 +196,6 @@ class _AttributeLocations:
         return bytes in self._attributes
 
 
-def _refreshUniformsCommon(uniforms, material):
-    """
-    // Uniforms (refresh uniforms objects)
-    """
-    uniforms.opacity.value = material.opacity
-
-    if material.color:
-        uniforms.diffuse.value = material.color
-
-    if material.emissive:
-        uniforms.emissive.value.copy(material.emissive).multiplyScalar(material.emissiveIntensity)
-
-    if material.map:
-        uniforms.map.value = material.map
-
-    if material.alphaMap:
-        uniforms.alphaMap.value = material.alphaMap
-
-    if material.specularMap:
-        uniforms.specularMap.value = material.specularMap
-
-    if material.envMap:
-        uniforms.envMap.value = material.envMap
-
-        # // don't flip CubeTexture envMaps, flip everything else:
-        # //  WebGLRenderTargetCube will be flipped for backwards compatibility
-        # //  WebGLRenderTargetCube.texture will be flipped because it's a Texture and NOT a CubeTexture
-        # // this check must be handled differently, or removed entirely, if WebGLRenderTargetCube uses a CubeTexture in the future
-        uniforms.flipEnvMap.value = 1 if (not (material.envMap and material.envMap.isCubeTexture)) else - 1
-        uniforms.reflectivity.value = material.reflectivity
-        uniforms.refractionRatio.value = material.refractionRatio
-
-    if material.lightMap:
-        uniforms.lightMap.value = material.lightMap
-        uniforms.lightMapIntensity.value = material.lightMapIntensity
-
-    if material.aoMap:
-        uniforms.aoMap.value = material.aoMap
-        uniforms.aoMapIntensity.value = material.aoMapIntensity
-
-    #    // uv repeat and offset setting priorities
-    #    // 1. color map
-    #    // 2. specular map
-    #    // 3. normal map
-    #    // 4. bump map
-    #    // 5. alpha map
-    #    // 6. emissive map
-
-    uvScaleMap = None
-    if material.map:
-        uvScaleMap = material.map
-    elif material.specularMap:
-        uvScaleMap = material.specularMap
-    elif material.displacementMap:
-        uvScaleMap = material.displacementMap
-    elif material.normalMap:
-        uvScaleMap = material.normalMap
-    elif material.bumpMap:
-        uvScaleMap = material.bumpMap
-    elif material.roughnessMap:
-        uvScaleMap = material.roughnessMap
-    elif material.metalnessMap:
-        uvScaleMap = material.metalnessMap
-    elif material.alphaMap:
-        uvScaleMap = material.alphaMap
-    elif material.emissiveMap:
-        uvScaleMap = material.emissiveMap
-
-    if uvScaleMap is not None:
-        # // backwards compatibility
-        if hasattr(uvScaleMap, 'isWebGLRenderTarget'):
-            uvScaleMap = uvScaleMap.texture
-
-        offset = uvScaleMap.offset
-        repeat = uvScaleMap.repeat
-
-        uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
-
-
-def _refreshUniformsPhong(uniforms, material):
-    uniforms.specular.value = material.specular
-    uniforms.shininess.value = max(material.shininess, 1e-4)  # // to prevent pow( 0.0, 0.0 )
-
-    if material.emissiveMap:
-        uniforms.emissiveMap.value = material.emissiveMap
-
-    if material.bumpMap:
-        uniforms.bumpMap.value = material.bumpMap
-        uniforms.bumpScale.value = material.bumpScale
-
-    if material.normalMap:
-        uniforms.normalMap.value = material.normalMap
-        uniforms.normalScale.value.copy(material.normalScale)
-
-    if material.displacementMap:
-        uniforms.displacementMap.value = material.displacementMap
-        uniforms.displacementScale.value = material.displacementScale
-        uniforms.displacementBias.value = material.displacementBias
-
-
-def _refreshUniformsToon(uniforms, material):
-    _refreshUniformsPhong(uniforms, material)
-
-    if material.gradientMap:
-        uniforms.gradientMap.value = material.gradientMap
-
-
-def _refreshUniformsLine(uniforms, material):
-    uniforms.diffuse.value = material.color
-    uniforms.opacity.value = material.opacity
-
-
-def _refreshUniformsDash(uniforms, material):
-    uniforms.dashSize.value = material.dashSize
-    uniforms.totalSize.value = material.dashSize + material.gapSize
-    uniforms.scale.value = material.scale
-
-
-def _refreshUniformsPoints(uniforms, material):
-    uniforms.diffuse.value = material.color
-    uniforms.opacity.value = material.opacity
-    uniforms.size.value = material.size * _pixelRatio
-    uniforms.scale.value = _height * 0.5
-
-    uniforms.map.value = material.map
-
-    if material.map is not None:
-        offset = material.map.offset
-        repeat = material.map.repeat
-
-        uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
-
-
-def _refreshUniformsFog(uniforms, fog):
-    uniforms.fogColor.value = fog.color
-
-    if hasattr(fog, 'isFog'):
-        uniforms.fogNear.value = fog.near
-        uniforms.fogFar.value = fog.far
-    elif hasattr(fog, 'isFogExp2'):
-        uniforms.fogDensity.value = fog.density
-
-
-def _refreshUniformsLambert(uniforms, material):
-    if material.emissiveMap:
-        uniforms.emissiveMap.value = material.emissiveMap
-
-
-def _refreshUniformsStandard(uniforms, material):
-    uniforms.roughness.value = material.roughness
-    uniforms.metalness.value = material.metalness
-
-    if material.roughnessMap:
-        uniforms.roughnessMap.value = material.roughnessMap
-
-    if material.metalnessMap:
-        uniforms.metalnessMap.value = material.metalnessMap
-
-    if material.emissiveMap:
-        uniforms.emissiveMap.value = material.emissiveMap
-
-    if material.bumpMap:
-        uniforms.bumpMap.value = material.bumpMap
-        uniforms.bumpScale.value = material.bumpScale
-
-    if material.normalMap:
-        uniforms.normalMap.value = material.normalMap
-        uniforms.normalScale.value.copy(material.normalScale)
-
-    if material.displacementMap:
-        uniforms.displacementMap.value = material.displacementMap
-        uniforms.displacementScale.value = material.displacementScale
-        uniforms.displacementBias.value = material.displacementBias
-
-    if material.envMap:
-        # //uniforms.envMap.value = material.envMap; // part of uniforms common
-        uniforms.envMapIntensity.value = material.envMapIntensity
-
-
-def _refreshUniformsPhysical(uniforms, material):
-    uniforms.clearCoat.value = material.clearCoat
-    uniforms.clearCoatRoughness.value = material.clearCoatRoughness
-
-    _refreshUniformsStandard(uniforms, material)
-
-
-def _refreshUniformsDepth(uniforms, material):
-    if material.displacementMap:
-        uniforms.displacementMap.value = material.displacementMap
-        uniforms.displacementScale.value = material.displacementScale
-        uniforms.displacementBias.value = material.displacementBias
-
-
-def _refreshUniformsDistance(uniforms, material):
-    if material.displacementMap:
-        uniforms.displacementMap.value = material.displacementMap
-        uniforms.displacementScale.value = material.displacementScale
-        uniforms.displacementBias.value = material.displacementBias
-
-    uniforms.referencePosition.value.copy(material.referencePosition)
-    uniforms.nearDistance.value = material.nearDistance
-    uniforms.farDistance.value = material.farDistance
-
-
-def _refreshUniformsNormal(uniforms, material):
-    if material.bumpMap:
-        uniforms.bumpMap.value = material.bumpMap
-        uniforms.bumpScale.value = material.bumpScale
-
-    if material.normalMap:
-        uniforms.normalMap.value = material.normalMap
-        uniforms.normalScale.value.copy(material.normalScale)
-
-    if material.displacementMap:
-        uniforms.displacementMap.value = material.displacementMap
-        uniforms.displacementScale.value = material.displacementScale
-        uniforms.displacementBias.value = material.displacementBias
-
-
-def _markUniformsLightsNeedsUpdate(uniforms, value):
-    """
-    // If uniforms are marked as clean, they don't need to be loaded to the GPU.
-    """
-    uniforms.ambientLightColor.needsUpdate = value
-
-    uniforms.directionalLights.needsUpdate = value
-    uniforms.pointLights.needsUpdate = value
-    uniforms.spotLights.needsUpdate = value
-    uniforms.rectAreaLights.needsUpdate = value
-    uniforms.hemisphereLights.needsUpdate = value
-
-
 class _infoMemory:
     def __init__(self):
         self.geometries = 0
@@ -422,15 +224,22 @@ class _vr:
 
 
 class Renderer:
-    def __init__(self, reshape, render, keyboard, mouse, motion, update):
+    def __init__(self, parameters=None, reshape=None, render=None, keyboard=None, mouse=None, motion=None, update=None):
         self.name = "pyOpenGL"
         self._init_glut(reshape, render, keyboard, mouse, motion, update)
         self._init_opengl()
-        self.shadowMap = pyOpenGLShadowMap()
+        self.parameters = parameters or {}
 
+        """
+        """
+        self._premultipliedAlpha = self.parameters.premultipliedAlpha if hasattr(self.parameters, 'premultipliedAlpha') else True
+        """
+        """
         self.shadowsArray = []
         self.lightsArray = []
-        self.currentRenderList = []
+
+        self.currentRenderList = None
+
         self.spritesArray = []
         self.flaresArray = []
         """
@@ -455,7 +264,7 @@ class Renderer:
         """
         // physically based shading
         """
-        self.gammaFactor = 2.0  // for backwards compatibility
+        self.gammaFactor = 2.0  # // for backwards compatibility
         self.gammaOutput = False
         self.gammaInput = True
         """
@@ -520,33 +329,52 @@ class Renderer:
         self._infoRender = _infoRender()
         self.info = _info(self._infoRender, self._infoMemory, None)
 
-        self.attributes = pyOpenGLAttributes()
         self.utils = pyOpenGLUtils(self.extensions)
+
         self.capabilities = pyOpenGLCapabilities(self.extensions, {})
+
         self.state = pyOpenGLState(self.extensions, self.utils)
+        self.state.scissor(self._currentScissor.copy(self._scissor).multiplyScalar(self._pixelRatio))
+        self.state.viewport(self._currentViewport.copy(self._viewport).multiplyScalar(self._pixelRatio))
+
         self.properties = pyOpenGLProperties()
+        self.textures = pyOpenGLTextures(self.extensions, self.state, self.properties, self.capabilities, self.utils, self._infoMemory)
+        self.attributes = pyOpenGLAttributes()
         self.geometries = pyOpenGLGeometries(self.attributes, self._infoMemory)
         self.objects = pyOpenGLObjects(self.geometries, self._infoRender)
         self.programCache = pyOpenGLPrograms(self, self.extensions, self.capabilities)
         self.lights = pyOpenGLLights()
         self.renderLists = pyOpenGLRenderLists()
-        """
-        """
+
+        self.background = pyOpenGLBackground(self, self.state, self.geometries, self._premultipliedAlpha)
+
         self.bufferRenderer = pyOpenGLBufferRenderer(self.extensions, self._infoRender)
         self.indexedBufferRenderer = pyOpenGLIndexedBufferRenderer(self.extensions, self._infoRender)
+
+        self.flareRenderer = pyOpenGLFlareRenderer( self, self.state, self.textures, self.capabilities )
+        self.spriteRenderer = pyOpenGLSpriteRenderer( self, self.state, self.textures, self.capabilities )
+
+        self.info.programs = self.programCache.programs
+
         """
         """
         self.model = None
         self.program = None
         """
         """
-        """
-        """
-        self._projScreenMatrix = None
+        self._projScreenMatrix = Matrix4()
         self.renderList = []
         """
+        // vr
         """
         self.vr = _vr()
+        """
+        // shadow map
+        """
+        self.shadowMap = pyOpenGLShadowMap(self, self.objects, self.capabilities.maxTextureSize)
+
+    def _getTargetPixelRatio(self):
+        return self._pixelRatio if self._currentRenderTarget is None else 1
 
     def prepare(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -621,20 +449,20 @@ class Renderer:
         # // load material specific uniforms
         # // (shader material also gets them for the sake of genericity)
 
-        if hasattr(material, 'isShaderMaterial') or \
-                hasattr(material, 'isMeshPhongMaterial') or \
-                hasattr(material, 'isMeshStandardMaterial') or \
+        if material.isShaderMaterial or \
+                material.isMeshPhongMaterial or \
+                material.isMeshStandardMaterial or \
                 material.envMap:
 
             if 'cameraPosition' in p_uniforms.map:
                 uCamPos = p_uniforms.map['cameraPosition']
                 uCamPos.setValue(None, Vector3().setFromMatrixPosition(camera.matrixWorld))
 
-        if hasattr(material, 'isMeshPhongMaterial') or \
-                hasattr(material, 'isMeshLambertMaterial') or \
-                hasattr(material, 'isMeshBasicMaterial') or \
-                hasattr(material, 'isMeshStandardMaterial') or \
-                hasattr(material, 'isShaderMaterial') or \
+        if material.isMeshPhongMaterial or \
+                material.isMeshLambertMaterial or \
+                material.isMeshBasicMaterial or \
+                material.isMeshStandardMaterial or \
+                material.isShaderMaterial or \
                 material.skinning:
             p_uniforms.setValue(None, 'viewMatrix', camera.matrixWorldInverse)
 
@@ -693,60 +521,60 @@ class Renderer:
                 # // use the current material's .needsUpdate flags to set
                 # // the GL state when required
 
-                _markUniformsLightsNeedsUpdate(m_uniforms, refreshLights)
+                self._markUniformsLightsNeedsUpdate(m_uniforms, refreshLights)
 
             # // refresh uniforms common to several materials
 
             if fog and material.fog:
-                _refreshUniformsFog(m_uniforms, fog)
+                self._refreshUniformsFog(m_uniforms, fog)
 
-            if hasattr(material, 'isMeshBasicMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
+            if material.isMeshBasicMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshLambertMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
-                _refreshUniformsLambert(m_uniforms, material)
+            elif material.isMeshLambertMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
+                self._refreshUniformsLambert(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshPhongMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
+            elif material.isMeshPhongMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
 
-                if hasattr(material, 'isMeshToonMaterial'):
-                    _refreshUniformsToon(m_uniforms, material)
+                if material.isMeshToonMaterial:
+                    self._refreshUniformsToon(m_uniforms, material)
                 else:
-                    _refreshUniformsPhong(m_uniforms, material)
+                    self._refreshUniformsPhong(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshStandardMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
+            elif material.isMeshStandardMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
 
-                if hasattr(material, 'isMeshPhysicalMaterial'):
-                    _refreshUniformsPhysical(m_uniforms, material)
+                if material.isMeshPhysicalMaterial:
+                    self._refreshUniformsPhysical(m_uniforms, material)
                 else:
-                    _refreshUniformsStandard(m_uniforms, material)
+                    self._refreshUniformsStandard(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshNormalMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
+            elif material.isMeshNormalMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshDepthMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
-                _refreshUniformsDepth(m_uniforms, material)
+            elif material.isMeshDepthMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
+                self._refreshUniformsDepth(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshDistanceMaterial'):
-                _refreshUniformsCommon(m_uniforms, material)
-                _refreshUniformsDistance(m_uniforms, material)
+            elif material.isMeshDistanceMaterial:
+                self._refreshUniformsCommon(m_uniforms, material)
+                self._refreshUniformsDistance(m_uniforms, material)
 
-            elif hasattr(material, 'isMeshNormalMaterial'):
-                _refreshUniformsNormal(m_uniforms, material)
+            elif material.isMeshNormalMaterial:
+                self._refreshUniformsNormal(m_uniforms, material)
 
-            elif hasattr(material, 'isLineBasicMaterial'):
-                _refreshUniformsLine(m_uniforms, material)
+            elif material.isLineBasicMaterial:
+                self._refreshUniformsLine(m_uniforms, material)
 
-                if hasattr(material, 'isLineDashedMaterial'):
-                    _refreshUniformsDash(m_uniforms, material)
+                if material.isLineDashedMaterial:
+                    self._refreshUniformsDash(m_uniforms, material)
 
-            elif hasattr(material, 'isPointsMaterial'):
-                _refreshUniformsPoints(m_uniforms, material)
+            elif material.isPointsMaterial:
+                self._refreshUniformsPoints(m_uniforms, material)
 
-            elif hasattr(material, 'isShadowMaterial'):
+            elif material.isShadowMaterial:
                 m_uniforms.color.value = material.color
                 m_uniforms.opacity.value = material.opacity
 
@@ -768,6 +596,224 @@ class Renderer:
 
         return program
 
+    def _refreshUniformsCommon(self, uniforms, material):
+        """
+        // Uniforms (refresh uniforms objects)
+        """
+        uniforms.opacity.value = material.opacity
+
+        if material.color:
+            uniforms.diffuse.value = material.color
+
+        if material.emissive:
+            uniforms.emissive.value.copy(material.emissive).multiplyScalar(material.emissiveIntensity)
+
+        if material.map:
+            uniforms.map.value = material.map
+
+        if material.alphaMap:
+            uniforms.alphaMap.value = material.alphaMap
+
+        if material.specularMap:
+            uniforms.specularMap.value = material.specularMap
+
+        if material.envMap:
+            uniforms.envMap.value = material.envMap
+
+            # // don't flip CubeTexture envMaps, flip everything else:
+            # //  WebGLRenderTargetCube will be flipped for backwards compatibility
+            # //  WebGLRenderTargetCube.texture will be flipped because it's a Texture and NOT a CubeTexture
+            # // this check must be handled differently, or removed entirely, if WebGLRenderTargetCube uses a CubeTexture in the future
+            uniforms.flipEnvMap.value = 1 if (not (material.envMap and material.envMap.isCubeTexture)) else - 1
+            uniforms.reflectivity.value = material.reflectivity
+            uniforms.refractionRatio.value = material.refractionRatio
+
+        if material.lightMap:
+            uniforms.lightMap.value = material.lightMap
+            uniforms.lightMapIntensity.value = material.lightMapIntensity
+
+        if material.aoMap:
+            uniforms.aoMap.value = material.aoMap
+            uniforms.aoMapIntensity.value = material.aoMapIntensity
+
+        # // uv repeat and offset setting priorities
+        #    // 1. color map
+        #    // 2. specular map
+        #    // 3. normal map
+        #    // 4. bump map
+        #    // 5. alpha map
+        #    // 6. emissive map
+
+        uvScaleMap = None
+        if material.map:
+            uvScaleMap = material.map
+        elif material.specularMap:
+            uvScaleMap = material.specularMap
+        elif material.displacementMap:
+            uvScaleMap = material.displacementMap
+        elif material.normalMap:
+            uvScaleMap = material.normalMap
+        elif material.bumpMap:
+            uvScaleMap = material.bumpMap
+        elif material.roughnessMap:
+            uvScaleMap = material.roughnessMap
+        elif material.metalnessMap:
+            uvScaleMap = material.metalnessMap
+        elif material.alphaMap:
+            uvScaleMap = material.alphaMap
+        elif material.emissiveMap:
+            uvScaleMap = material.emissiveMap
+
+        if uvScaleMap is not None:
+            # // backwards compatibility
+            if hasattr(uvScaleMap, 'isWebGLRenderTarget'):
+                uvScaleMap = uvScaleMap.texture
+
+            offset = uvScaleMap.offset
+            repeat = uvScaleMap.repeat
+
+            uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
+
+    def _refreshUniformsLine(self, uniforms, material):
+        uniforms.diffuse.value = material.color
+        uniforms.opacity.value = material.opacity
+
+    def _refreshUniformsDash(self, uniforms, material):
+        uniforms.dashSize.value = material.dashSize
+        uniforms.totalSize.value = material.dashSize + material.gapSize
+        uniforms.scale.value = material.scale
+
+    def _refreshUniformsPoints(self, uniforms, material):
+        uniforms.diffuse.value = material.color
+        uniforms.opacity.value = material.opacity
+        uniforms.size.value = material.size * self._pixelRatio
+        uniforms.scale.value = self._height * 0.5
+
+        uniforms.map.value = material.map
+
+        if material.map is not None:
+            offset = material.map.offset
+            repeat = material.map.repeat
+
+            uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
+
+    def _refreshUniformsFog(self, uniforms, fog):
+        uniforms.fogColor.value = fog.color
+
+        if fog.isFog:
+            uniforms.fogNear.value = fog.near
+            uniforms.fogFar.value = fog.far
+        elif fog.isFogExp2:
+            uniforms.fogDensity.value = fog.density
+
+    def _refreshUniformsLambert(self, uniforms, material):
+        if material.emissiveMap:
+            uniforms.emissiveMap.value = material.emissiveMap
+
+    def _refreshUniformsPhong(self, uniforms, material):
+        uniforms.specular.value = material.specular
+        uniforms.shininess.value = max(material.shininess, 1e-4)  # // to prevent pow( 0.0, 0.0 )
+
+        if material.emissiveMap:
+            uniforms.emissiveMap.value = material.emissiveMap
+
+        if material.bumpMap:
+            uniforms.bumpMap.value = material.bumpMap
+            uniforms.bumpScale.value = material.bumpScale
+
+        if material.normalMap:
+            uniforms.normalMap.value = material.normalMap
+            uniforms.normalScale.value.copy(material.normalScale)
+
+        if material.displacementMap:
+            uniforms.displacementMap.value = material.displacementMap
+            uniforms.displacementScale.value = material.displacementScale
+            uniforms.displacementBias.value = material.displacementBias
+
+    def _refreshUniformsToon(self, uniforms, material):
+        self._refreshUniformsPhong(uniforms, material)
+
+        if material.gradientMap:
+            uniforms.gradientMap.value = material.gradientMap
+
+    def _refreshUniformsStandard(self, uniforms, material):
+        uniforms.roughness.value = material.roughness
+        uniforms.metalness.value = material.metalness
+
+        if material.roughnessMap:
+            uniforms.roughnessMap.value = material.roughnessMap
+
+        if material.metalnessMap:
+            uniforms.metalnessMap.value = material.metalnessMap
+
+        if material.emissiveMap:
+            uniforms.emissiveMap.value = material.emissiveMap
+
+        if material.bumpMap:
+            uniforms.bumpMap.value = material.bumpMap
+            uniforms.bumpScale.value = material.bumpScale
+
+        if material.normalMap:
+            uniforms.normalMap.value = material.normalMap
+            uniforms.normalScale.value.copy(material.normalScale)
+
+        if material.displacementMap:
+            uniforms.displacementMap.value = material.displacementMap
+            uniforms.displacementScale.value = material.displacementScale
+            uniforms.displacementBias.value = material.displacementBias
+
+        if material.envMap:
+            # //uniforms.envMap.value = material.envMap; // part of uniforms common
+            uniforms.envMapIntensity.value = material.envMapIntensity
+
+    def _refreshUniformsPhysical(self, uniforms, material):
+        uniforms.clearCoat.value = material.clearCoat
+        uniforms.clearCoatRoughness.value = material.clearCoatRoughness
+
+        self._refreshUniformsStandard(self, uniforms, material)
+
+    def _refreshUniformsDepth(self, uniforms, material):
+        if material.displacementMap:
+            uniforms.displacementMap.value = material.displacementMap
+            uniforms.displacementScale.value = material.displacementScale
+            uniforms.displacementBias.value = material.displacementBias
+
+    def _refreshUniformsDistance(self, uniforms, material):
+        if material.displacementMap:
+            uniforms.displacementMap.value = material.displacementMap
+            uniforms.displacementScale.value = material.displacementScale
+            uniforms.displacementBias.value = material.displacementBias
+
+        uniforms.referencePosition.value.copy(material.referencePosition)
+        uniforms.nearDistance.value = material.nearDistance
+        uniforms.farDistance.value = material.farDistance
+
+    def _refreshUniformsNormal(self, uniforms, material):
+        if material.bumpMap:
+            uniforms.bumpMap.value = material.bumpMap
+            uniforms.bumpScale.value = material.bumpScale
+
+        if material.normalMap:
+            uniforms.normalMap.value = material.normalMap
+            uniforms.normalScale.value.copy(material.normalScale)
+
+        if material.displacementMap:
+            uniforms.displacementMap.value = material.displacementMap
+            uniforms.displacementScale.value = material.displacementScale
+            uniforms.displacementBias.value = material.displacementBias
+
+    def _markUniformsLightsNeedsUpdate(self, uniforms, value):
+        """
+        // If uniforms are marked as clean, they don't need to be loaded to the GPU.
+        """
+        uniforms.ambientLightColor.needsUpdate = value
+
+        uniforms.directionalLights.needsUpdate = value
+        uniforms.pointLights.needsUpdate = value
+        uniforms.spotLights.needsUpdate = value
+        uniforms.rectAreaLights.needsUpdate = value
+        uniforms.hemisphereLights.needsUpdate = value
+
     def _releaseMaterialProgramReference(self, material):
         programInfo = self.properties.get(material).program
         material.program = None
@@ -779,7 +825,7 @@ class Renderer:
         self._releaseMaterialProgramReference(material)
         self.properties.remove(material)
 
-    def _onMaterialDispose(material):
+    def _onMaterialDispose(self, material):
         self.deallocateMaterial(material)
 
     def _initMaterial(self, material, fog, object):
@@ -810,19 +856,19 @@ class Renderer:
             if parameters['shaderID']:
                 shader = ShaderLib[parameters['shaderID']]
 
-                materialProperties.shader = {
+                materialProperties.shader = javascriptObject({
                     'name': material.type,
                     'uniforms': UniformsUtils.clone(shader.uniforms),
                     'vertexShader': shader.vertexShader,
                     'fragmentShader': shader.fragmentShader
-                }
+                })
             else:
-                materialProperties.shader = {
+                materialProperties.shader = javascriptObject({
                     'name': material.type,
                     'uniforms': material.uniforms,
                     'vertexShader': material.vertexShader,
                     'fragmentShader': material.fragmentShader
-                }
+                })
 
             material.onBeforeCompile(materialProperties.shader)
 
@@ -847,8 +893,7 @@ class Renderer:
 
         uniforms = materialProperties.shader['uniforms']
 
-        if not hasattr(material, 'isShaderMaterial') and not hasattr(material,
-                                                                     'isRawShaderMaterial') or material.clipping:
+        if not material.isShaderMaterial and not material.isRawShaderMaterial or material.clipping:
             materialProperties.numClippingPlanes = self._clipping.numPlanes
             materialProperties.numIntersection = self._clipping.numIntersection
             uniforms.clippingPlanes = self._clipping.uniform
@@ -882,7 +927,7 @@ class Renderer:
         materialProperties.uniformsList = uniformsList
 
     def _setupVertexAttributes(self, material, program, geometry, startIndex=0):
-        if geometry and hasattr(geometry, 'isInstancedBufferGeometry'):
+        if geometry and geometry.isInstancedBufferGeometry:
             if extensions.get('ANGLE_instanced_arrays') is None:
                 raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
 
@@ -913,7 +958,7 @@ class Renderer:
                     type = attribute.type
                     bytesPerElement = attribute.bytesPerElement
 
-                    if hasattr(geometryAttribute, 'isInterleavedBufferAttribute'):
+                    if geometryAttribute.isInterleavedBufferAttribute:
                         data = geometryAttribute.data
                         stride = data.stride
                         offset = geometryAttribute.offset
@@ -929,7 +974,7 @@ class Renderer:
                         glBindBuffer( GL_ARRAY_BUFFER, buffer )
                         glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, ( startIndex * stride + offset ) * bytesPerElement )
                     else:
-                        if hasattr(geometryAttribute, 'isInstancedBufferAttribute'):
+                        if geometryAttribute.isInstancedBufferAttribute:
                             self.state.enableAttributeAndDivisor( programAttribute, geometryAttribute.meshPerAttribute )
 
                             if geometry.maxInstancedCount is None:
@@ -955,8 +1000,16 @@ class Renderer:
 
         self.state.disableUnusedAttributes()
 
-    def _renderObjects(self, renderList, scene, camera, overrideMaterial):
-        for i in range(len(self.renderList)):
+    def _renderObjects(self, renderList, scene, camera, overrideMaterial=None):
+        """
+
+        :param renderList:
+        :param scene:
+        :param camera:
+        :param overrideMaterial:
+        :return:
+        """
+        for i in range(len(renderList)):
             renderItem = renderList[i]
 
             object = renderItem.object
@@ -964,7 +1017,7 @@ class Renderer:
             material = renderItem.material if overrideMaterial is None else overrideMaterial
             group = renderItem.group
 
-            if hasattr(camera, 'isArrayCamera'):
+            if camera.isArrayCamera:
                 self._currentArrayCamera = camera
 
                 cameras = camera.cameras
@@ -990,6 +1043,16 @@ class Renderer:
                 self._renderObject(object, scene, camera, geometry, material, group)
 
     def _renderObject(self, object, scene, camera, geometry, material, group):
+        """
+
+        :param object:
+        :param scene:
+        :param camera:
+        :param geometry:
+        :param material:
+        :param group:
+        :return:
+        """
         object.onBeforeRender(self, scene, camera, geometry, material, group)
 
         object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
@@ -1011,11 +1074,25 @@ class Renderer:
     # // Buffer rendering
 
     def _renderObjectImmediate(self, object, program, material):
+        """
+
+        :param object:
+        :param program:
+        :param material:
+        :return:
+        """
         object.render(
-            self.renderBufferImmediate(object, program, material)
+            self._renderBufferImmediate(object, program, material)
         )
 
     def _renderBufferImmediate(self, object, program, material):
+        """
+
+        :param object:
+        :param program:
+        :param material:
+        :return:
+        """
         self.state.initAttributes()
 
         buffers = self.properties.get(object)
@@ -1041,9 +1118,9 @@ class Renderer:
         if object.hasNormals:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
 
-            if not hasattr(material, 'isMeshPhongMaterial') and \
-                    not hasattr(material, 'isMeshStandardMaterial') and \
-                    not hasattr(material, 'isMeshNormalMaterial') and \
+            if not material.isMeshPhongMaterial and \
+                    not material.isMeshStandardMaterial and \
+                    not material.isMeshNormalMaterial and \
                     material.flatShading:
 
                 for i in range(0, object.count * 3, 9):
@@ -1077,7 +1154,7 @@ class Renderer:
 
             self.state.enableAttribute(programAttributes.uv)
 
-            glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, false, 0, c_void_p(0))
+            glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
 
         if object.hasColors and material.vertexColors != NoColors:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.color)
@@ -1170,9 +1247,9 @@ class Renderer:
 
         # //
 
-        if hasattr(object, 'isMesh'):
+        if object.isMesh:
             if material.wireframe:
-                self.state.setLineWidth(material.wireframeLinewidth * getTargetPixelRatio())
+                self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
                 renderer.setMode(GL_LINES)
             else:
                 if object.drawMode == TrianglesDrawMode:
@@ -1182,7 +1259,7 @@ class Renderer:
                 elif object.drawMode == TriangleFanDrawMode:
                     renderer.setMode(GL_TRIANGLE_FAN)
 
-        elif hasattr(object, 'isLine'):
+        elif object.isLine:
             lineWidth = material.linewidth
 
             if lineWidth is None:
@@ -1190,23 +1267,23 @@ class Renderer:
 
             self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
 
-            if hasattr(object, 'isLineSegments'):
+            if object.isLineSegments:
                 renderer.setMode(GL_LINES)
-            elif hasattr(object, 'isLineLoop'):
+            elif object.isLineLoop:
                 renderer.setMode(GL_LINE_LOOP)
             else:
                 renderer.setMode(GL_LINE_STRIP)
 
-        elif hasattr(object, 'isPoints'):
+        elif object.isPoints:
             renderer.setMode(GL_POINTS)
 
-        if geometry and hasattr(geometry, 'isInstancedBufferGeometry'):
+        if geometry and geometry.isInstancedBufferGeometry:
             if geometry.maxInstancedCount > 0:
                 renderer.renderInstances(geometry, drawStart, drawCount)
         else:
             renderer.render(drawStart, drawCount)
 
-    def projectObject(self, object, camera, sortObjects ):
+    def _projectObject(self, object, camera, sortObjects ):
         """
 
         :param object:
@@ -1221,27 +1298,27 @@ class Renderer:
         _vector3 = Vector3()
 
         if visible:
-            if hasattr(object, 'isLight'):
+            if object.isLight:
                 self.lightsArray.append( object )
 
                 if object.castShadow:
                     self.shadowsArray.append( object )
 
-            elif hasattr(object, 'isSprite'):
+            elif object.isSprite:
                 if not object.frustumCulled or self._frustum.intersectsSprite( object ):
                     self.spritesArray.append( object )
 
-            elif hasattr(object, 'isLensFlare'):
+            elif object.isLensFlare:
                 self.flaresArray.append( object )
 
-            elif hasattr(object, 'isImmediateRenderObject'):
+            elif object.isImmediateRenderObject:
                 if sortObjects:
                     _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
 
-                self.currentRenderList.extend( [ object, None, object.material, _vector3.z, None ])
+                self.currentRenderList.push(object, None, object.material, _vector3.z, None)
 
-            elif hasattr(object, 'isMesh') or hasattr(object, 'isLine') or hasattr(object, 'isPoints'):
-                if hasattr(object, 'isSkinnedMesh'):
+            elif object.isMesh or object.isLine or object.isPoints:
+                if object.isSkinnedMesh:
                     object.skeleton.update()
 
                 if not object.frustumCulled or self._frustum.intersectsObject( object ):
@@ -1251,7 +1328,7 @@ class Renderer:
                     geometry = self.objects.update( object )
                     material = object.material
 
-                    if type( material ) == 'array':
+                    if isinstance( material, list):
                         groups = geometry.groups
 
                         for i in range(len(groups)):
@@ -1259,17 +1336,17 @@ class Renderer:
                             groupMaterial = material[ group.materialIndex ]
 
                             if groupMaterial and groupMaterial.visible:
-                                self.currentRenderList.extend([ object, geometry, groupMaterial, _vector3.z, group ])
+                                self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
 
                     elif material.visible:
-                        self.currentRenderList.extend([ object, geometry, material, _vector3.z, None ])
+                        self.currentRenderList.push(object, geometry, material, _vector3.z, None)
 
         children = object.children
 
         for i in range(len(children)):
-            self.projectObject( children[ i ], camera, sortObjects )
+            self._projectObject( children[ i ], camera, sortObjects )
 
-    def render(self,scene, camera, renderTarget, forceClear ):
+    def render(self, scene, camera, renderTarget=None, forceClear=False):
         """
         :param scene:
         :param camera:
@@ -1277,8 +1354,8 @@ class Renderer:
         :param forceClear:
         :return:
         """
-        if not ( camera and hasattr(camera, 'isCamera') ):
-            raise RuntimeError( 'THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.' )
+        if not (camera and camera.isCamera):
+            raise RuntimeError('THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.')
 
         if self._isContextLost:
             return
@@ -1305,11 +1382,11 @@ class Renderer:
         self._projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse )
         self._frustum.setFromMatrix( self._projScreenMatrix )
 
-        self.lightsArray = []
-        self.shadowsArray = []
+        self.lightsArray.clear()
+        self.shadowsArray.clear()
 
-        self.spritesArray = []
-        self.flaresArray = []
+        self.spritesArray.clear()
+        self.flaresArray.clear()
 
         self._localClippingEnabled = self.localClippingEnabled
         self._clippingEnabled = self._clipping.init( self.clippingPlanes, self._localClippingEnabled, camera )
@@ -1317,9 +1394,9 @@ class Renderer:
         self.currentRenderList = self.renderLists.get( scene, camera )
         self.currentRenderList.init()
 
-        self.projectObject( scene, camera, self.sortObjects )
+        self._projectObject( scene, camera, self.sortObjects )
 
-        if self..sortObjects:
+        if self.sortObjects:
             self.currentRenderList.sort()
 
         # //
@@ -1336,7 +1413,7 @@ class Renderer:
 
         # //
 
-        self._infoRender.frame ++
+        self._infoRender.frame += 1
         self._infoRender.calls = 0
         self._infoRender.vertices = 0
         self._infoRender.faces = 0
@@ -1409,7 +1486,7 @@ class Renderer:
         _currentRenderTarget = renderTarget
 
         if renderTarget and self.properties.get( renderTarget ).__webglFramebuffer is None :
-            self.textures.setupRenderTarget( renderTarget );
+            self.textures.setupRenderTarget( renderTarget )
 
         framebuffer = None
         isCube = False
@@ -1480,10 +1557,10 @@ class Renderer:
         # self._initMaterial(object.material, None, object)
         loader = _Loader()
         self.vao = loader.createVAO()
-        self.objects.update(object)
+        # self.objects.update(object)
 
     def renderObject(self, object, camera):
-        glBindVertexArray(self.vao)
+        # glBindVertexArray(self.vao)
 
         object.geometry.groups[0].count = float("+inf")
 

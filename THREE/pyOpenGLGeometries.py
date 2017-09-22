@@ -51,9 +51,9 @@ class pyOpenGLGeometries:
 
         geometry.onDispose(self.onGeometryDispose)
 
-        if hasattr(geometry, 'isBufferGeometry' ):
+        if geometry.isBufferGeometry:
             buffergeometry = geometry
-        elif hasattr(geometry, 'isGeometry' ):
+        elif geometry.isGeometry:
             if geometry._bufferGeometry is None:
                 geometry._bufferGeometry = BufferGeometry().setFromObject(object)
 

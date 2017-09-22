@@ -80,7 +80,7 @@ class Box3:
         maxY = float('-inf')
         maxZ = float('-inf')
 
-        for i in range(attribute.count):
+        for i in range(int(attribute.count)):
             x = attribute.getX( i )
             y = attribute.getY( i )
             z = attribute.getZ( i )

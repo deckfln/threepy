@@ -73,13 +73,13 @@ class pyOpenGLAttributes:
     # //
 
     def get(self, attribute ):
-        if hasattr(attribute, 'isInterleavedBufferAttribute'):
+        if attribute.isInterleavedBufferAttribute:
             attribute = attribute.data
 
         return self.buffers[attribute.uuid]
 
     def remove(self, attribute):
-        if hasattr(attribute, 'isInterleavedBufferAttribute'):
+        if attribute.isInterleavedBufferAttribute:
             attribute = attribute.data
 
         if attribute.uuid in self.buffers:
@@ -88,7 +88,7 @@ class pyOpenGLAttributes:
             del self.buffers[attribute.uuid]
 
     def update(self, attribute, bufferType):
-        if hasattr(attribute, 'isInterleavedBufferAttribute'):
+        if attribute.isInterleavedBufferAttribute:
             attribute = attribute.data
 
         if attribute.uuid in self.buffers:

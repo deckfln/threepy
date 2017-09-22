@@ -1,22 +1,23 @@
 """
-	/**
-	 * @author mrdoob / http://mrdoob.com/
-	 * @author supereggbert / http://www.paulbrunt.co.uk/
-	 * @author philogb / http://blog.thejit.org/
-	 * @author jordi_ros / http://plattsoft.com
-	 * @author D1plo1d / http://github.com/D1plo1d
-	 * @author alteredq / http://alteredqualia.com/
-	 * @author mikael emtinger / http://gomo.se/
-	 * @author timknip / http://www.floorplanner.com/
-	 * @author bhouston / http://clara.io
-	 * @author WestLangley / http://github.com/WestLangley
-	 */
+    /**
+     * @author mrdoob / http://mrdoob.com/
+     * @author supereggbert / http://www.paulbrunt.co.uk/
+     * @author philogb / http://blog.thejit.org/
+     * @author jordi_ros / http://plattsoft.com
+     * @author D1plo1d / http://github.com/D1plo1d
+     * @author alteredq / http://alteredqualia.com/
+     * @author mikael emtinger / http://gomo.se/
+     * @author timknip / http://www.floorplanner.com/
+     * @author bhouston / http://clara.io
+     * @author WestLangley / http://github.com/WestLangley
+     */
 """
 import math
 from THREE.Vector3 import *
+from THREE.pyOpenGLObject import *
 
 
-class Matrix4:
+class Matrix4(pyOpenGLObject):
     isMatrix4 = True
 
     def __init__(self):
@@ -297,7 +298,7 @@ class Matrix4:
 
         if x.lengthSq() == 0:
             # // up and z are parallel
-            if math.abs(up.z) == 1:
+            if abs(up.z) == 1:
                 z.x += 0.0001
             else:
                 z.z += 0.0001
@@ -482,7 +483,7 @@ class Matrix4:
         det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14
 
         if det == 0:
-            raise("THREE.Matrix4: .getInverse() can't invert matrix, determinant is 0")
+            raise RuntimeWarning("THREE.Matrix4: .getInverse() can't invert matrix, determinant is 0")
             return self.identity()
 
         detInv = 1 / det
@@ -535,7 +536,7 @@ class Matrix4:
         scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
         scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10]
 
-        return math.sqrt(math.max(scaleXSq, scaleYSq, scaleZSq))
+        return math.sqrt(max(scaleXSq, scaleYSq, scaleZSq))
 
     def makeTranslation(self, x, y, z):
         self.set(

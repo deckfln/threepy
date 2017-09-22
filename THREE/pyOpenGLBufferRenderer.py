@@ -12,7 +12,7 @@ class pyOpenGLBufferRenderer:
         self.infoRender = infoRender
         self.extensions = extensions
         
-    def setMode( value ):
+    def setMode(self, value ):
         self.mode = value
 
     def render(self, start, count ):
@@ -23,7 +23,7 @@ class pyOpenGLBufferRenderer:
 
         if self.mode == GL_TRIANGLES:
             self.infoRender.faces += count / 3
-        elif mode == GL_POINTS:
+        elif self.mode == GL_POINTS:
             self.infoRender.points += count
 
     def renderInstances(self, geometry, start, count ):
@@ -34,11 +34,11 @@ class pyOpenGLBufferRenderer:
 
         position = geometry.attributes.position
 
-        if hasattr(position, 'isInterleavedBufferAttribute'):
+        if position.isInterleavedBufferAttribute:
             count = position.data.count
-            self.extension.drawArraysInstancedANGLE( self.mode, 0, count, geometry.maxInstancedCount )
+            self.extensions.drawArraysInstancedANGLE( self.mode, 0, count, geometry.maxInstancedCount )
         else:
-            self.extension.drawArraysInstancedANGLE( self.mode, start, count, geometry.maxInstancedCount )
+            self.extensions.drawArraysInstancedANGLE( self.mode, start, count, geometry.maxInstancedCount )
 
         self.infoRender.calls += 1
         self.infoRender.vertices += count * geometry.maxInstancedCount

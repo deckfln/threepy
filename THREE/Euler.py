@@ -9,9 +9,10 @@ import math
 import THREE._Math as _Math
 from THREE.Matrix4 import *
 from THREE.Quaternion import *
+from THREE.pyOpenGLObject import *
 
 
-class Euler:
+class Euler(pyOpenGLObject):
     RotationOrders = [ 'XYZ', 'YZX', 'ZXY', 'XZY', 'YXZ', 'ZYX' ]
     DefaultOrder = 'XYZ'
     isEuler = True

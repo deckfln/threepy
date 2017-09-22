@@ -9,9 +9,13 @@
      */
 """
 import math
+from THREE.Quaternion import *
+from THREE.Matrix4 import *
+import THREE._Math as _Math
+from THREE.pyOpenGLObject import *
 
 
-class Vector3:
+class Vector3(pyOpenGLObject):
     isVector3 = True
 
     def __init__(self, x=0, y=0, z=0):
@@ -156,9 +160,9 @@ class Vector3:
         self.z = a.z * b.z
         return self
 
-    def applyEuler(self):
+    def applyEuler(self, euler):
         quaternion = Quaternion()
-        if not( euler and euler.isEuler ):
+        if not( euler and euler.isEuler):
             print( 'THREE.Vector3: .applyEuler() now expects an Euler rotation rather than a Vector3 and order.' )
 
         return self.applyQuaternion( quaternion.setFromEuler( euler ) )
@@ -168,7 +172,7 @@ class Vector3:
         return self.applyQuaternion( quaternion.setFromAxisAngle( axis, angle ) )
 
     def applyMatrix3(self, m ):
-        x = self.x, y = self.y, z = self.z
+        x = self.x; y = self.y; z = self.z
         e = m.elements
 
         self.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
@@ -178,7 +182,7 @@ class Vector3:
         return self
 
     def applyMatrix4(self, m ):
-        x = self.x, y = self.y, z = self.z
+        x = self.x; y = self.y; z = self.z
         e = m.elements
 
         w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] )
@@ -190,8 +194,8 @@ class Vector3:
         return self
 
     def applyQuaternion(self, q ):
-        x = self.x, y = self.y, z = self.z
-        qx = q.x, qy = q.y, qz = q.z, qw = q.w
+        x = self.x; y = self.y; z = self.z
+        qx = q.x; qy = q.y; qz = q.z; qw = q.w
 
         # # // calculate quat * vector
 
@@ -222,7 +226,7 @@ class Vector3:
         # // input: THREE.Matrix4 affine matrix
         # // vector interpreted as a direction
 
-        x = self.x, y = self.y, z = self.z
+        x = self.x; y = self.y; z = self.z
         e = m.elements
 
         self.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z
@@ -242,22 +246,22 @@ class Vector3:
         return self.multiplyScalar( 1 / scalar )
 
     def min(self, v ):
-        self.x = math.min( self.x, v.x )
-        self.y = math.min( self.y, v.y )
-        self.z = math.min( self.z, v.z )
+        self.x = min( self.x, v.x )
+        self.y = min( self.y, v.y )
+        self.z = min( self.z, v.z )
         return self
 
     def max(self, v ):
-        self.x = math.max( self.x, v.x )
-        self.y = math.max( self.y, v.y )
-        self.z = math.max( self.z, v.z )
+        self.x = max( self.x, v.x )
+        self.y = max( self.y, v.y )
+        self.z = max( self.z, v.z )
         return self
 
     def clamp(self, min, max ):
         # // assumes min < max, componentwise
-        self.x = Math.max( min.x, Math.min( max.x, self.x ) )
-        self.y = Math.max( min.y, Math.min( max.y, self.y ) )
-        self.z = Math.max( min.z, Math.min( max.z, self.z ) )
+        self.x = max( min.x, min( max.x, self.x ) )
+        self.y = max( min.y, min( max.y, self.y ) )
+        self.z = max( min.z, min( max.z, self.z ) )
 
         return self
 
@@ -272,13 +276,13 @@ class Vector3:
 
     def clampLength(self, min, max ):
         length = self.length()
-        return self.divideScalar( length or 1 ).multiplyScalar( Math.max( min, Math.min( max, length ) ) )
+        return self.divideScalar( length or 1 ).multiplyScalar( max( min, min( max, length ) ) )
 
     def floor(self):
-            self.x = math.floor( self.x )
-            self.y = math.floor( self.y )
-            self.z = math.floor( self.z )
-            return self
+        self.x = math.floor( self.x )
+        self.y = math.floor( self.y )
+        self.z = math.floor( self.z )
+        return self
 
     def ceil(self):
         self.x = math.ceil( self.x )
@@ -288,9 +292,9 @@ class Vector3:
         return self
 
     def round(self):
-        self.x = math.round( self.x )
-        self.y = math.round( self.y )
-        self.z = math.round( self.z )
+        self.x = round( self.x )
+        self.y = round( self.y )
+        self.z = round( self.z )
         return self
 
     def roundToZero(self):
@@ -324,7 +328,7 @@ class Vector3:
         return math.sqrt( self.x * self.x + self.y * self.y + self.z * self.z )
 
     def lengthManhattan(self):
-        return math.abs( self.x ) + Math.abs( self.y ) + Math.abs( self.z )
+        return abs( self.x ) + abs( self.y ) + abs( self.z )
 
     def normalize(self):
         return self.divideScalar( self.length() or 1 )
@@ -356,8 +360,8 @@ class Vector3:
             return self
 
     def crossVectors(self, a, b ):
-        ax = a.x, ay = a.y, az = a.z
-        bx = b.x, by = b.y, bz = b.z
+        ax = a.x; ay = a.y; az = a.z
+        bx = b.x; by = b.y; bz = b.z
 
         self.x = ay * bz - az * by
         self.y = az * bx - ax * bz
@@ -371,18 +375,18 @@ class Vector3:
         return self.copy( vector ).multiplyScalar( scalar )
 
     def projectOnPlane(self, planeNormal):
-            v1 = Vector3()
-            v1.copy( self ).projectOnVector( planeNormal )
-            return self.sub( v1 )
+        v1 = Vector3()
+        v1.copy( self ).projectOnVector( planeNormal )
+        return self.sub( v1 )
 
     def reflect(self, normal):
-            # // reflect incident vector off plane orthogonal to normal
-            # // normal is assumed to have unit length
-            v1 = Vector3()
-            return self.sub( v1.copy( normal ).multiplyScalar( 2 * self.dot( normal ) ) )
+        # // reflect incident vector off plane orthogonal to normal
+        # // normal is assumed to have unit length
+        v1 = Vector3()
+        return self.sub( v1.copy( normal ).multiplyScalar( 2 * self.dot( normal ) ) )
 
     def angleTo(self, v ):
-        theta = self.dot( v ) / ( Math.sqrt( self.lengthSq() * v.lengthSq() ) )
+        theta = self.dot( v ) / ( math.sqrt( self.lengthSq() * v.lengthSq() ) )
 
         # // clamp, to handle numerical problems
 

@@ -35,15 +35,15 @@ def _allocateBones(object, capabilities):
         
 def _getTextureEncodingFromMap(map, gammaOverrideLinear):
     if not map:
-        encoding = 'LinearEncoding'
+        encoding = LinearEncoding
     elif map.isTexture:
         encoding = map.encoding
-    elif map.isWebGLRenderTarget:
+    elif hasattr(map, 'isWebGLRenderTarget'):
         print( "THREE.WebGLPrograms.getTextureEncodingFromMap: don't use render targets as textures. Use their .texture property instead." )
         encoding = map.texture.encoding
 
     # // add backwards compatibility for WebGLRenderer.gammaInput/gammaOutput parameter, should probably be removed at some point.
-    if encoding == 'LinearEncoding' and gammaOverrideLinear:
+    if encoding == LinearEncoding and gammaOverrideLinear:
         encoding = GammaEncoding
 
     return encoding
@@ -91,7 +91,7 @@ class pyOpenGLPrograms:
         # // heuristics to create shader parameters according to lights in the scene
         # // (not to blow over maxLights budget)
 
-        maxBones = _allocateBones(object, self.capabilities) if hasattr(object, 'isSkinnedMesh') else 0
+        maxBones = _allocateBones(object, self.capabilities) if object.isSkinnedMesh else 0
         precision = self.capabilities.precision
 
         if material.precision is not None:

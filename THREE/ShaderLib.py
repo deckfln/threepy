@@ -12,6 +12,8 @@ from THREE.Vector2 import *
 from THREE.Vector3 import *
 from THREE.Vector4 import *
 from THREE.Color import *
+from THREE.Javascript import *
+
 
 global ShaderLib
 global ShaderChunk
@@ -26,8 +28,8 @@ UniformsLib = {
 
     'common': {
 
-        'diffuse': { 'value': Color( 0xeeeeee ) },
-        'opacity': { 'value': 1.0 },
+        'diffuse': {'value': Color(0xeeeeee)},
+        'opacity': {'value': 1.0},
 
         'map': { 'value': None },
         'offsetRepeat': { 'value': Vector4( 0, 0, 1, 1 ) },
@@ -205,7 +207,7 @@ UniformsLib = {
     }
 }
 
-ShaderLib = {
+_ShaderLib = {
 
     'basic': {
 
@@ -357,12 +359,10 @@ ShaderLib = {
 
     },
 
-    """
-    /* -------------------------------------------------------------------------
-    //    Cube map shader
-     ------------------------------------------------------------------------- */
-    """
-    
+    # /* -------------------------------------------------------------------------
+    # //    Cube map shader
+    #  ------------------------------------------------------------------------- */
+
     'cube': {
 
         'uniforms': {
@@ -421,10 +421,10 @@ ShaderLib = {
 
 }
 
-ShaderLib['physical'] = {
+_ShaderLib['physical'] = {
 
     'uniforms': UniformsUtils.merge( [
-        ShaderLib['standard']['uniforms'],
+        _ShaderLib['standard']['uniforms'],
         {
             'clearCoat': { 'value': 0 },
             'clearCoatRoughness': { 'value': 0 }
@@ -435,3 +435,5 @@ ShaderLib['physical'] = {
     'fragmentShader': ShaderChunk['meshphysical_frag']
 
 }
+
+ShaderLib = javascriptObject(_ShaderLib)

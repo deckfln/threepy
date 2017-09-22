@@ -8,9 +8,10 @@
  */
 """
 import math
+from THREE.pyOpenGLObject import *
 
 
-class Vector4:
+class Vector4(pyOpenGLObject):
     isVector4 = True
 
     def __init__(self, x=0, y=0, z=0, w=None ):

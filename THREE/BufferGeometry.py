@@ -5,21 +5,25 @@
 """
 
 import math
+import numpy as np
+
 import THREE._Math as _Math
 from THREE.Matrix3 import *
 from THREE.Matrix4 import *
-import THREE.Box3
-import THREE.Sphere
+from THREE.arrayMax import *
+from THREE.Box3 import *
+from THREE.Sphere import *
+from THREE.Object3D import *
 from THREE.BufferAttribute import *
 
 
-gIdcount = 0
+_gIdcount = 0
 
 
 def GeometryIdCount():
-    global gIdcount
-    gIdcount += 1
-    return gIdcount
+    global _gIdcount
+    _gIdcount += 1
+    return _gIdcount
 
     
 class _attributesList(object):
@@ -35,7 +39,7 @@ class _attributesList(object):
         self._attr[item] = value
 
     def __getattr__(self, k):
-        if type(k) == 'bytes':
+        if isinstance(k, bytes):
             k = k.decode("utf-8")
 
         try:
@@ -66,7 +70,7 @@ class _groups:
         self.materialIndex = mi
 
 
-class BufferGeometry:
+class BufferGeometry(pyOpenGLObject):
     MaxIndex = 65535
     count = 0
     isBufferGeometry = True
@@ -90,16 +94,16 @@ class BufferGeometry:
         return self.index
         
     def setIndex(self, index ):
-        if type(index) is list:
-            if THREE.arrayMax(index) > 65535:
+        if isinstance(index, list):
+            if arrayMax(index) > 65535:
                 self.index = Uint32BufferAttribute( index, 1 )
             else:
                 self.index = Uint16BufferAttribute(index, 1)
         else:
             self.index = index
 
-    def addAttribute(self, name, attribute ):
-        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.isInterleavedBufferAttribute ):
+    def addAttribute(self, name, attribute):
+        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.isInterleavedBufferAttribute):
             print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
             self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
             return
@@ -295,29 +299,29 @@ class BufferGeometry:
         return self.fromDirectGeometry( geometry.__directGeometry )
         
     def fromDirectGeometry(self, geometry ):
-        positions = Float32Array( geometry.vertices.length * 3 )
+        positions = np.zeros( geometry.vertices.length * 3, 'f' )
         self.addAttribute( 'position', BufferAttribute( positions, 3 ).copyVector3sArray( geometry.vertices ) )
         if geometry.normals.length > 0:
-            normals = Float32Array( geometry.normals.length * 3 )
+            normals = np.zeros( geometry.normals.length * 3, 'f' )
             self.addAttribute( 'normal', BufferAttribute( normals, 3 ).copyVector3sArray( geometry.normals ) )
 
         if geometry.colors.length > 0:
-            colors = Float32Array( geometry.colors.length * 3 )
+            colors = np.zeros( geometry.colors.length * 3, 'f' )
             self.addAttribute( 'color', BufferAttribute( colors, 3 ).copyColorsArray( geometry.colors ) )
 
         if geometry.uvs.length > 0:
-            uvs = Float32Array( geometry.uvs.length * 2 )
+            uvs = np.zeros( geometry.uvs.length * 2, 'f' )
             self.addAttribute( 'uv', BufferAttribute( uvs, 2 ).copyVector2sArray( geometry.uvs ) )
 
         if geometry.uvs2.length > 0:
-            uvs2 = Float32Array( geometry.uvs2.length * 2 )
+            uvs2 = np.zeros( geometry.uvs2.length * 2, 'f' )
             self.addAttribute( 'uv2', BufferAttribute( uvs2, 2 ).copyVector2sArray( geometry.uvs2 ) )
 
         if geometry.indices.length > 0:
             if geometry.indices.count > 65535:
-                indices = Uint32Array(geometry.indices.length * 3 )
+                indices = np.zeros(geometry.indices.length * 3, "L" )
             else:
-                indices = Uint16Array(geometry.indices.length * 3 )
+                indices = np.zeros(geometry.indices.length * 3, "S" )
             self.setIndex( BufferAttribute( indices, 1 ).copyIndicesArray( geometry.indices ) )
 
         # // groups
@@ -361,7 +365,7 @@ class BufferGeometry:
         else:
             self.boundingBox.makeEmpty()
 
-        if isNaN( self.boundingBox.min.x ) or isNaN( self.boundingBox.min.y ) or isNaN( self.boundingBox.min.z ):
+        if math.isnan( self.boundingBox.min.x ) or math.isnan( self.boundingBox.min.y ) or math.isnan( self.boundingBox.min.z ):
             print( 'THREE.BufferGeometry.computeBoundingBox: Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', self )
 
     def computeBoundingSphere(self):
@@ -379,14 +383,14 @@ class BufferGeometry:
             # // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
 
             maxRadiusSq = 0
-            for i in range(position.count):
+            for i in range(int(position.count)):
                 vector.x = position.getX( i )
                 vector.y = position.getY( i )
                 vector.z = position.getZ( i )
-                maxRadiusSq = math.max( maxRadiusSq, center.distanceToSquared( vector ) )
+                maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( vector ) )
 
             self.boundingSphere.radius = math.sqrt( maxRadiusSq )
-            if isNaN( self.boundingSphere.radius ):
+            if math.isnan( self.boundingSphere.radius ):
                 print( 'THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', self )
 
     def computeFaceNormals(self):
@@ -400,7 +404,7 @@ class BufferGeometry:
         if attributes.position:
             positions = attributes.position.array
             if attributes.normal is None:
-                self.addAttribute( 'normal', BufferAttribute( Float32Array( positions.length ), 3 ) )
+                self.addAttribute( 'normal', BufferAttribute( np.zeros( positions.length, 'f' ), 3 ) )
             else:
                 # // reset existing normals to zero
                 array = attributes.normal.array

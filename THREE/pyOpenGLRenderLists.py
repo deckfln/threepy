@@ -5,8 +5,11 @@
 """
 
 
-def painterSortStable( a, b ):
+def _painter(a):
+    return a.renderOrder * 10000 + ( a.program.id if a.program else 0) * 1000 + a.material.id * 100 + a.z * 10 + a.id
 
+
+def _painterSortStable( a, b ):
     if a.renderOrder != b.renderOrder:
         return a.renderOrder - b.renderOrder
 
@@ -23,7 +26,7 @@ def painterSortStable( a, b ):
         return a.id - b.id
 
 
-def reversePainterSortStable( a, b ):
+def _reversePainterSortStable( a, b ):
     if a.renderOrder != b.renderOrder:
         return a.renderOrder - b.renderOrder
 
@@ -57,12 +60,12 @@ class pyOpenGLRenderList:
     def init(self):
         self.renderItemsIndex = 0
 
-        self.opaque.length = 0
-        self.transparent.length = 0
+        self.opaque.clear()
+        self.transparent.clear()
 
-    def push(self, object, geometry, material, z, group ):
+    def push(self, object, geometry, material, z, group):
         if self.renderItemsIndex in self.renderItems:
-            renderItem = self.renderItems[ self.renderItemsIndex ]
+            renderItem = self.renderItems[self.renderItemsIndex]
             renderItem.id = object.id
             renderItem.object = object
             renderItem.geometry = geometry
@@ -73,20 +76,20 @@ class pyOpenGLRenderList:
             renderItem.group = group
         else:
             renderItem = _renderItem(object.id, object, geometry, material, material.program, object.renderOrder, z, group)
-            self.renderItems[ self.renderItemsIndex ] = renderItem
+            self.renderItems.append(renderItem)
 
         if material.transparent:
             self.transparent.append(renderItem)
         else:
-            self.opaque.append( renderItem )
+            self.opaque.append(renderItem)
 
         self.renderItemsIndex += 1
 
     def sort(self):
         if len(self.opaque) > 1:
-            self.opaque.sort(key=painterSortStable)
+            self.opaque.sort(key=_painter)
         if len(self.transparent) > 1:
-            self.transparent.sort(key=reversePainterSortStable)
+            self.transparent.sort(key=_painter, reverse=True)
 
 
 class pyOpenGLRenderLists:

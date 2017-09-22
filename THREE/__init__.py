@@ -1,6 +1,7 @@
 import THREE.UniformsUtils as UniformsUtils
 import THREE._Math as _Math
-from THREE.RootObject import *
+from THREE.arrayMax import *
+from THREE.pyOpenGLObject import *
 from THREE.Constants import *
 from THREE.Vector2 import *
 from THREE.Vector3 import *
@@ -25,8 +26,14 @@ from THREE.ShaderChunk import *
 from THREE.Material import *
 from THREE.ShaderMaterial import *
 from THREE.MeshBasicMaterial import *
+from THREE.MeshLambertMaterial import *
+from THREE.Light import *
+from THREE.SpotLights import *
+from THREE.DirectionalLight import *
+from THREE.AmbientLight import *
 from THREE.Face3 import *
 from THREE.Mesh import *
+from THREE.PlaneBufferGeometry import *
 from THREE.Scene import *
 from THREE.pyOpenGLProperties import *
 from THREE.pyOpenGLClipping import *
@@ -45,22 +52,3 @@ from THREE.pyOpenGLRenderer import *
 
 
 global ShaderLib
-
-"""
-    /**
-     * @author mrdoob / http://mrdoob.com/
-     */
-"""
-
-
-def arrayMax(array):
-    if len(array) == 0:
-        return float('-inf')
-
-    m = array[0]
-
-    for i in range(len(array)):
-        if array[i] > m:
-            m = array[i]
-
-    return m

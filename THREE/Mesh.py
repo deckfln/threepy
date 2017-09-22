@@ -188,7 +188,7 @@ class Mesh(Object3D):
             if not ray.intersectsBox( geometry.boundingBox ):
                 return
 
-        if hasattr(geometry, 'isBufferGeometry'):
+        if geometry.isBufferGeometry:
             index = geometry.index
             position = geometry.attributes.position
             uv = geometry.attributes.uv
@@ -217,8 +217,8 @@ class Mesh(Object3D):
                     if intersection:
                         intersection.index = a  #// triangle number in positions buffer semantics
                         intersects.push( intersection )
-        elif hasattr(geometry, 'isGeometry'):
-            isMultiMaterial = type(material) == 'array'
+        elif geometry.isGeometry:
+            isMultiMaterial = isinstance(material, list)
 
             vertices = geometry.vertices
             faces = geometry.faces

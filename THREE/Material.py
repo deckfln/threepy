@@ -6,6 +6,8 @@
 """
 import THREE._Math as _Math
 from THREE.Constants import *
+from THREE.pyOpenGLObject import *
+
 
 _materialId = 0
 
@@ -55,7 +57,7 @@ class _uniforms:
         return self._uniforms[item]
 
 
-class Material():
+class Material(pyOpenGLObject):
     isMaterial = True
     
     def __init__(self):
@@ -95,7 +97,7 @@ class Material():
 
         self.colorWrite = True
 
-        self.precision = None # // override the renderer's default precision for self material
+        self.precision = None  # // override the renderer's default precision for self material
 
         self.polygonOffset = False
         self.polygonOffsetFactor = 0
@@ -106,7 +108,7 @@ class Material():
         self.alphaTest = 0
         self.premultipliedAlpha = False
 
-        self.overdraw = 0 # // Overdrawn pixels (typically between 0 and 1) for fixing antialiasing gaps in CanvasRenderer
+        self.overdraw = 0  # // Overdrawn pixels (typically between 0 and 1) for fixing antialiasing gaps in CanvasRenderer
 
         self.visible = True
 
@@ -132,6 +134,11 @@ class Material():
         self.combine = False
         self.sizeAttenuation = 0
         self.depthPacking = False
+        self.program = None
+        self.index0AttributeName = None
+        self.clipping = False
+        self.emissive = None
+        self.defaultAttributeValues = None
 
         self.callback = None
 
@@ -170,15 +177,17 @@ class Material():
                 print( "THREE." + self.type + ": '" + key + "' is not a property of self material." )
                 continue
 
-            if currentValue and hasattr(currentValue, 'isColor'):
-                currentValue.set( newValue )
-            elif (currentValue and hasattr(currentValue, 'isVector3') ) and ( newValue and hasattr(newValue, 'isVector3')):
-                currentValue.copy( newValue )
+            if isinstance(currentValue, int) or isinstance(currentValue, float) or isinstance(currentValue, str):
+                self[ key ] = newValue
             elif key == 'overdraw':
                 # // ensure overdraw is backwards-compatible with legacy boolean type
-                self[ key ] = Number( newValue )
+                self[key] = Number(newValue)
             elif key == 'uniforms':
                 self[key] = _uniforms(newValue)
+            elif currentValue and currentValue.isColor:
+                currentValue.set( newValue )
+            elif (currentValue and currentValue.isVector3 ) and ( newValue and newValue.isVector3):
+                currentValue.copy( newValue )
             else:
                 self[ key ] = newValue
 

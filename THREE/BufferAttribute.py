@@ -8,16 +8,18 @@ from THREE.Color import *
 from THREE.Vector2 import *
 from THREE.Vector3 import *
 from THREE.Vector4 import *
+from THREE.pyOpenGLObject import *
+
 
 from array import *
 import numpy as np
 
 
-class BufferAttribute:
+class BufferAttribute(pyOpenGLObject):
     isBufferAttribute = True
 
     def __init__(self, array, itemSize=0, normalized=False):
-        if type(array) is list:
+        if isinstance(array, list):
             print('THREE.BufferAttribute: array should be a Typed Array.')
 
         self.uuid = _Math.generateUUID()
@@ -51,7 +53,7 @@ class BufferAttribute:
         self.onUploadCalback =callback
 
     def setArray(self, array):
-        if type(array) is list:
+        if isinstance(array, list):
             print('THREE.BufferAttribute: array should be a Typed Array.')
 
         self.count = 0

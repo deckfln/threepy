@@ -177,15 +177,17 @@ class SingleUniform:
             glUniform2f(self.addr, v.x, v.y)
 
     def setValue3fv(self, v, renderer=None):
-        if v.x is not None:
+        if hasattr(v, 'x'):
             glUniform3f(self.addr, v.x, v.y, v.z)
-        elif v.r is not None:
+        elif hasattr(v, 'r'):
             glUniform3f(self.addr, v.r, v.g, v.b)
         else:
-            glUniform3fv(self.addr, v)
+            # TODO FDE: fix this ?
+            # glUniform3f(self.addr, v[0], v[1], v[2])
+            glUniform3fv(self.addr, 1, v)
 
     def setValue4fv(self, v, renderer=None):
-        if v.x is None:
+        if hasattr(v, 'x') is None:
             glUniform4fv(self.addr, v)
         else:
             glUniform4f(self.addr, v.x, v.y, v.z, v.w)
@@ -199,7 +201,7 @@ class SingleUniform:
         if v.elements is None:
             glUniformMatrix3fv(self.addr, GL_FALSE, v)
         else:
-            mat3array.set(v.elements)
+            mat3array = np.array(v.elements, 'f')
             glUniformMatrix3fv(self.addr, 1, GL_FALSE, mat3array)
 
     def setValue4fm(self, v, renderer=None):
@@ -326,14 +328,14 @@ class StructuredUniform( UniformContainer ):
         self.id = id
         super().__init__(  ) # // mix-in
 
-    def setValue(self, gl, value ):
+    def setValue(self, value, renderer ):
         # // Note: Don't need an extra 'renderer' parameter, since samplers
         # // are not allowed in structured uniforms.
         seq = self.seq
 
         for i in range (len(seq)):
             u = seq[ i ]
-            u.setValue( gl, value[ u.id ] )
+            u.setValue( value[ u.id ], renderer )
 
 # // --- Top-level ---
 
@@ -364,16 +366,16 @@ def parseUniform( activeInfo, addr, container ):
     # // reset RegExp object, because of the early exit of a previous run
 #    _RePathPart.lastindex = 0
 
-    while True:
-        match = re.search('([\w\d_]+)(\])?(\[|\.)?', path )
-        matchEnd = match.lastindex,
+    pattern = '([\w\d_]+)(\])?(\[|\.)?'
+    for match in re.finditer(pattern, path):
+        matchEnd = match.regs[0][1]
 
         id = match.group(1)
         idIsIndex = match.group( 2 ) == ']'
         subscript = match.group( 3 )
 
         if idIsIndex:
-            id = id | 0 # // convert to integer
+            id = int(id)  # // convert to integer
 
         if subscript is None or subscript == '[' and matchEnd + 2 == pathLength:
             # // bare name or "pure" bottom-level array "[0]" suffix
@@ -386,10 +388,12 @@ def parseUniform( activeInfo, addr, container ):
             break
         else:
             # // step into inner node / create it in case it doesn't exist
-            map = container.map; next = map[ id ]
-            if next is None:
+            map = container.map
+            if id not in map:
                 next = StructuredUniform( id )
                 addUniform( container, next )
+            else:
+                next = map[id]
 
             container = next
 
@@ -431,7 +435,7 @@ class pyOpenGLUniforms( UniformContainer ):
             u = seq[ i ]
             v = values[ u.id ]
 
-            if v.needsUpdate:
+            if not v.needsUpdate == False:
                 # // note: always updating when .needsUpdate is undefined
                 u.setValue( v.value, renderer )
 

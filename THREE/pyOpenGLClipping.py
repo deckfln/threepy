@@ -22,14 +22,14 @@ class pyOpenGLClipping:
         self.numIntersection = 0
 
     def init(self, planes, enableLocalClipping, camera ):
-        enabled = planes.length != 0  or enableLocalClipping or self.numGlobalPlanes != 0 or self.localClippingEnabled
+        enabled = len(planes) != 0  or enableLocalClipping or self.numGlobalPlanes != 0 or self.localClippingEnabled
             # // enable state of previous frame - the clipping code has to
             # // run another frame in order to reset the state:
 
         self.localClippingEnabled = enableLocalClipping
 
         self.globalState = self.projectPlanes( planes, camera, 0 )
-        self.numGlobalPlanes = planes.length
+        self.numGlobalPlanes = len(planes)
 
         return enabled
 

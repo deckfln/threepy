@@ -173,30 +173,21 @@ def motion(x1, y1):
     glutPostRedisplay()
 
 
-# setup ######################################################################
-
-class myShader():
-    def __init__(self, vertexShader, fragmentShader):
-        self.name = ""
-        self.vertexShader = vertexShader
-        self.fragmentShader = fragmentShader
-
 ###########################
 
 
 ###########################
 
 scene = None
-cube=None
+cube = None
+renderer = None
+camera = None
+
 
 def render():
     global renderer, scene, camera, cube
     renderer.prepare()
-    #glUseProgram(program.program)
-    #program.start()
-    renderer.renderObject(cube, camera)
-    #glUseProgram(0)
-    #program.stop()
+    renderer.render(scene, camera)
     glutSwapBuffers()
 
 
@@ -225,27 +216,20 @@ class RenderTarget:
 # main #######################################################################
 
 
-renderer =None
-shader = None
-model = None
-texture = None
-camera = None
-program = None
-
-
 def main(argv=None):
-    global renderer, program, model, camera, shader,scene,cube
+    global renderer, camera, scene,cube
 
     if argv is None:
         argv = sys.argv
 
-    renderer = Renderer(reshape, render, keyboard, mouse, motion, update)
+    renderer = Renderer(None, reshape, render, keyboard, mouse, motion, update)
 
     width, height = renderer.screen_size()
 
+    scene = THREE.Scene()
+
     camera = THREE.PerspectiveCamera(45, width/height, 0.1, 20000)
-    camera.position = THREE.Vector3(0, 0, 3)
-    camera.updateMatrixWorld()
+    camera.position = THREE.Vector3(0, 0, 10)
 
     bgcube = THREE.BoxBufferGeometry(1, 1, 1, 1, 1, 1)
     colors = []
@@ -254,6 +238,7 @@ def main(argv=None):
         colors.extend([p.x+0.5, p.y+0.5, p.z+0.5])
     bgcube.addAttribute('color', Float32BufferAttribute(colors, 3))
 
+    """
     material = THREE.ShaderMaterial({
         'vertexShader': vert_shader,
         'fragmentShader': frag_shader,
@@ -262,12 +247,31 @@ def main(argv=None):
             'transformationMatrix': {'type': "m4", 'value': 0}
         }
     })
-    cube = THREE.Mesh(bgcube, material)
     material.uniforms.transformationMatrix.value = cube.matrixWorld
+    #    material = THREE.MeshBasicMaterial({'color': 0xffff00})
+    """
+    material = THREE.MeshLambertMaterial({'color': 0x7777ff})
 
-    renderer.build(camera, cube)
+    cube = THREE.Mesh(bgcube, material)
+    scene.add(cube)
 
-    # model.textureID = loader.loadTexture()
+    groundGeom = THREE.PlaneBufferGeometry(100, 100, 4, 4)
+    groundMesh = THREE.Mesh(groundGeom, THREE.MeshBasicMaterial({'color': 0x555555}))
+    groundMesh.rotation.x = -math.pi / 2
+    groundMesh.position.y = -5
+    scene.add(groundMesh)
+
+    # // add subtle ambient lighting var
+    ambientLight = THREE.AmbientLight(0x0c0c0c)
+    scene.add(ambientLight)
+
+    # // add spotlight for the shadows
+    spotLight = THREE.SpotLight(0xffffff)
+    spotLight.position.set(-30, 60, 60)
+    spotLight.castShadow = True
+    scene.add(spotLight)
+
+    # renderer.build(camera, cube)
 
     return renderer.loop()
 

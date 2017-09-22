@@ -7,6 +7,7 @@ from THREE.Vector2 import *
 from THREE.Vector3 import *
 from THREE.Matrix4 import *
 from THREE.Color import *
+from THREE.Javascript import *
 
 
 class UniformsCache:
@@ -18,7 +19,7 @@ class UniformsCache:
             return self.lights[ light.id ]
 
         if light.type == 'DirectionalLight':
-                uniforms = {
+                uniforms = javascriptObject({
                     'direction': Vector3(),
                     'color': Color(),
 
@@ -26,9 +27,9 @@ class UniformsCache:
                     'shadowBias': 0,
                     'shadowRadius': 1,
                     'shadowMapSize': Vector2()
-                }
+                })
         elif light.type == 'SpotLight':
-                uniforms = {
+                uniforms = javascriptObject({
                     'position': Vector3(),
                     'direction': Vector3(),
                     'color': Color(),
@@ -41,9 +42,9 @@ class UniformsCache:
                     'shadowBias': 0,
                     'shadowRadius': 1,
                     'shadowMapSize': Vector2()
-                }
+                })
         elif light.type == 'PointLight':
-                uniforms = {
+                uniforms = javascriptObject({
                     'position': Vector3(),
                     'color': Color(),
                     'distance': 0,
@@ -55,21 +56,21 @@ class UniformsCache:
                     'shadowMapSize': Vector2(),
                     'shadowCameraNear': 1,
                     'shadowCameraFar': 1000
-                }
+                })
         elif light.type == 'HemisphereLight':
-                uniforms = {
+                uniforms = javascriptObject({
                     'direction': Vector3(),
                     'skyColor': Color(),
                     'groundColor': Color()
-                }
+                })
         elif light.type == 'RectAreaLight':
-                uniforms = {
+                uniforms = javascriptObject({
                     'color': Color(),
                     'position': Vector3(),
                     'halfWidth': Vector3(),
                     'halfHeight': Vector3()
                     # // TODO (abelnation): set RectAreaLight shadow uniforms
-                }
+                })
 
         self.lights[ light.id ] = uniforms
         return uniforms
@@ -96,34 +97,24 @@ class _state:
 class pyOpenGLLights:
     def __init__(self):
         self.cache = UniformsCache()
-
         self.state = _state()
-
-        self.hash = ''
-
-        self.ambient = [0, 0, 0]
-        self.directional = []
-        self.directionalShadowMap = []
-        self.directionalShadowMatrix = []
-        self.spot = []
-        self.spotShadowMap = []
-        self.spotShadowMatrix = []
-        self.rectArea = []
-        self.point = []
-        self.pointShadowMap = []
-        self.pointShadowMatrix = []
-        self.hemi = []
 
     def setup(self, lights, shadows, camera ):
         r = 0
         g = 0
         b = 0
 
-        directionalLength = 0
-        pointLength = 0
-        spotLength = 0
-        rectAreaLength = 0
-        hemiLength = 0
+        self.state.directional.clear()
+        self.state.directionalShadowMap.clear()
+        self.state.directionalShadowMatrix.clear()
+        self.state.point.clear()
+        self.state.pointShadowMap.clear()
+        self.state.pointShadowMatrix.clear()
+        self.state.spot.clear()
+        self.state.spotShadowMap.clear()
+        self.state.spotShadowMatrix.clear()
+        self.state.rectArea.clear()
+        self.state.hemi.clear()
 
         viewMatrix = camera.matrixWorldInverse
 
@@ -162,11 +153,9 @@ class pyOpenGLLights:
                     uniforms.shadowRadius = shadow.radius
                     uniforms.shadowMapSize = shadow.mapSize
 
-                self.directionalShadowMap[ directionalLength ] = shadowMap
-                self.directionalShadowMatrix[ directionalLength ] = light.shadow.matrix
-                self.directional[ directionalLength ] = uniforms
-
-                directionalLength += 1
+                self.state.directionalShadowMap.append(shadowMap)
+                self.state.directionalShadowMatrix.append(light.shadow.matrix)
+                self.state.directional.append(uniforms)
             elif light.isSpotLight:
                 uniforms = self.cache.get( light )
 
@@ -194,11 +183,9 @@ class pyOpenGLLights:
                     uniforms.shadowRadius = shadow.radius
                     uniforms.shadowMapSize = shadow.mapSize
 
-                self.spotShadowMap[ spotLength ] = shadowMap
-                self.spotShadowMatrix[ spotLength ] = light.shadow.matrix
-                self.spot[ spotLength ] = uniforms
-
-                spotLength += 1
+                self.state.spotShadowMap.append(shadowMap)
+                self.state.spotShadowMatrix.append(light.shadow.matrix)
+                self.state.spot.append(uniforms)
             elif light.isRectAreaLight:
                 uniforms = self.cache.get( light )
 
@@ -226,9 +213,7 @@ class pyOpenGLLights:
                 # // TODO (abelnation): RectAreaLight distance?
                 # // uniforms.distance = distance;
 
-                self.rectArea[ rectAreaLength ] = uniforms
-
-                rectAreaLength += 1
+                self.state.rectArea.append(uniforms)
 
             elif light.isPointLight:
                 uniforms = self.cache.get( light )
@@ -251,11 +236,9 @@ class pyOpenGLLights:
                     uniforms.shadowCameraNear = shadow.camera.near
                     uniforms.shadowCameraFar = shadow.camera.far
 
-                self.pointShadowMap[ pointLength ] = shadowMap
-                self.pointShadowMatrix[ pointLength ] = light.shadow.matrix
-                self.point[ pointLength ] = uniforms
-
-                pointLength += 1
+                self.state.pointShadowMap.append(shadowMap)
+                self.state.pointShadowMatrix.append(light.shadow.matrix)
+                self.state.point.append(uniforms)
             elif light.isHemisphereLight:
                 uniforms = self.cache.get( light )
 
@@ -266,21 +249,13 @@ class pyOpenGLLights:
                 uniforms.skyColor.copy( light.color ).multiplyScalar( intensity )
                 uniforms.groundColor.copy( light.groundColor ).multiplyScalar( intensity )
 
-                self.state.hemi[ hemiLength ] = uniforms
+                self.state.hemi.append(uniforms)
 
-                hemiLength += 1
-
-        self.ambient[ 0 ] = r
-        self.ambient[ 1 ] = g
-        self.ambient[ 2 ] = b
-
-        self.directional.length = directionalLength
-        self.spot.length = spotLength
-        self.rectArea.length = rectAreaLength
-        self.point.length = pointLength
-        self.hemi.length = hemiLength
+        self.state.ambient[ 0 ] = r
+        self.state.ambient[ 1 ] = g
+        self.state.ambient[ 2 ] = b
 
         # // TODO (sam-g-steel) why aren't we using join
-        self.hash = "+".join([directionalLength,pointLength,spotLength,rectAreaLength,hemiLength,len(shadows)])
+        self.state.hash = "%d+%d+%d+%d+%d+%d" % (len(self.state.directional), len(self.state.point), len(self.state.spot), len(self.state.rectArea), len(self.state.hemi), len(shadows))
 
         return self

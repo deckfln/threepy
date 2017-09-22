@@ -138,7 +138,7 @@ class Quaternion:
         
         return self
 
-    def setFromEuler(self, euler, update ):
+    def setFromEuler(self, euler, update=False ):
         if not ( euler and euler.isEuler):
             print( 'THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.' )
 

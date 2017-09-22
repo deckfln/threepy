@@ -5,6 +5,7 @@
 import math
 import re
 from THREE._Math import *
+from THREE.pyOpenGLObject import *
 
 
 _ColorKeywords = { 'aliceblue': 0xF0F8FF, 'antiquewhite': 0xFAEBD7, 'aqua': 0x00FFFF, 'aquamarine': 0x7FFFD4, 'azure': 0xF0FFFF,
@@ -50,7 +51,7 @@ def _handleAlpha( string=None ):
         print( 'THREE.Color: Alpha component of ' + style + ' will be ignored.' )
 
             
-class Color:
+class Color(pyOpenGLObject):
     isColor = True
 
     def __init__(self, r=None, g=None, b=None):
@@ -61,18 +62,18 @@ class Color:
         if g is None and b is None:
             # // r is THREE.Color, hex or string
             self.set( r )
-
-        self.setRGB( r, g, b )
+        else:
+            self.setRGB( r, g, b )
 
     def set(self, value ):
-        if value and hasattr(value, 'isColor'):
-            self.copy( value )
-        elif type(value) == 'float':
+        if isinstance(value, float):
             self.setHex( value )
-        elif type(value) == 'int':
+        elif isinstance(value, int):
             self.setHex( value )
-        elif type(value) == 'str':
+        elif isinstance(value, str):
             self.setStyle( value )
+        elif value and value.isColor:
+            self.copy( value )
         return self
 
     def setScalar(self, scalar ):

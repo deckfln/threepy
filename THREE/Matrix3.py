@@ -9,9 +9,10 @@
 
 import math
 from THREE.Vector3 import *
+from THREE.pyOpenGLObject import *
 
 
-class Matrix3():
+class Matrix3(pyOpenGLObject):
     isMatrix3 = True
 
     def __init__(self):
@@ -124,7 +125,7 @@ class Matrix3():
 
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
-    def  getInverse(self, matrix, throwOnDegenerate ):
+    def  getInverse(self, matrix, throwOnDegenerate=None ):
         if matrix and matrix.isMatrix4:
             print( "THREE.Matrix3: .getInverse() no longer takes a Matrix4 argument." )
 
@@ -142,7 +143,7 @@ class Matrix3():
         det = n11 * t11 + n21 * t12 + n31 * t13
 
         if det == 0:
-            print("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
+            raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
             return self.identity()
 
         detInv = 1 / det
@@ -162,7 +163,7 @@ class Matrix3():
         return self
 
     def transpose(self):
-        tmp, m = self.elements
+        m = self.elements
 
         tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp
         tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp

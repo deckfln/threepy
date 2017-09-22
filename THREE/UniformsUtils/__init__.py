@@ -25,14 +25,18 @@ def clone( uniforms_src ):
             for p in uniforms_src[ u ]:
                 parameter_src = uniforms_src[ u ][ p ]
 
-                if parameter_src and ( hasattr(parameter_src, 'isColor') or
-                    hasattr(parameter_src, 'isMatrix3') or hasattr(parameter_src, 'isMatrix4') or
-                    hasattr(parameter_src, 'isVector2') or hasattr(parameter_src, 'isVector3') or hasattr(parameter_src, 'isVector4') or
-                    hasattr(parameter_src, 'isTexture')):
+                if isinstance(parameter_src, int) or isinstance(parameter_src, float):
+                    uniforms_dst[ u ][ p ] = parameter_src
+                elif isinstance(parameter_src, dict):
+                    uniforms_dst[ u ][ p ] = parameter_src
+                elif parameter_src and ( parameter_src.isColor or
+                    parameter_src.isMatrix3 or parameter_src.isMatrix4 or
+                    parameter_src.isVector2 or parameter_src.isVector3 or parameter_src.isVector4 or
+                    parameter_src.isTexture):
                     uniforms_dst[ u ][ p ] = parameter_src.clone()
 
-                elif type(parameter_src) == "array":
-                    uniforms_dst[ u ][ p ] = parameter_src.slice()
+                elif isinstance(parameter_src, list):
+                    uniforms_dst[ u ][ p ] = parameter_src[:]
                 else:
                     uniforms_dst[ u ][ p ] = parameter_src
 

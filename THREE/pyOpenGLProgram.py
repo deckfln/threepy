@@ -45,23 +45,22 @@ def pyOpenGLShader(type, string):
 
 _programIdCount = 0
 
-_enc = {
-    'LinearEncoding': ['Linear', '(value)'],
-    'sRGBEncoding': ['sRGB', '(value)'],
-    'RGBEEncoding': ['RGBE', '(value)'],
-    'RGBM7Encoding': ['RGBM', '(value, 7.0)'],
-    'RGBM16Encoding': ['RGBM', '(value, 16.0)'],
-    'RGBDEncoding': ['RGBD', '(value, 256.0)'],
-    'GammaEncoding': ['Gamma', '(value, float(GAMMA_FACTOR))']
-}
-
 
 def getEncodingComponents(encoding):
+    _enc = {
+        LinearEncoding: ['Linear', '(value)'],
+        sRGBEncoding: ['sRGB', '(value)'],
+        RGBEEncoding: ['RGBE', '(value)'],
+        RGBM7Encoding: ['RGBM', '(value, 7.0)'],
+        RGBM16Encoding: ['RGBM', '(value, 16.0)'],
+        RGBDEncoding: ['RGBD', '(value, 256.0)'],
+        GammaEncoding: ['Gamma', '(value, float(GAMMA_FACTOR))']
+    }
+
     if encoding in _enc:
         return _enc[encoding]
         
-    print('getEncodingComponents: unsupported encoding: %s ' % encoding)
-    return ""
+    raise RuntimeError('getEncodingComponents: unsupported encoding: %s ' % encoding)
 
 
 def getTexelDecodingFunction(functionName, encoding):
@@ -75,16 +74,16 @@ def getTexelEncodingFunction(functionName, encoding):
 
 
 _tone_mapping = {
-    'LinearToneMapping': "Linear",
-    'ReinhardToneMapping': "Reinhard",
-    'Uncharted2ToneMapping': "Uncharted2",
-    'CineonToneMapping': "OptimizedCineon"
+    LinearToneMapping: "Linear",
+    ReinhardToneMapping: "Reinhard",
+    Uncharted2ToneMapping: "Uncharted2",
+    CineonToneMapping: "OptimizedCineon"
 }
 
 
 def getToneMappingFunction(functionName, toneMapping):
     if toneMapping not in _tone_mapping:
-        raise('unsupported toneMapping: ' + toneMapping)
+        raise RuntimeError('unsupported toneMapping: %d' % toneMapping)
 
     toneMappingName = _tone_mapping[toneMapping]
 
@@ -106,6 +105,9 @@ def generateExtensions(extensions, parameters, rendererExtensions):
 
 def generateDefines(defines):
     chunks = []
+
+    if defines is None:
+        return ""
 
     for name in defines:
         value = defines[name]
@@ -150,14 +152,16 @@ def replaceLightNums(string, parameters):
 
 def parseIncludes(string):
     global ShaderChunk
-    pattern = '^[\t]*#include +<([\w\d.]+)>'
+    pattern = '^[\t ]*#include +<([\w\d.]+)>'
+    new = string
 
-    for match in re.finditer(pattern, string):
+    for match in re.finditer(pattern, string, re.MULTILINE):
         include = match.groups(0)[0]
         includes = parseIncludes(ShaderChunk[include])
-        string = re.sub(match.group(0), includes, string)
+        toreplace = match.string[match.start(0):match.end(0)]
+        new = re.sub(toreplace, includes, new)
 
-    return string
+    return new
 
 
 def unrollLoops(string):
@@ -283,7 +287,7 @@ class pyOpenGLProgram:
 
         program = glCreateProgram()
 
-        if hasattr(material, 'isRawShaderMaterial'):
+        if material.isRawShaderMaterial:
             prefixVertex = '\n'.join([
                 customDefines,
                 '\n'
@@ -296,6 +300,7 @@ class pyOpenGLProgram:
            ])
         else:
             _prefixVertex = [
+                '#version 330',
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
@@ -400,6 +405,7 @@ class pyOpenGLProgram:
             prefixVertex = '\n'.join([string for string in _prefixVertex if string != ''])
 
             _prefixFragment = [
+                '#version 330',
                 customExtensions,
 
                 'precision ' + parameters['precision'] + ' float;',

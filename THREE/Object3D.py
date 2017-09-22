@@ -8,7 +8,7 @@
  */
 """
 import THREE._Math as _Math
-from THREE.RootObject import *
+from THREE.pyOpenGLObject import *
 from THREE.Vector3 import *
 from THREE.Matrix3 import *
 from THREE.Matrix4 import *
@@ -20,7 +20,7 @@ from THREE.Layers import *
 _object3DId = 0
 
 
-class Object3D():
+class Object3D(pyOpenGLObject):
     DefaultUp = Vector3(0, 1, 0)
     DefaultMatrixAutoUpdate = True
     isObject3D = True
@@ -177,7 +177,7 @@ class Object3D():
         self._quaternion.setFromRotationMatrix(m1)
             
     def add(self, object):
-        if type(object) == list:
+        if isinstance(object, list):
             for i in object:
                 self.add(i)
             return self
@@ -197,7 +197,7 @@ class Object3D():
         return self
 
     def remove(self, object):
-        if type(object)==list:
+        if isinstance(object, list):
             for i in object:
                 self.remove(i)
             return self
@@ -380,7 +380,7 @@ class Object3D():
             object.geometry = serialize(meta.geometries, self.geometry)
 
         if self.material is not None:
-            if type(self.material) == "array":
+            if isinstance(self.material, list):
                 uuids = []
                 for i in range(len(self.material)):
                     uuids.append(serialize(meta.materials, self.material[ i ]))
