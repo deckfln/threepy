@@ -8,6 +8,7 @@ import re
 from OpenGL.GL import *
 from THREE.Constants import *
 from THREE.Vector4 import *
+from ctypes import sizeof, c_float, c_void_p, c_uint, c_uint16
 
 
 class _ColorBuffer:
@@ -485,9 +486,9 @@ class pyOpenGLState:
 
     # // texture
 
-    def activeTexture(self, webglSlot ):
+    def activeTexture(self, webglSlot=None ):
         if  webglSlot is None:
-            webglSlot = GL_TEXTURE0 + maxTextures - 1
+            webglSlot = GL_TEXTURE0 + self.capabilities.maxTextures - 1
 
         if  self.currentTextureSlot != webglSlot:
             glActiveTexture( webglSlot )
@@ -497,13 +498,13 @@ class pyOpenGLState:
         if self.currentTextureSlot is None:
             self.activeTexture()
 
-        boundTexture = self.currentBoundTextures[ self.currentTextureSlot ]
-
-        if  boundTexture is None:
+        if self.currentTextureSlot not in self.currentBoundTextures:
             boundTexture = _BoundTexture(None, None)
-            self.currentBoundTextures[ self.currentTextureSlot ] = boundTexture
+            self.currentBoundTextures[self.currentTextureSlot] = boundTexture
+        else:
+            boundTexture = self.currentBoundTextures[ self.currentTextureSlot ]
 
-        if  boundTexture.type != webglType or boundTexture.texture != webglTexture:
+        if boundTexture.type != webglType or boundTexture.texture != webglTexture:
             glBindTexture( webglType, webglTexture or self.emptyTextures[ webglType ] )
 
             boundTexture.type = webglType
@@ -515,11 +516,8 @@ class pyOpenGLState:
         except:
             raise( 'THREE.WebGLState:', error )
 
-    def texImage2D(self):
-        try:
-            glTexImage2D.apply( gl, arguments )
-        except:
-            raise( 'THREE.WebGLState:', error )
+    def texImage2D(self, target, level, internalFormat, width, height, border, format, type, data):
+        glTexImage2D( target, level, internalFormat, width, height, border, format, type, data )
 
     def scissor(self, scissor ):
         if not self.currentScissor.equals( scissor ):

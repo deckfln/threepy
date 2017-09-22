@@ -229,7 +229,7 @@ def main(argv=None):
     scene = THREE.Scene()
 
     camera = THREE.PerspectiveCamera(45, width/height, 0.1, 20000)
-    camera.position = THREE.Vector3(0, 0, 10)
+    camera.position = THREE.Vector3(0, 0, 5)
 
     bgcube = THREE.BoxBufferGeometry(1, 1, 1, 1, 1, 1)
     colors = []
@@ -250,7 +250,11 @@ def main(argv=None):
     material.uniforms.transformationMatrix.value = cube.matrixWorld
     #    material = THREE.MeshBasicMaterial({'color': 0xffff00})
     """
-    material = THREE.MeshLambertMaterial({'color': 0x7777ff})
+    texture = THREE.TextureLoader().load("crate.jpg")
+
+    material = THREE.MeshPhongMaterial({'color': 0x7777ff,
+                                          'map': texture
+                                          })
 
     cube = THREE.Mesh(bgcube, material)
     scene.add(cube)

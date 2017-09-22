@@ -11,6 +11,11 @@ class _map:
         self.shader = None
         self.numClippingPlanes = 0
         self.numIntersection = 0
+        self.openglTexture = None
+        self.openglInit = False
+        self.currentAnisotropy = False
+        self.version = -1
+
 
 class pyOpenGLProperties:
     def __init__(self):

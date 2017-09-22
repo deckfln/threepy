@@ -1,5 +1,6 @@
 import THREE.UniformsUtils as UniformsUtils
 import THREE._Math as _Math
+from THREE.javascriparray import *
 from THREE.arrayMax import *
 from THREE.pyOpenGLObject import *
 from THREE.Constants import *
@@ -27,6 +28,7 @@ from THREE.Material import *
 from THREE.ShaderMaterial import *
 from THREE.MeshBasicMaterial import *
 from THREE.MeshLambertMaterial import *
+from THREE.MeshPhongMaterial import *
 from THREE.Light import *
 from THREE.SpotLights import *
 from THREE.DirectionalLight import *
@@ -35,6 +37,8 @@ from THREE.Face3 import *
 from THREE.Mesh import *
 from THREE.PlaneBufferGeometry import *
 from THREE.Scene import *
+from THREE.Texture import *
+from THREE.pyOpenGLTextures import *
 from THREE.pyOpenGLProperties import *
 from THREE.pyOpenGLClipping import *
 from THREE.pyOpenGLStates import *
@@ -49,6 +53,9 @@ from THREE.pyOpenGL import *
 from THREE.pyOpenGLProgram import *
 from THREE.pyOpenGLPrograms import *
 from THREE.pyOpenGLRenderer import *
-
+from THREE.LoadingManager import *
+from THREE.ImageLoader import *
+from THREE.TextureLoader import *
+import THREE.ImageUtils as ImageUtils
 
 global ShaderLib

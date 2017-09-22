@@ -171,11 +171,11 @@ class Material(pyOpenGLObject):
                 self.flatShading = True if newValue == FlatShading else False
                 continue
 
-            currentValue = self[ key ]
-
-            if currentValue is None:
-                print( "THREE." + self.type + ": '" + key + "' is not a property of self material." )
+            if key not in self.__dict__:
+                print("THREE." + self.type + ": '" + key + "' is not a property of self material.")
                 continue
+
+            currentValue = self[ key ]
 
             if isinstance(currentValue, int) or isinstance(currentValue, float) or isinstance(currentValue, str):
                 self[ key ] = newValue

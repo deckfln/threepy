@@ -52,11 +52,6 @@ class pyOpenGLFlareRenderer:
         return True
 
 
-class pyOpenGLTextures:
-    def __init__(self, extensions, state, properties, capabilities, utils, infoMemory ):
-        self.extensions = extensions
-
-
 """
 """
 class RenderTarget:
@@ -223,7 +218,7 @@ class _vr:
         self.enabled = False
 
 
-class Renderer:
+class pyOpenGLRenderer:
     def __init__(self, parameters=None, reshape=None, render=None, keyboard=None, mouse=None, motion=None, update=None):
         self.name = "pyOpenGL"
         self._init_glut(reshape, render, keyboard, mouse, motion, update)
@@ -380,7 +375,7 @@ class Renderer:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def _setProgram(self, camera, fog, material, object):
-        _usedTextureUnits = 0
+        self._usedTextureUnits = 0
 
         materialProperties = self.properties.get(material)
 
@@ -666,7 +661,7 @@ class Renderer:
 
         if uvScaleMap is not None:
             # // backwards compatibility
-            if hasattr(uvScaleMap, 'isWebGLRenderTarget'):
+            if uvScaleMap.isWebGLRenderTarget:
                 uvScaleMap = uvScaleMap.texture
 
             offset = uvScaleMap.offset
@@ -1520,6 +1515,36 @@ class Renderer:
         if isCube:
             textureProperties = self.properties.get( renderTarget.texture )
             glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, renderTarget.activeMipMapLevel )
+
+    """
+    //Textures
+    """
+    def allocTextureUnit(self):
+        textureUnit = self._usedTextureUnits
+
+        if textureUnit >= self.capabilities.maxTextures:
+            raise RuntimeWarning( 'THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + capabilities.maxTextures );
+
+        self._usedTextureUnits += 1
+        return textureUnit
+
+    def setTexture2D(self,  texture, slot):
+        warned = False
+        if texture and texture.isWebGLRenderTarget:
+            if not warned:
+                print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." );
+                warned = True
+
+            texture = texture.texture
+
+        self.textures.setTexture2D( texture, slot )
+
+    def setTexture(self, texture, slot):
+        warned = False
+        if not warned:
+            print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." );
+            warned = True
+        self.textures.setTexture2D( texture, slot )
 
     def screen_size(self):
         """
