@@ -140,8 +140,11 @@ class Material(pyOpenGLObject):
         self.clipping = False
         self.emissive = None
         self.defaultAttributeValues = None
-
+        self.skinning = None
+        self.morphTargets = None
+        self.morphNormals = None
         self.callback = None
+        self.wireframe = False
 
     def onBeforeCompile(self, shader):
         return True

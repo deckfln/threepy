@@ -9,24 +9,6 @@ from THREE.Vector3 import *
 from THREE.Sphere import *
 
 
-def __travers_box3(node, scope ):
-    v1 = Vector3()
-    geometry = node.geometry
-    if geometry is not None:
-        if geometry.isGeometry:
-            vertices = geometry.vertices
-            for i in range(vertices.length):
-                v1.copy( vertices[ i ] )
-                v1.applyMatrix4( node.matrixWorld )
-                scope.expandByPoint( v1 )
-        elif geometry.isBufferGeometry:
-            attribute = geometry.attributes.position
-            if attribute is not None:
-                for i in range(attribute.count):
-                    v1.fromBufferAttribute( attribute, i ).applyMatrix4( node.matrixWorld )
-                    scope.expandByPoint( v1 )
-            
-            
 class Box3:
     def __init__(self, min=None, max=None ):
         self.min = min
@@ -174,12 +156,27 @@ class Box3:
         # // Computes the world-axis-aligned bounding box of an object (including its children),
         #// accounting for both the object's, and children's, world transforms
 
-        v1 = Vector3()
-        scope = self
         object.updateMatrixWorld( True )
 
         # TODO: FDE fix it in python
-        object.traverse( _traverse_box3(node, scope))
+        def _traverse_box3(node, scope):
+            v1 = Vector3()
+            geometry = node.geometry
+            if geometry is not None:
+                if geometry.isGeometry:
+                    vertices = geometry.vertices
+                    for i in range(len(vertices)):
+                        v1.copy(vertices[i])
+                        v1.applyMatrix4(node.matrixWorld)
+                        scope.expandByPoint(v1)
+                elif geometry.isBufferGeometry:
+                    attribute = geometry.attributes.position
+                    if attribute is not None:
+                        for i in range(attribute.count):
+                            v1.fromBufferAttribute(attribute, i).applyMatrix4(node.matrixWorld)
+                            scope.expandByPoint(v1)
+
+        object.traverse( _traverse_box3, self)
 
         return self
 

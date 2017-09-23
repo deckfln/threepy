@@ -9,18 +9,32 @@ from THREE.Color import *
 
 
 class Face3:
-    def __init__(self, a=None, b=None, c=None, normal=None, color=None, materialIndex=None ):
+    def __init__(self, a=None, b=None, c=None, normal=None, color=None, materialIndex=0 ):
         self.a = a
         self.b = b
         self.c = c
 
-        self.normal = normal if ( normal and normal.isVector3) else Vector3()
-        self.vertexNormals = normal if isinstance( normal, list) else []
+        if isinstance( normal, list):
+            self.vertexNormals = normal
+            self.normal = Vector3()
+        elif normal and normal.isVector3:
+            self.normal = normal
+            self.vertexNormals = []
+        else:
+            self.normal = Vector3()
+            self.vertexNormals = []
 
-        self.color = color if ( color and color.isColor) else Color()
-        self.vertexColors = color if isinstance(color, list) else []
+        if isinstance( color, list):
+            self.vertexColors = color
+            self.color = Vector3()
+        elif color and color.isVector3:
+            self.color = color
+            self.vertexColors = []
+        else:
+            self.color = Vector3()
+            self.vertexColors= []
 
-        self.materialIndex = materialIndex if materialIndex is not None else 0
+        self.materialIndex = materialIndex
 
     def clone(self):
         return Face3().copy( self )

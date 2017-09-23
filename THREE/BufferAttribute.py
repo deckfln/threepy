@@ -15,6 +15,12 @@ from array import *
 import numpy as np
 
 
+class _updateRange:
+    def __init__(self, offset, count):
+        self.offset = offset
+        self.count = count
+
+
 class BufferAttribute(pyOpenGLObject):
     isBufferAttribute = True
 
@@ -33,7 +39,7 @@ class BufferAttribute(pyOpenGLObject):
         self.normalized = (normalized == True)
 
         self.dynamic = False
-        self.updateRange = { 'offset': 0, 'count': - 1 }
+        self.updateRange = _updateRange(0, - 1)
 
         self.version = 0
         self.needsUpdate = False

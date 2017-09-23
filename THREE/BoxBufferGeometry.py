@@ -1,15 +1,40 @@
-"""
-	/**
-	 * @author mrdoob / http://mrdoob.com/
-	 * @author Mugen87 / https://github.com/Mugen87
-	 */
-"""
 import math
 from THREE.Vector3 import *
 from THREE.BufferGeometry import *
+from THREE.Geometry import *
 
-        
+
+class BoxGeometry(Geometry):
+    """
+    /**
+     * @author mrdoob / http://mrdoob.com/
+     * @author Mugen87 / https://github.com/Mugen87
+     */
+     """
+    def __init__(self, width, height, depth, widthSegments=1, heightSegments=1, depthSegments=1 ):
+        super().__init__()
+        self.type = 'BoxGeometry'
+
+        self.parameters = {
+            'width': width,
+            'height': height,
+            'depth': depth,
+            'widthSegments': widthSegments,
+            'heightSegments': heightSegments,
+            'depthSegments': depthSegments
+        }
+
+        self.fromBufferGeometry( BoxBufferGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) )
+        self.mergeVertices()
+
+
 class BoxBufferGeometry(BufferGeometry):
+    """
+    /**
+     * @author mrdoob / http://mrdoob.com/
+     * @author Mugen87 / https://github.com/Mugen87
+     */
+    """
     def __init__(self, width, height, depth, widthSegments, heightSegments, depthSegments ):
         super().__init__()
 

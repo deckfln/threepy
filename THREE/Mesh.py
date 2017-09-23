@@ -6,6 +6,7 @@
  * @author jonobr1 / http://jonobr1.com/
  */
 """
+import random
 import math
 
 from THREE.Constants import *
@@ -127,7 +128,7 @@ class Mesh(Object3D):
         else:
             morphTargets = geometry.morphTargets
 
-            if morphTargets is not None and morphTargets.length > 0:
+            if morphTargets is not None and len(morphTargets) > 0:
                 self.morphTargetInfluences = []
                 self.morphTargetDictionary = {}
 

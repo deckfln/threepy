@@ -16,12 +16,13 @@ from THREE.Layers import *
 from THREE.Sphere import *
 from THREE.Box3 import *
 from THREE.Frustum import *
-from THREE.pyOpenGLAttributes import *
+from THREE.Geometry import *
 from THREE.BufferGeometry import *
 from THREE.BoxBufferGeometry import *
 from THREE.BufferAttribute import *
 from THREE.Color import *
 from THREE.Object3D import *
+from THREE.Group import *
 from THREE.Camera import *
 from THREE.ShaderChunk import *
 from THREE.Material import *
@@ -40,6 +41,11 @@ from THREE.PlaneBufferGeometry import *
 from THREE.Scene import *
 from THREE.Texture import *
 from THREE.Fog import *
+from THREE.LineBasicMaterial import *
+from THREE.Line import *
+from THREE.LineSegments import *
+from THREE.BoxHelper import *
+from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *
 from THREE.pyOpenGLProperties import *

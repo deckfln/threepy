@@ -291,8 +291,10 @@ class Object3D(pyOpenGLObject):
     def raycast(self, raycaster, intersects):
         return None
 
-    def traverse(self, callback):
-        callback(self)
+    def traverse(self, callback, scope=None):
+        if callback is None:
+            print("xx")
+        callback(self, scope)
         children = self.children
         for i in range(len(children)):
             children[ i ].traverse(callback)
