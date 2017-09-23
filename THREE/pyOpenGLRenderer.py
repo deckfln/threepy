@@ -1038,7 +1038,7 @@ class pyOpenGLRenderer:
                         stride = data.stride
                         offset = geometryAttribute.offset
 
-                        if data and hasattr(data, 'isInstancedInterleavedBuffer'):
+                        if data and data.isInstancedInterleavedBuffer:
                             self.state.enableAttributeAndDivisor( programAttribute, data.meshPerAttribute )
 
                             if geometry.maxInstancedCount is None:
@@ -1047,7 +1047,7 @@ class pyOpenGLRenderer:
                             self.state.enableAttribute( programAttribute )
 
                         glBindBuffer( GL_ARRAY_BUFFER, buffer )
-                        glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, ( startIndex * stride + offset ) * bytesPerElement )
+                        glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(( startIndex * stride + offset ) * bytesPerElement) )
                     else:
                         if geometryAttribute.isInstancedBufferAttribute:
                             self.state.enableAttributeAndDivisor( programAttribute, geometryAttribute.meshPerAttribute )
@@ -1060,7 +1060,7 @@ class pyOpenGLRenderer:
                         glBindBuffer( GL_ARRAY_BUFFER, buffer )
                         glVertexAttribPointer( programAttribute, size, type, normalized, 0, c_void_p(startIndex * size * bytesPerElement) )
 
-                elif  materialDefaultAttributeValues is not None:
+                elif materialDefaultAttributeValues is not None:
                     value = materialDefaultAttributeValues[ name ]
 
                     if value is not None:

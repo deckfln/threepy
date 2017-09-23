@@ -9,4 +9,8 @@ def Float32Array(size):
 
 
 def Uint16Array(size):
-    return np.array(size, 'H')
+    return np.zeros(size, 'H')
+
+
+def Uint8Array(size):
+    return np.zeros(size, 'B')

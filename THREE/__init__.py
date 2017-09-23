@@ -17,9 +17,10 @@ from THREE.Sphere import *
 from THREE.Box3 import *
 from THREE.Frustum import *
 from THREE.Geometry import *
+from THREE.BufferAttribute import *
+from THREE.InterleavedBufferAttribute import *
 from THREE.BufferGeometry import *
 from THREE.BoxBufferGeometry import *
-from THREE.BufferAttribute import *
 from THREE.Color import *
 from THREE.Object3D import *
 from THREE.Group import *
