@@ -68,8 +68,18 @@ class Object3D(pyOpenGLObject):
 
         self.userData = {}
 
+        self._onBeforeRender = None
+        self._onBeforeRenderParent = None
+
     def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
+        if self._onBeforeRender:
+            return self._onBeforeRender(self._onBeforeRenderParent, renderer, scene, camera, geometry, material, group)
+
         return True
+
+    def setOnBeforeRender(self, object, func):
+        self._onBeforeRender = func
+        self._onBeforeRenderParent = object
 
     def onAfterRender(self, renderer, scene, camera, geometry, material, group):
         return True
@@ -278,7 +288,7 @@ class Object3D(pyOpenGLObject):
 
         return result.set(0, 0, 1).applyQuaternion(quaternion)
 
-    def raycast(self):
+    def raycast(self, raycaster, intersects):
         return None
 
     def traverse(self, callback):

@@ -28,14 +28,6 @@ class pyOpenGLShadowMap:
         return True
 
 
-class pyOpenGLBackground:
-    def __init__(self, renderer, state, geometries, premultipliedAlpha):
-        self.renderer = renderer
-
-    def render(self, renderList, scene, camera, forceClear):
-        return True
-
-
 class pyOpenGLSpriteRenderer:
     def __init__(self, renderer, state, textures, capabilities ):
         self.renderer = renderer
@@ -217,8 +209,17 @@ class _vr:
     def __init__(self):
         self.enabled = False
 
+    def getDevice(self):
+        return None
+
+    def dispose(self):
+        return True
+
 
 class pyOpenGLRenderer:
+    """
+
+    """
     def __init__(self, parameters=None, reshape=None, render=None, keyboard=None, mouse=None, motion=None, update=None):
         self.name = "pyOpenGL"
         self._init_glut(reshape, render, keyboard, mouse, motion, update)
@@ -247,6 +248,13 @@ class pyOpenGLRenderer:
         self.extensions.get('OES_texture_half_float_linear')
         self.extensions.get('OES_standard_derivatives')
         self.extensions.get('ANGLE_instanced_arrays')
+        """
+        // clearing
+        """
+        self.autoClear = True
+        self.autoClearColor = True
+        self.autoClearDepth = True
+        self.autoClearStencil = True
         """
         // scene graph
         """
@@ -367,9 +375,81 @@ class pyOpenGLRenderer:
         // shadow map
         """
         self.shadowMap = pyOpenGLShadowMap(self, self.objects, self.capabilities.maxTextureSize)
+        """
+        // Clearing
+        """
+        self.getClearColor = self.background.getClearColor
+        self.setClearColor = self.background.setClearColor
+        self.getClearAlpha = self.background.getClearAlpha
+        self.setClearAlpha = self.background.setClearAlpha
 
     def _getTargetPixelRatio(self):
         return self._pixelRatio if self._currentRenderTarget is None else 1
+
+    def getPixelRatio(self):
+        return self._pixelRatio
+
+    def setPixelRatio(self, value=None):
+        if value is None:
+            return
+
+        self._pixelRatio = value
+
+        self.setSize( self._width, self._height, False )
+
+    def getSize(self):
+        return {
+            'width': self._width,
+            'height': self._height
+            }
+
+    def setSize(self, width, height, updateStyle=False ):
+        device = self.vr.getDevice()
+
+        if device and device.isPresenting:
+            print( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' )
+            return
+        self._width = width
+        self._height = height
+
+        self.setViewport( 0, 0, width, height )
+
+    def setViewport (self, x, y, width, height ):
+        self._viewport.set( x, self._height - y - height, width, height )
+        self.state.viewport( self._currentViewport.copy( self._viewport ).multiplyScalar( self._pixelRatio ) )
+
+    def setScissor(self, x, y, width, height ):
+        self._scissor.set( x, self._height - y - height, width, height )
+        self.state.scissor( self._currentScissor.copy( self._scissor ).multiplyScalar( self._pixelRatio ) )
+
+    def setScissorTest(self,  bool ):
+        self._scissorTest = bool
+        self.state.setScissorTest( bool )
+
+    def clear(self, color=True, depth=True, stencil=True ):
+        bits = 0
+        bits |= GL_COLOR_BUFFER_BIT
+        bits |= GL_DEPTH_BUFFER_BIT
+        bits |= GL_STENCIL_BUFFER_BIT
+
+        glClear( bits )
+
+    def clearColor(self):
+        self.clear( True, False, False )
+
+    def clearDepth(self):
+        self.clear( False, True, False )
+
+    def clearStencil(self):
+        self.clear( False, False, True )
+
+    def clearTarget(self, renderTarget, color, depth, stencil ):
+        self.setRenderTarget( renderTarget )
+        self.clear( color, depth, stencil )
+
+    def dispose(self):
+        self.renderLists.dispose()
+        self.vr.dispose()
 
     def prepare(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -1271,6 +1351,10 @@ class pyOpenGLRenderer:
 
         elif object.isPoints:
             renderer.setMode(GL_POINTS)
+            # <OpenGL
+            self.state.enable(GL_POINT_SPRITE)
+            self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
+            # OpenGL>
 
         if geometry and geometry.isInstancedBufferGeometry:
             if geometry.maxInstancedCount > 0:
@@ -1462,6 +1546,8 @@ class pyOpenGLRenderer:
 
         if self.vr.enabled:
             self.vr.submitFrame()
+
+        glutSwapBuffers()
 
         # // _gl.finish()
 

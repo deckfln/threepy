@@ -307,7 +307,7 @@ class pyOpenGLState:
                 glDisableVertexAttribArray( i )
                 self.enabledAttributes[ i ] = 0
 
-    def enable(self, id ):
+    def enable(self, id):
         if id not in self.capabilities:
             self.capabilities[id] = False
 

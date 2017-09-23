@@ -1,5 +1,5 @@
 """
-
+webgl_buffergeometry
 """
 from datetime import datetime
 
@@ -17,12 +17,11 @@ def init():
     renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
     width, height = renderer.screen_size()
 
-    renderer.setPixelRatio( window.devicePixelRatio )
+    renderer.setPixelRatio( 1 )
     renderer.setSize( width, height )
 
     renderer.gammaInput = True
     renderer.gammaOutput = True
-
 
     camera = THREE.PerspectiveCamera( 27, width / height, 1, 3500 )
     camera.position.z = 2750
@@ -55,8 +54,10 @@ def init():
 
     color = THREE.Color()
 
-    n = 800, n2 = n/2    #    // triangles spread in the cube
-    d = 12, d2 = d/2    #    // individual triangle size
+    n = 800
+    n2 = n/2    #    // triangles spread in the cube
+    d = 12
+    d2 = d/2    #    // individual triangle size
 
     pA = THREE.Vector3()
     pB = THREE.Vector3()
@@ -185,7 +186,7 @@ def animate():
 def render():
     global camera, mesh, renderer
     
-    time = datetime.now() * 0.001
+    time = datetime.now().timestamp() * 0.01
 
     mesh.rotation.x = time * 0.25
     mesh.rotation.y = time * 0.5
@@ -214,11 +215,6 @@ def keyboard(c, x=0, y=0):
 
 
 """
-*
-*
-*
-*
-
 """
 def main(argv=None):
     global renderer, camera, scene

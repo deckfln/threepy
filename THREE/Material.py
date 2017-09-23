@@ -26,9 +26,10 @@ def _extractFromCache( cache ):
 
 
 class _uniform:
-    def __init__(self, dict):
-        self.type = dict['type']
-        self.value = dict['value']
+    def __init__(self, dic):
+        if type in dic:
+            self.type = dic['type']
+        self.value = dic['value']
         self.needsUpdate = True
 
 

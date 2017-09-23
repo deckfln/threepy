@@ -50,7 +50,35 @@ void main() {
     gl_FragColor = color;
 }
     """
-    
+
+vertexshader = """
+varying vec3 vColor;
+varying vec2 vUv;
+
+void main() {
+//    vColor = color;
+    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+    // gl_PointSize = size * ( 300.0 / -mvPosition.z );
+    gl_Position = projectionMatrix * mvPosition;
+    vUv = uv;
+}
+"""
+
+fragmentshader = """
+uniform vec3 color;
+uniform sampler2D texture;
+
+varying vec2 vUv;
+varying vec3 vColor;
+
+void main() {
+    gl_FragColor = vec4( color * vColor, 1.0 );
+    gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+
+    gl_FragColor = texture2D( texture, vUv );
+}
+"""
+
 # object #####################################################################
 
 def flatten(*lll):
@@ -186,9 +214,8 @@ camera = None
 
 def render():
     global renderer, scene, camera, cube
-    renderer.prepare()
+    # renderer.prepare()
     renderer.render(scene, camera)
-    glutSwapBuffers()
 
 
 def update():
@@ -215,55 +242,24 @@ class RenderTarget:
 
 # main #######################################################################
 
-
-def main(argv=None):
+def init():
     global renderer, camera, scene,cube
 
-    if argv is None:
-        argv = sys.argv
-
-    renderer = Renderer(None, reshape, render, keyboard, mouse, motion, update)
-
+    renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, update)
     width, height = renderer.screen_size()
 
-    scene = THREE.Scene()
+    renderer.setPixelRatio( 1 )
+    renderer.setSize( width, height )
+
+    renderer.gammaInput = True
+    renderer.gammaOutput = True
 
     camera = THREE.PerspectiveCamera(45, width/height, 0.1, 20000)
     camera.position = THREE.Vector3(0, 0, 5)
 
-    bgcube = THREE.BoxBufferGeometry(1, 1, 1, 1, 1, 1)
-    colors = []
-    for i in range(int(bgcube.attributes.position.count)):
-        p = THREE.Vector3(bgcube.attributes.position.getX(i), bgcube.attributes.position.getY(i), bgcube.attributes.position.getZ(i))
-        colors.extend([p.x+0.5, p.y+0.5, p.z+0.5])
-    bgcube.addAttribute('color', Float32BufferAttribute(colors, 3))
-
-    """
-    material = THREE.ShaderMaterial({
-        'vertexShader': vert_shader,
-        'fragmentShader': frag_shader,
-        'vertexColors': THREE.VertexColors,
-        'uniforms': {
-            'transformationMatrix': {'type': "m4", 'value': 0}
-        }
-    })
-    material.uniforms.transformationMatrix.value = cube.matrixWorld
-    #    material = THREE.MeshBasicMaterial({'color': 0xffff00})
-    """
-    texture = THREE.TextureLoader().load("crate.jpg")
-
-    material = THREE.MeshPhongMaterial({'color': 0x7777ff,
-                                          'map': texture
-                                          })
-
-    cube = THREE.Mesh(bgcube, material)
-    scene.add(cube)
-
-    groundGeom = THREE.PlaneBufferGeometry(100, 100, 4, 4)
-    groundMesh = THREE.Mesh(groundGeom, THREE.MeshBasicMaterial({'color': 0x555555}))
-    groundMesh.rotation.x = -math.pi / 2
-    groundMesh.position.y = -5
-    scene.add(groundMesh)
+    scene = THREE.Scene()
+    scene.background = THREE.Color( 0x050505 )
+    scene.fog = THREE.Fog( 0x050505, 2000, 3500 )
 
     # // add subtle ambient lighting var
     ambientLight = THREE.AmbientLight(0x0c0c0c)
@@ -275,8 +271,49 @@ def main(argv=None):
     spotLight.castShadow = True
     scene.add(spotLight)
 
-    # renderer.build(camera, cube)
+    bgcube = THREE.BoxBufferGeometry(1, 1, 1, 1, 1, 1)
+    colors = []
+    for i in range(int(bgcube.attributes.position.count)):
+        p = THREE.Vector3(bgcube.attributes.position.getX(i), bgcube.attributes.position.getY(i), bgcube.attributes.position.getZ(i))
+        colors.extend([p.x+0.5, p.y+0.5, p.z+0.5])
+    bgcube.addAttribute('color', Float32BufferAttribute(colors, 3))
 
+    #texture = THREE.TextureLoader().load("crate.jpg")
+
+    """
+    material = THREE.MeshPhongMaterial({
+        'color': 0x7777ff,
+        'map': THREE.TextureLoader().load("textures/sprites/spark1.png")
+    })
+    """
+    uniforms = {
+        'color':     { 'value': THREE.Color( 0xffffff ) },
+        'texture':   { 'value': THREE.TextureLoader().load( "textures/sprites/spark1.png" ) }
+    }
+
+    material = THREE.ShaderMaterial( {
+        'uniforms':       uniforms,
+        'vertexShader':   vertexshader,
+        'fragmentShader': fragmentshader,
+#        'blending':       THREE.AdditiveBlending,
+#        'depthTest':      False,
+#        'transparent':    False,
+    })
+
+    cube = THREE.Mesh(bgcube, material)
+    scene.add(cube)
+
+    groundGeom = THREE.PlaneBufferGeometry(100, 100, 4, 4)
+    groundMesh = THREE.Mesh(groundGeom, THREE.MeshBasicMaterial({'color': 0x555555}))
+    groundMesh.rotation.x = -math.pi / 2
+    groundMesh.position.y = -5
+    scene.add(groundMesh)
+
+    return renderer
+
+
+def main(argv=None):
+    renderer = init()
     return renderer.loop()
 
 

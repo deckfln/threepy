@@ -34,10 +34,13 @@ from THREE.SpotLights import *
 from THREE.DirectionalLight import *
 from THREE.AmbientLight import *
 from THREE.Face3 import *
+from THREE.Points import *
 from THREE.Mesh import *
 from THREE.PlaneBufferGeometry import *
 from THREE.Scene import *
 from THREE.Texture import *
+from THREE.Fog import *
+from THREE.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *
 from THREE.pyOpenGLProperties import *
 from THREE.pyOpenGLClipping import *

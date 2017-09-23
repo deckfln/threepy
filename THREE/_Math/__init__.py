@@ -30,8 +30,8 @@ def generateUUID():
     return ''.join(uuid)
 
 
-def clamp( value, min, max ):
-    return max( min, min( max, value ) )
+def clamp( value, mi, mx ):
+    return max( mi, min( mx, value ) )
 
 
 # // compute euclidian modulo of m % n

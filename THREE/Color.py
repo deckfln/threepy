@@ -4,7 +4,7 @@
 
 import math
 import re
-from THREE._Math import *
+import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 
 
@@ -101,9 +101,9 @@ class Color(pyOpenGLObject):
 
     def setHSL(self, h, s, l):
         # // h,s,l ranges are in 0.0 - 1.0
-        h = _math.euclideanModulo( h, 1 )
-        s = _math.clamp( s, 0, 1 )
-        l = _math.clamp( l, 0, 1 )
+        h = _Math.euclideanModulo( h, 1 )
+        s = _Math.clamp( s, 0, 1 )
+        l = _Math.clamp( l, 0, 1 )
 
         if s == 0:
             self.r = self.g = self.b = l
