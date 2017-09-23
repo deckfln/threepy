@@ -83,7 +83,6 @@ def init():
     scene.add( points )
 
     # //
-    # //
     renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
     renderer.setPixelRatio( 1 )
     renderer.setSize( WIDTH, HEIGHT )

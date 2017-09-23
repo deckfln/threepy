@@ -31,6 +31,7 @@ from THREE.ShaderMaterial import *
 from THREE.MeshBasicMaterial import *
 from THREE.MeshLambertMaterial import *
 from THREE.MeshPhongMaterial import *
+from THREE.RawShaderMaterial import *
 from THREE.Light import *
 from THREE.SpotLights import *
 from THREE.DirectionalLight import *
