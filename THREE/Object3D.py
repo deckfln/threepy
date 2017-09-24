@@ -170,14 +170,14 @@ class Object3D(pyOpenGLObject):
         m1 = Matrix4()
         return vector.applyMatrix4(m1.getInverse(self.matrixWorld))
 
-    def lookAt(self, x, y, z):
+    def lookAt(self, x, y=None, z=None):
         # // This method does not support objects with rotated and/or translated parent(s)
         m1 = Matrix4()
         vector = Vector3()
-        if x.isVector3:
-            vector.copy(x)
-        else:
+        if isinstance(x, float):
             vector.set(x, y, z)
+        else:
+            vector.copy(x)
 
         if self.isCamera:
             m1.lookAt(self.position, vector, self.up)

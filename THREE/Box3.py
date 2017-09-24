@@ -75,7 +75,6 @@ class Box3:
             if y > maxY: maxY = y
             if z > maxZ: maxZ = z
 
-
         self.min.set( minX, minY, minZ )
         self.max.set( maxX, maxY, maxZ )
 
@@ -84,7 +83,7 @@ class Box3:
     def setFromPoints(self, points ):
         self.makeEmpty()
 
-        for i in range(points.length):
+        for i in range(len(points)):
             self.expandByPoint( points[ i ] )
 
         return self

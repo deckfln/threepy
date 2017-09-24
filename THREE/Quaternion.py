@@ -213,7 +213,7 @@ class Quaternion:
     def setFromRotationMatrix(self, m ):
         # // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
         # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-        te = m.elements,
+        te = m.elements
         m11 = te[ 0 ]; m12 = te[ 4 ]; m13 = te[ 8 ]
         m21 = te[ 1 ]; m22 = te[ 5 ]; m23 = te[ 9 ]
         m31 = te[ 2 ]; m32 = te[ 6 ]; m33 = te[ 10 ]

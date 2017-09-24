@@ -526,7 +526,7 @@ class pyOpenGLState:
 
     def viewport(self, viewport ):
         if  not self.currentViewport.equals( viewport ):
-            glViewport( viewport.x, viewport.y, viewport.z, viewport.w )
+            glViewport( int(viewport.x), int(viewport.y), int(viewport.z), int(viewport.w) )
             self.currentViewport.copy( viewport )
 
     def reset(self):

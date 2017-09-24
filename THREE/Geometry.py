@@ -16,16 +16,9 @@ from THREE.Vector2 import *
 from THREE.Color import *
 from THREE.Face3 import *
 from THREE.Sphere import *
+from THREE.BufferGeometry import *
 
 
-_count = 0
-
-def GeometryIdCount():
-    global _count
-    _count += 1
-    return _count
-
-    
 class Geometry(pyOpenGLObject):
     isGeometry = True
     
@@ -63,6 +56,8 @@ class Geometry(pyOpenGLObject):
         self.lineDistancesNeedUpdate = False
         self.groupsNeedUpdate = False
 
+        self.callback = None
+        self._bufferGeometry = None
 
     def applyMatrix(self, matrix ):
         normalMatrix = Matrix3().getNormalMatrix( matrix )
@@ -949,6 +944,10 @@ class Geometry(pyOpenGLObject):
 
         return self
 
+    def onDispose(self, callback):
+        self.callback = callback
+
     def dispose(self):
-        self.dispatchEvent( { type: 'dispose' } )
+        if self.callback:
+            return self.callback(self)
 

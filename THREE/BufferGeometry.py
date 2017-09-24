@@ -45,7 +45,7 @@ class _attributesList(object):
         try:
             return self._attr[k]
         except KeyError:
-            raise AttributeError        
+            raise AttributeError("Missing attribute %s" % k)
             
     def __setattr__(self, key, value):
         self._attr[key] = value
@@ -117,10 +117,10 @@ class BufferGeometry(pyOpenGLObject):
         return self
         
     def getAttribute(self, name ):
-        return self.attributes.name
+        return self.attributes[name]
 
     def removeAttribute(self, name ):
-        del self.attributes.name
+        del self.attributes[name]
         return self
         
     def addGroup(self, start, count, materialIndex ):
@@ -205,12 +205,12 @@ class BufferGeometry(pyOpenGLObject):
         # // console.log( 'THREE.BufferGeometry.setFromObject(). Converting', object, self )
         geometry = object.geometry
         if object.isPoints or object.isLine:
-            positions = Float32BufferAttribute( geometry.vertices.length * 3, 3 )
-            colors = Float32BufferAttribute( geometry.colors.length * 3, 3 )
+            positions = Float32BufferAttribute( len(geometry.vertices) * 3, 3 )
+            colors = Float32BufferAttribute( len(geometry.colors) * 3, 3 )
             self.addAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) )
             self.addAttribute( 'color', colors.copyColorsArray( geometry.colors ) )
-            if geometry.lineDistances and geometry.lineDistances.length == geometry.vertices.length:
-                lineDistances = Float32BufferAttribute( geometry.lineDistances.length, 1 )
+            if geometry.lineDistances and len(geometry.lineDistances) == len(geometry.vertices):
+                lineDistances = Float32BufferAttribute( len(geometry.lineDistances), 1 )
                 self.addAttribute( 'lineDistance', lineDistances.copyArray( geometry.lineDistances ) )
 
             if geometry.boundingSphere is not None:
@@ -643,4 +643,5 @@ class BufferGeometry(pyOpenGLObject):
         self.callback = callback
 
     def dispose(self):
-        return self.callback(self)
+        if self.callback:
+            return self.callback(self)

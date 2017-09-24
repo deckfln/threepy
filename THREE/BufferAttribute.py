@@ -245,45 +245,72 @@ class BufferAttribute(pyOpenGLObject):
         
 class Int8BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'b'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'b'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'b'), itemSize)
 
 
 class Uint8BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'B'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'B'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'B'), itemSize)
 
 
 class Uint8ClampedBufferAttribute(BufferAttribute):
     def __init__(self,  arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'B'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'B'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'B'), itemSize)
 
 
 class Int16BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'l'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'l'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'l'), itemSize)
 
 
 class Uint16BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'L'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'L'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'L'), itemSize)
 
 
 class Int32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'l'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'l'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'l'), itemSize)
 
 
 class Uint32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'L'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'L'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'L'), itemSize)
 
 
 class Float32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        #        super().__init__(array('f', arrayx), itemSize)
-        super().__init__(np.array(arrayx, 'f'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'f'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'f'), itemSize)
+
 
 
 class Float64BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
-        super().__init__(np.array(arrayx, 'd'), itemSize)
+        if isinstance(arrayx, list):
+            super().__init__(np.array(arrayx, 'd'), itemSize)
+        else:
+            super().__init__(np.zeros(arrayx, 'd'), itemSize)

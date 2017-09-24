@@ -221,9 +221,15 @@ class pyOpenGLRenderer:
 
     """
     def __init__(self, parameters=None, reshape=None, render=None, keyboard=None, mouse=None, motion=None, update=None):
+        """
+        pyOpenGL
+        """
         self.name = "pyOpenGL"
+        self.userUpdate = None
         self._init_glut(reshape, render, keyboard, mouse, motion, update)
         self._init_opengl()
+        """
+        """
         self.parameters = parameters or {}
 
         """
@@ -1547,8 +1553,6 @@ class pyOpenGLRenderer:
         if self.vr.enabled:
             self.vr.submitFrame()
 
-        glutSwapBuffers()
-
         # // _gl.finish()
 
     def getRenderTarget(self):
@@ -1653,39 +1657,25 @@ class pyOpenGLRenderer:
         glutCreateWindow("test".encode())
 
         glutReshapeFunc(reshape)
+        self.userUpdate = update
         glutDisplayFunc(render)
         glutKeyboardFunc(keyboard)
         glutMouseFunc(mouse)
         glutMotionFunc(motion)
-        glutIdleFunc(update)
+        glutIdleFunc(self._glutUpdate)
+
+    def _glutUpdate(self):
+        if self.userUpdate:
+            self.userUpdate()
+        glutSwapBuffers()
 
     def _init_opengl(self):
         # depth test
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LEQUAL)
 
-    def build(self, camera, object):
+    def _build(self, camera, object):
         # self._initMaterial(object.material, None, object)
         loader = _Loader()
         self.vao = loader.createVAO()
         # self.objects.update(object)
-
-    def renderObject(self, object, camera):
-        # glBindVertexArray(self.vao)
-
-        object.geometry.groups[0].count = float("+inf")
-
-        self._renderBufferDirect(camera, None, object.geometry, object.material, object, object.geometry.groups[0])
-
-        """
-        if not self.program:
-            program = self._setProgram(camera, None, object.material, object)
-            self.program = program
-            self._setupVertexAttributes(object.material, program, object.geometry)
-        uniforms = self.program.getUniforms()
-        # uniforms.setValue(None, "transformationMatrix", object.matrixWorld)
-
-        # glDrawElements(GL_TRIANGLES, int(object.geometry.index.count), GL_UNSIGNED_INT, c_void_p(0))
-"""
-
-        glBindVertexArray(0)

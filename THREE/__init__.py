@@ -21,6 +21,8 @@ from THREE.BufferAttribute import *
 from THREE.InterleavedBufferAttribute import *
 from THREE.BufferGeometry import *
 from THREE.BoxBufferGeometry import *
+from THREE.PlaneBufferGeometry import *
+from THREE.SphereBufferGeometry import *
 from THREE.Color import *
 from THREE.Object3D import *
 from THREE.Group import *
@@ -39,7 +41,6 @@ from THREE.AmbientLight import *
 from THREE.Face3 import *
 from THREE.Points import *
 from THREE.Mesh import *
-from THREE.PlaneBufferGeometry import *
 from THREE.Scene import *
 from THREE.Texture import *
 from THREE.Fog import *
@@ -47,6 +48,7 @@ from THREE.LineBasicMaterial import *
 from THREE.Line import *
 from THREE.LineSegments import *
 from THREE.BoxHelper import *
+from THREE.CameraHelper import *
 from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *

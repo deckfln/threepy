@@ -185,6 +185,10 @@ class Vector3(pyOpenGLObject):
         x = self.x; y = self.y; z = self.z
         e = m.elements
 
+        if e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] == 0:
+            self.z = float("-inf")
+            return self
+
         w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] )
 
         self.x = ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ] ) * w

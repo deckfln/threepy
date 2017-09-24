@@ -281,9 +281,9 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def lookAt(self, eye, target, up):
-        x = Vector3()
-        y = Vector3()
-        z = Vector3()
+        x = THREE.Vector3()
+        y = THREE.Vector3()
+        z = THREE.Vector3()
 
         te = self.elements
 
