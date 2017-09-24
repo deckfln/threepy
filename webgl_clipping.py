@@ -3,12 +3,9 @@
 """
 import random
 import math
+import sys
 from datetime import datetime
 from THREE import *
-
-
-WIDTH = 640
-HEIGHT = 480
 
 camera = None
 scene = None
@@ -20,7 +17,10 @@ object = None
 def init():
     global camera, scene, renderer, startTime, object
 
-    camera = THREE.PerspectiveCamera( 36, WIDTH / HEIGHT, 0.25, 16 )
+    renderer = pyOpenGLRenderer()
+
+    size = renderer.getSize()
+    camera = THREE.PerspectiveCamera( 36, size['width'] / size['height'], 0.25, 16 )
 
     camera.position.set( 0, 1.3, 3 )
 
@@ -92,9 +92,9 @@ def init():
 
     # // Renderer
 
-    renderer = pyOpenGLRenderer(None, onWindowResize, render, onKeyDown, mouse, motion, animate)
-    renderer.setPixelRatio( 1 )
-    renderer.setSize( WIDTH, HEIGHT )
+    renderer.addEventListener('resize', onWindowResize)
+    renderer.addEventListener('onKeyDown', onKeyDown)
+    renderer.addEventListener('animationFrame', animate)
 
     renderer.shadowMap.enabled = True
     renderer.shadowMap.renderSingleSided = False
@@ -122,22 +122,8 @@ def onKeyDown( c, x=0, y=0 ):
     """keyboard callback."""
     global scene, camera, mesh, cameraPerspective, cameraPerspectiveHelper,cameraOrtho,cameraOrthoHelper,activeCamera,activeHelper,frustumSize
 
-    if c == b'q':
+    if c == 113: # q
         sys.exit(0)
-
-    glutPostRedisplay()
-
-
-def mouse(button, state, x, y):
-    if button == GLUT_LEFT_BUTTON:
-        rotating = (state == GLUT_DOWN)
-    elif button == GLUT_RIGHT_BUTTON:
-        scaling = (state == GLUT_DOWN)
-
-
-def motion(x1, y1):
-    glutPostRedisplay()
-
 
 def animate():
     global camera, scene, renderer, startTime, object
@@ -151,6 +137,7 @@ def animate():
     object.scale.setScalar( math.cos( time ) * 0.125 + 0.875 )
 
     render()
+
 
 def render():
     global camera, scene, renderer, startTime, object

@@ -8,7 +8,8 @@
  */
 """
 from OpenGL.GL import *
-from OpenGL.GLUT import *
+import pygame
+from pygame.locals import *
 from THREE import *
 import THREE._Math as _Math
 from ctypes import c_void_p
@@ -207,14 +208,12 @@ class pyOpenGLRenderer:
     """
 
     """
-    def __init__(self, parameters=None, reshape=None, render=None, keyboard=None, mouse=None, motion=None, update=None):
+    def __init__(self, parameters=None):
         """
         pyOpenGL
         """
         self.name = "pyOpenGL"
-        self.userUpdate = None
-        self._init_glut(reshape, render, keyboard, mouse, motion, update)
-        self._init_opengl()
+
         """
         """
         self.parameters = parameters or {}
@@ -231,8 +230,19 @@ class pyOpenGLRenderer:
 
         self.spritesArray = []
         self.flaresArray = []
+
+        self._width = 800
+        self._height = 600
+        self._pixelRatio = 1
+
         """
         """
+        self.onWindowResize = None
+        self.onKeyDown = None
+        self.animationFrame = None
+
+        self._init_pygame()
+
         self.extensions = pyOpenGLExtensions()
         self.extensions.get('WEBGL_depth_texture')
         self.extensions.get('OES_texture_float')
@@ -303,8 +313,6 @@ class pyOpenGLRenderer:
 
         # //
 
-        self._width, self._height = self.screen_size()
-        self._pixelRatio = 1
         self._viewport = Vector4(0, 0, self._width, self._height)
         self._scissor = Vector4(0, 0, self._width, self._height)
         self._scissorTest = False
@@ -1623,46 +1631,38 @@ class pyOpenGLRenderer:
             warned = True
         self.textures.setTexture2D( texture, slot )
 
-    def screen_size(self):
-        """
-
-        :return:
-        """
-        return glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
-
-    def loop(self):
-        return glutMainLoop()
-
-    def _init_glut(self, reshape, render, keyboard, mouse, motion, update):
-        """glut initialization."""
-        WINDOW_SIZE = 640, 480
-
-        glutInit()
-        glutInitWindowSize(*WINDOW_SIZE)
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-
-        glutCreateWindow("test".encode())
-
-        glutReshapeFunc(reshape)
-        self.userUpdate = update
-        glutDisplayFunc(render)
-        glutKeyboardFunc(keyboard)
-        glutMouseFunc(mouse)
-        glutMotionFunc(motion)
-        glutIdleFunc(self._glutUpdate)
-
-    def _glutUpdate(self):
-        if self.userUpdate:
-            self.userUpdate()
-        glutSwapBuffers()
-
-    def _init_opengl(self):
-        # depth test
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LEQUAL)
-
     def _build(self, camera, object):
         # self._initMaterial(object.material, None, object)
         loader = _Loader()
         self.vao = loader.createVAO()
         # self.objects.update(object)
+
+    def _init_pygame(self, width=800, height=600):
+        pygame.init()
+        pygame.display.set_mode((self._width, self._height), DOUBLEBUF | OPENGL | RESIZABLE)
+
+    def addEventListener(self, event, funct):
+        if event == 'resize':
+            self.onWindowResize = funct
+        elif event == 'onKeyDown':
+            self.onKeyDown = funct
+        elif event == 'animationFrame':
+            self.animationFrame = funct
+
+    def loop(self):
+        while True:
+            event = pygame.event.poll()
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if self.onKeyDown:
+                    self.onKeyDown(event.key)
+            elif event.type == VIDEORESIZE:
+                if self.onWindowResize:
+                    self.onWindowResize(event.w, event.h)
+            if self.animationFrame:
+                self.animationFrame()
+                pygame.display.flip()
+
+            pygame.time.delay(33)
