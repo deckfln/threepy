@@ -69,7 +69,7 @@ class Texture(pyOpenGLObject):
     needsUpdate = property(None, set)
             
     def clone(self):
-        return Texture.copy( self )
+        return type(self)().copy( self )
 
     def copy(self, source ):
         self.name = source.name

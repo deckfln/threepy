@@ -197,7 +197,7 @@ class Color(pyOpenGLObject):
         return self
 
     def clone(self):
-        return Color(self.r, self.g, self.b )
+        return type(self)(self.r, self.g, self.b )
 
     def copy(self, color ):
         self.r = color.r

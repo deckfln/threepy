@@ -66,7 +66,7 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
         self.scissor.set( 0, 0, width, height )
 
     def clone(self):
-        return WebGLRenderTarget().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, source ):
         self.width = source.width

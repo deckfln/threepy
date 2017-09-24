@@ -13,7 +13,7 @@ from THREE.Matrix4 import *
 class Light(Object3D):
     isLight = True
     
-    def __init__(self, color, intensity=1 ):
+    def __init__(self, color=0xffffff, intensity=1 ):
         super().__init__()
 
         self.type = 'Light'
@@ -90,7 +90,7 @@ class LightShadow(pyOpenGLObject):
         return self
 
     def clone(self):
-        return LightShadow().copy( self )
+        return type(self)().copy( self )
 
     def toJSON(self):
         object = {}

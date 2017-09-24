@@ -17,6 +17,7 @@ class _map:
         self.frameBuffer = None
         self.depthBuffer = None
         self.version = -1
+        self.clippingState = None
 
 
 class pyOpenGLProperties:

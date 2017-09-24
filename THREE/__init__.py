@@ -24,6 +24,8 @@ from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
 from THREE.SphereBufferGeometry import *
 from THREE.CylinderBufferGeometry import *
+from THREE.TorusBufferGeometry import *
+from THREE.TorusKnotBufferGeometry import *
 from THREE.Color import *
 from THREE.Object3D import *
 from THREE.Group import *

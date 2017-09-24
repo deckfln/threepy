@@ -40,7 +40,7 @@ class Sphere:
         return self    
 
     def clone(self):
-        return Sphere().copy( self )    
+        return type(self)().copy( self )
 
     def copy(self, sphere ):
         self.center.copy( sphere.center )    

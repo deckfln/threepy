@@ -68,6 +68,43 @@ class UniformContainer():
 
 # // --- Utilities ---
 
+
+class Uniform:
+    def __init__(self, dic):
+        if type in dic:
+            self.type = dic['type']
+        self.value = dic['value']
+        if 'needsUpdate' in dic:
+            self.needsUpdate = dic['needsUpdate']
+        else:
+            self.needsUpdate = True
+
+
+class Uniforms:
+    def __init__(self, lst):
+        super().__setattr__('Uniforms', {})
+        for uniform in lst:
+            self.Uniforms[uniform] = Uniform(lst[uniform])
+
+    def __getattr__(self, item):
+        try:
+            return self.Uniforms[item]
+        except KeyError:
+            raise AttributeError
+
+    def __setattr__(self, key, value):
+        self.Uniforms[key] = value
+
+    def __delattr__(self, item):
+        del self.Uniforms[item]
+
+    def __iter__(self):
+        return iter(self.Uniforms)
+
+    def __getitem__(self, item):
+        return self.Uniforms[item]
+
+
 # // Array Caches (provide typed arrays for temporary by size)
 
 
@@ -84,8 +121,7 @@ mat3array = np.zeros( 9 , 'f')
 def flatten( array, nBlocks, blockSize ):
     firstElem = array[ 0 ]
 
-    # TODO: what is that ?
-    if firstElem is None:
+    if isinstance(firstElem, float) or isinstance(firstElem, np.float32):
         return array
     # // unoptimized: ! isNaN( firstElem )
     # // see http:# //jacksondunstan.com/articles/983

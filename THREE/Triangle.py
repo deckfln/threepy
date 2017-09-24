@@ -97,7 +97,7 @@ class Triangle:
         return self
 
     def clone(self):
-        return Triangle().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, triangle ):
         self.a.copy( triangle.a )

@@ -7,7 +7,7 @@ import numpy as np
 
 from THREE.Plane import *
 from THREE.Matrix3 import *
-
+from THREE.Uniforms import *
 
 class pyOpenGLClipping:
     def __init__(self):
@@ -16,7 +16,7 @@ class pyOpenGLClipping:
         self.localClippingEnabled = False
         self.renderingShadows = False
 
-        self.uniform = { 'value': None, 'needsUpdate': False }
+        self.uniform = Uniform({ 'value': None, 'needsUpdate': False })
 
         self.numPlanes = 0
         self.numIntersection = 0
@@ -54,7 +54,7 @@ class pyOpenGLClipping:
             nGlobal = 0 if self.renderingShadows else self.numGlobalPlanes
             lGlobal = nGlobal * 4
 
-            dstArray = cache.clippingState or None
+            dstArray = cache.clippingState
 
             self.uniform.value = dstArray # // ensure unique state
 

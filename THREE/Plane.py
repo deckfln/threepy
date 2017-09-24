@@ -40,7 +40,7 @@ class Plane:
         return self
 
     def clone(self):
-        return Plane().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, plane ):
         self.normal.copy( plane.normal )

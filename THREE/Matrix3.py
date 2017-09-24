@@ -40,7 +40,7 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def clone(self):
-        return Matrix3().fromArray( self.elements )
+        return type(self)().fromArray( self.elements )
 
     def copy(self, m ):
         te = self.elements

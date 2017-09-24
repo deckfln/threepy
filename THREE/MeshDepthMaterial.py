@@ -28,7 +28,7 @@ from THREE.Material import *
 class MeshDepthMaterial(Material):
     isMeshDepthMaterial = True
     
-    def __init__(self, parameters ):
+    def __init__(self, parameters=None ):
         super().__init__()
 
         self.type = 'MeshDepthMaterial'

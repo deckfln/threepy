@@ -156,4 +156,4 @@ class Line(Object3D):
                 } )
 
     def clone(self):
-        return Line( self.geometry, self.material ).copy( self )
+        return type(self)( self.geometry, self.material ).copy( self )

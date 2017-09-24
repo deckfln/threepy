@@ -441,7 +441,7 @@ class Object3D(pyOpenGLObject):
         return output
 
     def clone(self, recursive=True):
-        return Object3D().copy(self, recursive)
+        return type(self)().copy(self, recursive)
 
     def copy(self, source, recursive=True):
         self.name = source.name

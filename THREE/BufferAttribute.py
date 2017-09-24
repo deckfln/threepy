@@ -240,7 +240,7 @@ class BufferAttribute(pyOpenGLObject):
         return self
 
     def clone(self):
-        return BufferAttribute(self.array, self.itemSize).copy(self)
+        return type(self)(self.array, self.itemSize).copy(self)
 
         
 class Int8BufferAttribute(BufferAttribute):

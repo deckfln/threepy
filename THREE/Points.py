@@ -152,4 +152,4 @@ class Points(Object3D):
                 testPoint( vertices[ i ], i )
 
     def clone(self, recursive=True):
-        return Points( self.geometry, self.material ).copy( self )
+        return type(self)( self.geometry, self.material ).copy( self )

@@ -86,7 +86,7 @@ class Vector4(pyOpenGLObject):
             raise( 'index is out of range: ' + index )
 
     def clone(self,):
-        return Vector4( self.x, self.y, self.z, self.w )
+        return type(self)( self.x, self.y, self.z, self.w )
 
     def copy(self, v ):
         self.x = v.x

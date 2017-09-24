@@ -4,10 +4,11 @@
  * @author alteredq / http:# //alteredqualia.com/
  */
 """
+import json
 import THREE._Math as _Math
 from THREE.Constants import *
 from THREE.pyOpenGLObject import *
-
+from THREE.Uniforms import *
 
 _materialId = 0
 
@@ -23,39 +24,6 @@ def _extractFromCache( cache ):
         values.push( data )
 
     return values
-
-
-class _uniform:
-    def __init__(self, dic):
-        if type in dic:
-            self.type = dic['type']
-        self.value = dic['value']
-        self.needsUpdate = True
-
-
-class _uniforms:
-    def __init__(self, lst):
-        super().__setattr__('_uniforms', {})
-        for uniform in lst:
-            self._uniforms[uniform] = _uniform(lst[uniform])
-
-    def __getattr__(self, item):
-        try:
-            return self._uniforms[item]
-        except KeyError:
-            raise AttributeError
-
-    def __setattr__(self, key, value):
-        self._uniforms[key] = value
-
-    def __delattr__(self, item):
-        del self._uniforms[item]
-
-    def __iter__(self):
-        return iter(self._uniforms)
-
-    def __getitem__(self, item):
-        return self._uniforms[item]
 
 
 class Material(pyOpenGLObject):
@@ -189,7 +157,7 @@ class Material(pyOpenGLObject):
                 # // ensure overdraw is backwards-compatible with legacy boolean type
                 self[key] = Number(newValue)
             elif key == 'uniforms':
-                self[key] = _uniforms(newValue)
+                self[key] = Uniforms(newValue)
             elif currentValue and currentValue.isColor:
                 currentValue.set( newValue )
             elif (currentValue and currentValue.isVector3 ) and ( newValue and newValue.isVector3):
@@ -335,7 +303,7 @@ class Material(pyOpenGLObject):
         return data
 
     def clone(self):
-        return Material().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, source):
         self.name = source.name
@@ -378,7 +346,7 @@ class Material(pyOpenGLObject):
         self.overdraw = source.overdraw
 
         self.visible = source.visible
-        self.userData = JSON.parse( JSON.stringify( source.userData ) )
+        self.userData = json.loads( json.dumps( source.userData ) )
 
         self.clipShadows = source.clipShadows
         self.clipIntersection = source.clipIntersection

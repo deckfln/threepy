@@ -273,7 +273,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
         if self._renderer.localClippingEnabled and \
                 material.clipShadows == True and \
-                material.clippingPlanes.length != 0:
+                len(material.clippingPlanes) != 0:
 
             # // in self case we need a unique material instance reflecting the
             # // appropriate state
@@ -281,17 +281,18 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             keyA = result.uuid
             keyB = material.uuid
 
-            materialsForVariant = self._materialCache[ keyA ]
-
-            if materialsForVariant is None:
+            if keyA not in self._materialCache:
                 materialsForVariant = {}
-                self._materialCache[ keyA ] = materialsForVariant
+                self._materialCache[keyA] = materialsForVariant
+            else:
+                materialsForVariant = self._materialCache[ keyA ]
 
-            cachedMaterial = materialsForVariant[ keyB ]
 
-            if cachedMaterial is None:
+            if keyB not in materialsForVariant:
                 cachedMaterial = result.clone()
-                materialsForVariant[ keyB ] = cachedMaterial
+                materialsForVariant[keyB] = cachedMaterial
+            else:
+                cachedMaterial = materialsForVariant[ keyB ]
 
             result = cachedMaterial
 

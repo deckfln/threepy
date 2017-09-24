@@ -33,7 +33,7 @@ class Frustum:
         return self
 
     def clone(self):
-        return Frustum().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, frustum ):
         planes = self.planes

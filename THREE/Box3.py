@@ -103,7 +103,7 @@ class Box3:
         return self.expandByObject( object )
 
     def clone(self):
-        return Box3().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, box ):
         self.min.copy( box.min )

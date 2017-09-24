@@ -158,7 +158,7 @@ class InterleavedBuffer(pyOpenGLObject):
         return self
 
     def clone(self):
-        return InterleavedBuffer().copy( self )
+        return type(self)().copy( self )
 
     def onUpload(self, callback ):
         self.onUploadCallback = callback

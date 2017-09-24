@@ -56,7 +56,7 @@ class Matrix4(pyOpenGLObject):
             return self
 
     def clone(self):
-        return Matrix4().fromArray(self.elements)
+        return type(self)().fromArray(self.elements)
 
     def copy(self, m):
         te = self.elements

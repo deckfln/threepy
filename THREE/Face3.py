@@ -37,7 +37,7 @@ class Face3:
         self.materialIndex = materialIndex
 
     def clone(self):
-        return Face3().copy( self )
+        return type(self)().copy( self )
 
     def copy(self, source ):
         self.a = source.a

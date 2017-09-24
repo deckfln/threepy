@@ -73,7 +73,7 @@ class Euler(pyOpenGLObject):
         return self
 
     def clone(self):
-        return Euler(self._x, self._y, self._z, self._order)
+        return type(self)(self._x, self._y, self._z, self._order)
 
     def copy(self, euler):
         self._x = euler._x

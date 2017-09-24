@@ -283,4 +283,4 @@ class Mesh(Object3D):
                     intersects.push( intersection )
 
     def clone(self):
-        return Mesh(self.geometry, self.material ).copy( self )
+        return type(self)(self.geometry, self.material ).copy( self )

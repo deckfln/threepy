@@ -125,7 +125,7 @@ class Quaternion:
         return self
 
     def clone(self):
-        return Quaternion( self._x, self._y, self._z, self._w )
+        return type(self)( self._x, self._y, self._z, self._w )
 
     def copy(self, quaternion ):
         self._x = quaternion.x

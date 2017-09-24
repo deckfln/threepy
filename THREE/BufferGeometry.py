@@ -581,7 +581,7 @@ class BufferGeometry(pyOpenGLObject):
         return data
         
     def clone(self):
-        return BufferGeometry().copy( self )
+        return type(self)().copy( self )
         
     def copy(self, source ):
         # // reset
