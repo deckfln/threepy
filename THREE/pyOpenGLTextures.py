@@ -74,15 +74,11 @@ class pyOpenGLTextures():
 
         # //
 
-    def onTextureDispose(self, event ):
-        texture = event.target
-        texture.removeEventListener( 'dispose', onTextureDispose )
+    def onTextureDispose(self, texture ):
         self.deallocateTexture( texture )
         self.infoMemory.textures -= 1
 
-    def onRenderTargetDisposeself(self, event ):
-        renderTarget = event.target
-        renderTarget.removeEventListener( 'dispose', onRenderTargetDispose )
+    def onRenderTargetDispose(self, renderTarget):
         self.deallocateRenderTarget( renderTarget )
         self.infoMemory.textures -= 1
 
@@ -119,13 +115,13 @@ class pyOpenGLTextures():
 
         if renderTarget.isWebGLRenderTargetCube:
             for i in range(6):
-                glDeleteFramebuffers(1, renderTargetProperties.__webglFramebuffer[ i ] )
-                if renderTargetProperties.__webglDepthbuffer:
-                    glDeleteRenderbuffers(1, renderTargetProperties.__webglDepthbuffer[ i ] )
+                glDeleteFramebuffers(1, renderTargetProperties.frameBuffer[ i ] )
+                if renderTargetProperties.depthBuffer:
+                    glDeleteRenderbuffers(1, renderTargetProperties.depthBuffer[ i ] )
         else:
-            glDeleteFramebuffers(1, renderTargetProperties.__webglFramebuffer )
-            if renderTargetProperties.__webglDepthbuffer:
-                glDeleteRenderbuffers(1, renderTargetProperties.__webglDepthbuffer )
+            glDeleteFramebuffers(1, renderTargetProperties.frameBuffer )
+            if renderTargetProperties.depthBuffer:
+                glDeleteRenderbuffers(1, renderTargetProperties.depthBuffer )
 
         self.properties.remove( renderTarget.texture )
         self.properties.remove( renderTarget )
@@ -316,7 +312,7 @@ class pyOpenGLTextures():
             # // FIXME: We don't support !depth !stencil
             glRenderbufferStorage( GL_RENDERBUFFER, GL_RGBA4, renderTarget.width, renderTarget.height )
 
-        glBindRenderbuffer( GL_RENDERBUFFER, None )
+        glBindRenderbuffer( GL_RENDERBUFFER, 0 )
 
     # // Setup resources for a Depth Texture for a FBO (needs an extension)
     def setupDepthTexture(self, framebuffer, renderTarget ):
@@ -361,21 +357,21 @@ class pyOpenGLTextures():
             if isCube:
                 raise RuntimeError( 'target.depthTexture not supported in Cube render targets' )
 
-            self.setupDepthTexture( renderTargetself.properties.__webglFramebuffer, renderTarget )
+            self.setupDepthTexture( renderTarget.properties.frameBuffer, renderTarget )
 
         else:
             if isCube:
-                renderTargetProperties.__webglDepthbuffer = []
+                renderTargetProperties.depthBuffer = []
 
                 for i in range(6):
-                    glBindFramebuffer( GL_FRAMEBUFFER, renderTargetProperties.__webglFramebuffer[ i ] )
-                    renderTargetProperties.__webglDepthbuffer[ i ] = glCreateRenderbuffers(1)
-                    self.setupRenderBufferStorage( renderTargetProperties.__webglDepthbuffer[ i ], renderTarget )
+                    glBindFramebuffer( GL_FRAMEBUFFER, renderTargetProperties.frameBuffer[ i ] )
+                    renderTargetProperties.depthBuffer[ i ] = glGenRenderbuffers(1)
+                    self.setupRenderBufferStorage( renderTargetProperties.depthBuffer[ i ], renderTarget )
 
             else:
-                glBindFramebuffer( GL_FRAMEBUFFER, renderTargetProperties.__webglFramebuffer )
-                renderTargetProperties.__webglDepthbuffer = glCreateRenderbuffers(1)
-                self.setupRenderBufferStorage( renderTargetProperties.__webglDepthbuffer, renderTarget )
+                glBindFramebuffer( GL_FRAMEBUFFER, renderTargetProperties.frameBuffer )
+                renderTargetProperties.depthBuffer = glGenRenderbuffers(1)
+                self.setupRenderBufferStorage( renderTargetProperties.depthBuffer, renderTarget )
 
         glBindFramebuffer( GL_FRAMEBUFFER, 0 )
 
@@ -471,7 +467,7 @@ class pyOpenGLTextures():
         renderTargetProperties = self.properties.get( renderTarget )
         textureProperties = self.properties.get( renderTarget.texture )
 
-        renderTarget.addEventListener( 'dispose', onRenderTargetDispose )
+        renderTarget.onDispose(self.onRenderTargetDispose )
 
         textureProperties.openglTexture = glGenTextures(1)
 
@@ -483,13 +479,13 @@ class pyOpenGLTextures():
         # // Setup framebuffer
 
         if isCube:
-            renderTargetProperties.__webglFramebuffer = []
+            renderTargetProperties.frameBuffer = []
 
             for i in range(6):
-                renderTargetProperties.__webglFramebuffer[ i ] = glCreateFramebuffers(1)
+                renderTargetProperties.frameBuffer[ i ] = glGenFramebuffers(1)
 
         else:
-            renderTargetProperties.__webglFramebuffer = glCreateFramebuffers(1)
+            renderTargetProperties.frameBuffer = glGenFramebuffers(1)
 
         # // Setup color buffer
 
@@ -498,7 +494,7 @@ class pyOpenGLTextures():
             self.setTextureParameters( GL_TEXTURE_CUBE_MAP, renderTarget.texture, isTargetPowerOfTwo )
 
             for i in range(6):
-                self.setupFrameBufferTexture( renderTargetProperties.__webglFramebuffer[ i ], renderTarget, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i )
+                self.setupFrameBufferTexture( renderTargetProperties.frameBuffer[ i ], renderTarget, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i )
 
             if _textureNeedsGenerateMipmaps( renderTarget.texture, isTargetPowerOfTwo ):
                 glGenerateMipmap( GL_TEXTURE_CUBE_MAP )
@@ -507,7 +503,7 @@ class pyOpenGLTextures():
         else:
             self.state.bindTexture( GL_TEXTURE_2D, textureProperties.openglTexture )
             self.setTextureParameters( GL_TEXTURE_2D, renderTarget.texture, isTargetPowerOfTwo )
-            self.setupFrameBufferTexture( renderTargetProperties.__webglFramebuffer, renderTarget, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D )
+            self.setupFrameBufferTexture( renderTargetProperties.frameBuffer, renderTarget, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D )
 
             if _textureNeedsGenerateMipmaps( renderTarget.texture, isTargetPowerOfTwo ):
                 glGenerateMipmap( GL_TEXTURE_2D )

@@ -14,6 +14,8 @@ class _map:
         self.openglTexture = None
         self.openglInit = False
         self.currentAnisotropy = False
+        self.frameBuffer = None
+        self.depthBuffer = None
         self.version = -1
 
 

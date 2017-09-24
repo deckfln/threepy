@@ -475,7 +475,7 @@ class pyOpenGLProgram:
                 getTexelDecodingFunction('emissiveMapTexelToLinear', parameters['emissiveMapEncoding']) if parameters['emissiveMapEncoding'] else '',
                 getTexelEncodingFunction("linearToOutputTexel", parameters['outputEncoding']) if parameters['outputEncoding'] else '',
 
-                "#define DEPTH_PACKING " + material.depthPacking  if parameters['depthPacking'] else '',
+                ("#define DEPTH_PACKING %d" %  material.depthPacking) if parameters['depthPacking'] else '',
                 '\n'
             ]
             prefixFragment = '\n'.join([string for string in _prefixFragment if string != ''])

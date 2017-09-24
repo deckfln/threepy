@@ -488,7 +488,7 @@ class pyOpenGLState:
 
     def activeTexture(self, webglSlot=None ):
         if  webglSlot is None:
-            webglSlot = GL_TEXTURE0 + self.capabilities.maxTextures - 1
+            webglSlot = GL_TEXTURE0 + self.maxTextures - 1
 
         if  self.currentTextureSlot != webglSlot:
             glActiveTexture( webglSlot )
@@ -521,7 +521,7 @@ class pyOpenGLState:
 
     def scissor(self, scissor ):
         if not self.currentScissor.equals( scissor ):
-            glScissor( scissor.x, scissor.y, scissor.z, scissor.w )
+            glScissor( int(scissor.x), int(scissor.y), int(scissor.z), int(scissor.w) )
             self.currentScissor.copy( scissor )
 
     def viewport(self, viewport ):

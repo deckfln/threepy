@@ -23,10 +23,12 @@ from THREE.BufferGeometry import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
 from THREE.SphereBufferGeometry import *
+from THREE.CylinderBufferGeometry import *
 from THREE.Color import *
 from THREE.Object3D import *
 from THREE.Group import *
 from THREE.Camera import *
+from THREE.ArrayCamera import *
 from THREE.ShaderChunk import *
 from THREE.Material import *
 from THREE.ShaderMaterial import *
@@ -34,6 +36,8 @@ from THREE.MeshBasicMaterial import *
 from THREE.MeshLambertMaterial import *
 from THREE.MeshPhongMaterial import *
 from THREE.RawShaderMaterial import *
+from THREE.MeshDepthMaterial import *
+from THREE.MeshDistanceMaterial import *
 from THREE.Light import *
 from THREE.SpotLights import *
 from THREE.DirectionalLight import *
@@ -63,8 +67,11 @@ from THREE.pyOpenGLObjects import *
 from THREE.pyOpenGLRenderLists import *
 from THREE.Uniforms import *
 from THREE.pyOpenGL import *
+from THREE.pyOpenGLStates import *
 from THREE.pyOpenGLProgram import *
 from THREE.pyOpenGLPrograms import *
+from THREE.pyOpenGLShadowMap import *
+from THREE.pyOpenGLRenderTarget import *
 from THREE.pyOpenGLRenderer import *
 from THREE.LoadingManager import *
 from THREE.ImageLoader import *

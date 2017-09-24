@@ -404,7 +404,7 @@ class Vector3(pyOpenGLObject):
         return dx * dx + dy * dy + dz * dz
 
     def distanceToManhattan(self, v ):
-        return math.abs( self.x - v.x ) + math.abs( self.y - v.y ) + math.abs( self.z - v.z )
+        return abs( self.x - v.x ) + abs( self.y - v.y ) + abs( self.z - v.z )
 
     def setFromSpherical(self, s ):
         sinPhiRadius = math.sin( s.phi ) * s.radius

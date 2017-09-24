@@ -29,7 +29,7 @@ class PlaneGeometry(Geometry):
 
 
 class PlaneBufferGeometry(BufferGeometry):
-    def __init__(self, width, height, widthSegments, heightSegments ):
+    def __init__(self, width, height, widthSegments=1, heightSegments=1 ):
         """
 
         :param width:

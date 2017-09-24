@@ -24,7 +24,7 @@ class DirectionalLightShadow(LightShadow):
 class DirectionalLight(Light):
     isDirectionalLight = True
     
-    def __init__(self, color, intensity ):
+    def __init__(self, color=0xffffff, intensity = 1 ):
         super().__init__( color, intensity )
 
         self.type = 'DirectionalLight'

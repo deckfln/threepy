@@ -19,15 +19,6 @@ from THREE.Javascript import *
 """
 stubs
 """
-class pyOpenGLShadowMap:
-    def __init__(self, _renderer, _objects, maxTextureSize):
-        self.enabled = False
-        self.type = 0
-
-    def render(self, lights, scene, camera):
-        return True
-
-
 class pyOpenGLSpriteRenderer:
     def __init__(self, renderer, state, textures, capabilities ):
         self.renderer = renderer
@@ -46,10 +37,6 @@ class pyOpenGLFlareRenderer:
 
 """
 """
-class RenderTarget:
-    def __init__(self):
-        self.texture = None
-
 
 class _Model:
     def __init__(self, vaoID, vertexCount, object3D):
@@ -1106,19 +1093,19 @@ class pyOpenGLRenderer:
                 for j in range(len(cameras)):
                     camera2 = cameras[j]
 
-                if object.layers.test(camera2.layers):
-                    bounds = camera2.bounds
+                    if object.layers.test(camera2.layers):
+                        bounds = camera2.bounds
 
-                x = bounds.x * self._width
-                y = bounds.y * self._height
-                width = bounds.z * self._width
-                height = bounds.w * self._height
+                    x = bounds.x * self._width
+                    y = bounds.y * self._height
+                    width = bounds.z * self._width
+                    height = bounds.w * self._height
 
-                self.state.viewport(self._currentViewport.set(x, y, width, height).multiplyScalar(self._pixelRatio))
-                self.state.scissor(self._currentScissor.set(x, y, width, height).multiplyScalar(self._pixelRatio))
-                self.state.setScissorTest(True)
+                    self.state.viewport(self._currentViewport.set(x, y, width, height).multiplyScalar(self._pixelRatio))
+                    self.state.scissor(self._currentScissor.set(x, y, width, height).multiplyScalar(self._pixelRatio))
+                    self.state.setScissorTest(True)
 
-                self._renderObject(object, scene, camera2, geometry, material, group)
+                    self._renderObject(object, scene, camera2, geometry, material, group)
             else:
                 self._currentArrayCamera = None
                 self._renderObject(object, scene, camera, geometry, material, group)
@@ -1148,7 +1135,7 @@ class pyOpenGLRenderer:
 
             self._renderObjectImmediate(object, program, material)
         else:
-            self._renderBufferDirect(camera, scene.fog, geometry, material, object, group)
+            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group)
 
         object.onAfterRender(self, scene, camera, geometry, material, group)
 
@@ -1251,7 +1238,7 @@ class pyOpenGLRenderer:
 
         object.count = 0
 
-    def _renderBufferDirect(self, camera, fog, geometry, material, object, group):
+    def renderBufferDirect(self, camera, fog, geometry, material, object, group):
         """
 
         :param camera:
@@ -1570,20 +1557,20 @@ class pyOpenGLRenderer:
         """
         _currentRenderTarget = renderTarget
 
-        if renderTarget and self.properties.get( renderTarget ).__webglFramebuffer is None :
+        if renderTarget and self.properties.get( renderTarget ).frameBuffer is None :
             self.textures.setupRenderTarget( renderTarget )
 
-        framebuffer = None
+        _framebuffer = 0
         isCube = False
 
         if renderTarget:
-            __webglFramebuffer = self.properties.get( renderTarget ).__webglFramebuffer
+            frameBuffer = self.properties.get( renderTarget ).frameBuffer
 
-            if hasattr(renderTarget, 'isWebGLRenderTargetCube'):
-                framebuffer = __webglFramebuffer[ renderTarget.activeCubeFace ]
+            if renderTarget.isWebGLRenderTargetCube:
+                _framebuffer = frameBuffer[ renderTarget.activeCubeFace ]
                 isCube = True
             else:
-                framebuffer = __webglFramebuffer
+                _framebuffer = frameBuffer
 
             self._currentViewport.copy( renderTarget.viewport )
             self._currentScissor.copy( renderTarget.scissor )
@@ -1594,9 +1581,9 @@ class pyOpenGLRenderer:
             self._currentScissor.copy( self._scissor ).multiplyScalar( self._pixelRatio )
             self._currentScissorTest = self._scissorTest
 
-        if self._currentFramebuffer != framebuffer:
-            glBindFramebuffer( GL_FRAMEBUFFER, framebuffer )
-            self._currentFramebuffer = framebuffer
+        if self._currentFramebuffer != _framebuffer:
+            glBindFramebuffer( GL_FRAMEBUFFER, _framebuffer )
+            self._currentFramebuffer = _framebuffer
 
         self.state.viewport( self._currentViewport )
         self.state.scissor( self._currentScissor )

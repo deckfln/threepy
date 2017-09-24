@@ -114,19 +114,19 @@ class Vector2(pyOpenGLObject):
         return self.multiplyScalar( 1 / scalar )
 
     def min(self, v ):
-        self.x = math.min( self.x, v.x )
-        self.y = math.min( self.y, v.y )
+        self.x = min( self.x, v.x )
+        self.y = min( self.y, v.y )
         return self
 
     def max(self, v ):
-        self.x = math.max( self.x, v.x )
-        self.y = math.max( self.y, v.y )
+        self.x = max( self.x, v.x )
+        self.y = max( self.y, v.y )
         return self
 
     def clamp(self, min, max ):
         # // assumes min < max, componentwise
-        self.x = math.max( min.x, math.min( max.x, self.x ) )
-        self.y = math.max( min.y, math.min( max.y, self.y ) )
+        self.x = max( min.x, min( max.x, self.x ) )
+        self.y = max( min.y, min( max.y, self.y ) )
         return self
 
     def clampScalar(self, minVal, maxVal):
@@ -140,7 +140,7 @@ class Vector2(pyOpenGLObject):
 
     def clampLength(self, min, max ):
         length = self.length()
-        return self.divideScalar( length or 1 ).multiplyScalar( math.max( min, math.min( max, length ) ) )
+        return self.divideScalar( length or 1 ).multiplyScalar( max( min, min( max, length ) ) )
 
     def floor(self):
         self.x = math.floor( self.x )
@@ -153,8 +153,8 @@ class Vector2(pyOpenGLObject):
         return self
 
     def round(self):
-        self.x = math.round( self.x )
-        self.y = math.round( self.y )
+        self.x = round( self.x )
+        self.y = round( self.y )
         return self
 
     def roundToZero(self):
@@ -182,7 +182,7 @@ class Vector2(pyOpenGLObject):
         return math.sqrt( self.x * self.x + self.y * self.y )
 
     def lengthManhattan(self):
-        return math.abs( self.x ) + math.abs( self.y )
+        return abs( self.x ) + abs( self.y )
 
     def normalize(self):
         return self.divideScalar( self.length() or 1 )
@@ -191,7 +191,7 @@ class Vector2(pyOpenGLObject):
         # // computes the angle in radians with respect to the positive x-axis
         angle = math.atan2( self.y, self.x )
         if angle < 0:
-            angle += 2 * math.PI
+            angle += 2 * math.pi
 
         return angle
 
@@ -203,7 +203,7 @@ class Vector2(pyOpenGLObject):
         return dx * dx + dy * dy
 
     def distanceToManhattan(self, v ):
-        return math.abs( self.x - v.x ) + math.abs( self.y - v.y )
+        return abs( self.x - v.x ) + abs( self.y - v.y )
 
     def setLength(self, length ):
         return self.normalize().multiplyScalar( length )

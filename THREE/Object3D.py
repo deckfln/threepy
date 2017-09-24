@@ -70,6 +70,7 @@ class Object3D(pyOpenGLObject):
 
         self._onBeforeRender = None
         self._onBeforeRenderParent = None
+        self.customDepthMaterial = None
 
     def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
         if self._onBeforeRender:

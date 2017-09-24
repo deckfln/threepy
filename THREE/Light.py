@@ -67,7 +67,7 @@ class Light(Object3D):
 """
 
 
-class LightShadow:
+class LightShadow(pyOpenGLObject):
     def __init__(self, camera):
         self.camera = camera
 

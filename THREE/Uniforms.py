@@ -70,8 +70,9 @@ class UniformContainer():
 
 # // Array Caches (provide typed arrays for temporary by size)
 
-arrayCacheF32 = []
-arrayCacheI32 = []
+
+arrayCacheF32 = [None for i in range(32)]
+arrayCacheI32 = [None for i in range(32)]
 
 # // Float32Array caches used for uploading Matrix uniforms
 
@@ -83,17 +84,18 @@ mat3array = np.zeros( 9 , 'f')
 def flatten( array, nBlocks, blockSize ):
     firstElem = array[ 0 ]
 
-    if firstElem <= 0 or firstElem > 0:
+    # TODO: what is that ?
+    if firstElem is None:
         return array
     # // unoptimized: ! isNaN( firstElem )
     # // see http:# //jacksondunstan.com/articles/983
 
     n = nBlocks * blockSize
-    r = arrayCacheF32[ n ]
+    r = arrayCacheF32[n]
 
     if r is None:
-        r = np.zeros( n , 'f')
-        arrayCacheF32[ n ] = r
+        r = np.zeros(n, 'f')
+        arrayCacheF32[n] = r
 
     if nBlocks != 0:
         firstElem.toArray( r, 0 )
@@ -107,11 +109,11 @@ def flatten( array, nBlocks, blockSize ):
 # // Texture unit allocation
 
 def allocTexUnits( renderer, n ):
-    r = arrayCacheI32[ n ]
+    r = arrayCacheI32[n]
 
     if r is None:
         r = np.zeros( n , "l")
-        arrayCacheI32[ n ] = r
+        arrayCacheI32.append(r)
 
     for i in range(n):
         r[ i ] = renderer.allocTextureUnit()
@@ -273,32 +275,41 @@ class PureArrayUniform():
     # // Array of scalars
 
     def setValue1fv(self, v, renderer=None):
-        glUniform1fv(self.addr, v)
+        glUniform1fv(self.addr, 1, v)
 
     def setValue1iv(self, v, renderer=None):
-        glUniform1iv(self.addr, v)
+        glUniform1iv(self.addr, 1, v)
+
+    def setValue2iv(self, v, renderer=None):
+        glUniform2iv(self.addr, 1, v)
+
+    def setValue3iv(self, v, renderer=None):
+        glUniform3iv(self.addr, 1, v)
+
+    def setValue4iv(self, v, renderer=None):
+        glUniform4iv(self.addr, 1, v)
 
     # // Array of vectors (flat or from THREE classes)
 
     def setValueV2a(self, v, renderer=None):
-        glUniform2fv(self.addr, flatten(v, self.size, 2))
+        glUniform2fv(self.addr, len(v), flatten(v, self.size, 2))
 
     def setValueV3a(self, v, renderer=None):
-        glUniform3fv(self.addr, flatten(v, self.size, 3))
+        glUniform3fv(self.addr, len(v), flatten(v, self.size, 3))
 
     def setValueV4a(self, v, renderer=None):
-        glUniform4fv(self.addr, flatten(v, self.size, 4))
+        glUniform4fv(self.addr, len(v), flatten(v, self.size, 4))
 
     # // Array of matrices (flat or from THREE clases)
 
     def setValueM2a(self, v, renderer=None):
-        glUniformMatrix2fv(self.addr, GL_FALSE, flatten(v, self.size, 4))
+        glUniformMatrix2fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 4))
 
     def setValueM3a(self, v, renderer=None):
-        glUniformMatrix3fv(self.addr, GL_FALSE, flatten(v, self.size, 9))
+        glUniformMatrix3fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 9))
 
     def setValueM4a(self, v, renderer=None):
-        glUniformMatrix4fv(self.addr, GL_FALSE, flatten(v, self.size, 16))
+        glUniformMatrix4fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 16))
 
     # // Array of textures (2D / Cube)
 
@@ -306,7 +317,7 @@ class PureArrayUniform():
         n = len(v)
         units = allocTexUnits(renderer, n)
 
-        glUniform1iv(self.addr, units)
+        glUniform1iv(self.addr, n, units)
 
         for i in range(n):
             renderer.setTexture2D(v[i] or emptyTexture, units[i])

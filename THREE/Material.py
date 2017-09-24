@@ -145,6 +145,8 @@ class Material(pyOpenGLObject):
         self.morphNormals = None
         self.callback = None
         self.wireframe = False
+        self.linewidth = 1
+        self.color = None
 
     def onBeforeCompile(self, shader):
         return True
