@@ -622,7 +622,7 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def decompose(self, position, quaternion, scale):
-        vector = Vector3()
+        vector = THREE.Vector3()
         matrix = Matrix4()
         te = self.elements
 

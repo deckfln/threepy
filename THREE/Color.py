@@ -247,7 +247,7 @@ class Color(pyOpenGLObject):
         return self
 
     def getHex(self):
-        return ( self.r * 255 ) << 16 ^ ( self.g * 255 ) << 8 ^ ( self.b * 255 ) << 0
+        return ( int(self.r * 255) ) << 16 ^ ( int(self.g * 255) ) << 8 ^ ( int(self.b * 255) ) << 0
 
     def getHexString(self):
         return ( '000000' + self.getHex().toString( 16 ) ).slice( - 6 )
@@ -258,10 +258,9 @@ class Color(pyOpenGLObject):
 
         r = self.r; g = self.g; b = self.b
 
-        max = math.max( r, g, b )
-        min = math.min( r, g, b )
+        max = max( r, g, b )
+        min = min( r, g, b )
 
-        hue, saturation
         lightness = ( min + max ) / 2.0
 
         if min == max:

@@ -35,7 +35,7 @@ class BoxBufferGeometry(BufferGeometry):
      * @author Mugen87 / https://github.com/Mugen87
      */
     """
-    def __init__(self, width, height, depth, widthSegments, heightSegments, depthSegments ):
+    def __init__(self, width, height, depth, widthSegments=1, heightSegments=1, depthSegments=1 ):
         super().__init__()
 
         self.type = 'BoxBufferGeometry'
