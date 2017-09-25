@@ -58,6 +58,7 @@ class Geometry(pyOpenGLObject):
 
         self.callback = None
         self._bufferGeometry = None
+        self._directGeometry = None
 
     def applyMatrix(self, matrix ):
         normalMatrix = Matrix3().getNormalMatrix( matrix )

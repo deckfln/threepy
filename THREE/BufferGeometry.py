@@ -15,6 +15,7 @@ from THREE.Box3 import *
 from THREE.Sphere import *
 from THREE.Object3D import *
 from THREE.BufferAttribute import *
+from THREE.DirectGeometry import *
 
 
 _gIdcount = 0
@@ -227,7 +228,7 @@ class BufferGeometry(pyOpenGLObject):
     def updateFromObject(self, object ):
         geometry = object.geometry
         if object.isMesh:
-            direct = geometry.__directGeometry
+            direct = geometry._directGeometry
             if geometry.elementsNeedUpdate:
                 direct = None
                 geometry.elementsNeedUpdate = False
@@ -295,33 +296,33 @@ class BufferGeometry(pyOpenGLObject):
         return self
         
     def fromGeometry(self, geometry ):
-        geometry.__directGeometry = DirectGeometry().fromGeometry( geometry )
-        return self.fromDirectGeometry( geometry.__directGeometry )
+        geometry._directGeometry = DirectGeometry().fromGeometry( geometry )
+        return self.fromDirectGeometry( geometry._directGeometry )
         
     def fromDirectGeometry(self, geometry ):
-        positions = np.zeros( geometry.vertices.length * 3, 'f' )
+        positions = np.zeros( len(geometry.vertices) * 3, 'f' )
         self.addAttribute( 'position', BufferAttribute( positions, 3 ).copyVector3sArray( geometry.vertices ) )
-        if geometry.normals.length > 0:
-            normals = np.zeros( geometry.normals.length * 3, 'f' )
+        if len(geometry.normals)> 0:
+            normals = np.zeros( len(geometry.normals) * 3, 'f' )
             self.addAttribute( 'normal', BufferAttribute( normals, 3 ).copyVector3sArray( geometry.normals ) )
 
-        if geometry.colors.length > 0:
-            colors = np.zeros( geometry.colors.length * 3, 'f' )
+        if len(geometry.colors) > 0:
+            colors = np.zeros( len(geometry.colors) * 3, 'f' )
             self.addAttribute( 'color', BufferAttribute( colors, 3 ).copyColorsArray( geometry.colors ) )
 
-        if geometry.uvs.length > 0:
-            uvs = np.zeros( geometry.uvs.length * 2, 'f' )
+        if len(geometry.uvs)> 0:
+            uvs = np.zeros( len(geometry.uvs) * 2, 'f' )
             self.addAttribute( 'uv', BufferAttribute( uvs, 2 ).copyVector2sArray( geometry.uvs ) )
 
-        if geometry.uvs2.length > 0:
-            uvs2 = np.zeros( geometry.uvs2.length * 2, 'f' )
+        if len(geometry.uvs2) > 0:
+            uvs2 = np.zeros( len(geometry.uvs2) * 2, 'f' )
             self.addAttribute( 'uv2', BufferAttribute( uvs2, 2 ).copyVector2sArray( geometry.uvs2 ) )
 
-        if geometry.indices.length > 0:
+        if len(geometry.indices) > 0:
             if geometry.indices.count > 65535:
-                indices = np.zeros(geometry.indices.length * 3, "L" )
+                indices = np.zeros(len(geometry.indices) * 3, "L" )
             else:
-                indices = np.zeros(geometry.indices.length * 3, "S" )
+                indices = np.zeros(len(geometry.indices) * 3, "S" )
             self.setIndex( BufferAttribute( indices, 1 ).copyIndicesArray( geometry.indices ) )
 
         # // groups
@@ -330,20 +331,20 @@ class BufferGeometry(pyOpenGLObject):
         for name in geometry.morphTargets:
             array = []
             morphTargets = geometry.morphTargets[ name ]
-            for i in range(morphTargets.length):
+            for i in range(len(morphTargets)):
                 morphTarget = morphTargets[ i ]
-                attribute = Float32BufferAttribute( morphTarget.length * 3, 3 )
+                attribute = Float32BufferAttribute( len(morphTarget) * 3, 3 )
                 array.append( attribute.copyVector3sArray( morphTarget ) )
 
             self.morphAttributes[ name ] = array
 
         # // skinning
-        if geometry.skinIndices.length > 0:
-            skinIndices = Float32BufferAttribute( geometry.skinIndices.length * 4, 4 )
+        if len(geometry.skinIndices)> 0:
+            skinIndices = Float32BufferAttribute( len(geometry.skinIndices) * 4, 4 )
             self.addAttribute( 'skinIndex', skinIndices.copyVector4sArray( geometry.skinIndices ) )
 
-        if geometry.skinWeights.length > 0:
-            skinWeights = Float32BufferAttribute( geometry.skinWeights.length * 4, 4 )
+        if len(geometry.skinWeights)> 0:
+            skinWeights = Float32BufferAttribute( len(geometry.skinWeights) * 4, 4 )
             self.addAttribute( 'skinWeight', skinWeights.copyVector4sArray( geometry.skinWeights ) )
 
         # //
@@ -404,7 +405,7 @@ class BufferGeometry(pyOpenGLObject):
         if attributes.position:
             positions = attributes.position.array
             if attributes.normal is None:
-                self.addAttribute( 'normal', BufferAttribute( np.zeros( positions.length, 'f' ), 3 ) )
+                self.addAttribute( 'normal', BufferAttribute( np.zeros( len(positions), 'f' ), 3 ) )
             else:
                 # // reset existing normals to zero
                 array = attributes.normal.array
@@ -421,10 +422,10 @@ class BufferGeometry(pyOpenGLObject):
             # // indexed elements
             if index:
                 indices = index.array
-                if groups.length == 0:
-                    self.addGroup( 0, indices.length )
+                if len(groups) == 0:
+                    self.addGroup( 0, len(indices) )
 
-                for j in range(groups.length):
+                for j in range(len(groups)):
                     group = groups[ j ]
                     start = group.start
                     count = group.count
@@ -449,7 +450,7 @@ class BufferGeometry(pyOpenGLObject):
                         normals[ vC + 2 ] += cb.z
             else:
                 # // non-indexed elements (unconnected triangle soup)
-                for i in range(0, positions.length, 9):
+                for i in range(0, len(positions), 9):
                     pA.fromArray( positions, i )
                     pB.fromArray( positions, i + 3 )
                     pC.fromArray( positions, i + 6 )
@@ -484,7 +485,7 @@ class BufferGeometry(pyOpenGLObject):
             attributeArray2 = attribute2.array
             attributeSize = attribute2.itemSize
             j = j = attributeSize * offset
-            for i in range (attributeArray2.length):
+            for i in range (len(attributeArray2)):
                 attributeArray1[ j ] = attributeArray2[ i ]
                 j += 1
 
@@ -512,10 +513,10 @@ class BufferGeometry(pyOpenGLObject):
             attribute = attributes[ name ]
             array = attribute.array
             itemSize = attribute.itemSize
-            array2 = array.constructor( indices.length * itemSize )
+            array2 = array.constructor( len(indices) * itemSize )
             index = 0
             index2 = 0
-            for i in range(indices.length):
+            for i in range(len(indices)):
                 index = indices[ i ] * itemSize
                 for j in range(itemSize):
                     array2[ index2 ] = array[ index ]
@@ -547,7 +548,7 @@ class BufferGeometry(pyOpenGLObject):
 
             return data
 
-        data.data = { attributes: {} }
+        data.data = { 'attributes': {} }
         index = self.index
         if index != None:
             array = Array.prototype.slice.call( index.array )
@@ -568,7 +569,7 @@ class BufferGeometry(pyOpenGLObject):
             }
 
         groups = self.groups
-        if groups.length > 0:
+        if len(groups) > 0:
             data.data.groups = JSON.parse( JSON.stringify( groups ) )
 
         boundingSphere = self.boundingSphere
@@ -612,14 +613,14 @@ class BufferGeometry(pyOpenGLObject):
             array = []
             morphAttribute = morphAttributes[ name ]; # // morphAttribute: array of Float32BufferAttributes
 
-            for i in range(morphAttribute.length):
+            for i in range(len(morphAttribute)):
                 array.append( morphAttribute[ i ].clone() )
 
             self.morphAttributes[ name ] = array
 
         # // groups
         groups = source.groups
-        for i in range(groups.length):
+        for i in range(len(groups)):
             group = groups[ i ]
             self.addGroup( group.start, group.count, group.materialIndex )
 

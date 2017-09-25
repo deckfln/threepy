@@ -20,6 +20,7 @@ from THREE.Geometry import *
 from THREE.BufferAttribute import *
 from THREE.InterleavedBufferAttribute import *
 from THREE.BufferGeometry import *
+from THREE.DirectGeometry import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
 from THREE.SphereBufferGeometry import *
@@ -68,7 +69,7 @@ from THREE.pyOpenGLIndexedBufferRenderer import *
 from THREE.pyOpenGLObjects import *
 from THREE.pyOpenGLRenderLists import *
 from THREE.Uniforms import *
-from THREE.pyOpenGL import *
+from THREE.pyOpenGLExtensions import *
 from THREE.pyOpenGLStates import *
 from THREE.pyOpenGLProgram import *
 from THREE.pyOpenGLPrograms import *
@@ -79,5 +80,7 @@ from THREE.LoadingManager import *
 from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 import THREE.ImageUtils as ImageUtils
+
+from THREE.controls.TrackballControls import *
 
 global ShaderLib

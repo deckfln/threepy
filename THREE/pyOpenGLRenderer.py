@@ -7,6 +7,8 @@
  * @author tschw
  */
 """
+import sys
+import time
 from OpenGL.GL import *
 import pygame
 from pygame.locals import *
@@ -15,7 +17,7 @@ import THREE._Math as _Math
 from ctypes import c_void_p
 from THREE.ShaderLib import *
 from THREE.Javascript import *
-
+from THREE.Constants import *
 
 """
 stubs
@@ -383,6 +385,10 @@ class pyOpenGLRenderer:
         self.setClearColor = self.background.setClearColor
         self.getClearAlpha = self.background.getClearAlpha
         self.setClearAlpha = self.background.setClearAlpha
+        """
+        //
+        """
+        self._vector3 = Vector3()
 
     def _getTargetPixelRatio(self):
         return self._pixelRatio if self._currentRenderTarget is None else 1
@@ -1374,8 +1380,8 @@ class pyOpenGLRenderer:
         if not object.visible:
             return
 
+        _vector3 = self._vector3
         visible = object.layers.test( camera.layers )
-        _vector3 = Vector3()
 
         if visible:
             if object.isLight:
@@ -1422,9 +1428,8 @@ class pyOpenGLRenderer:
                         self.currentRenderList.push(object, geometry, material, _vector3.z, None)
 
         children = object.children
-
-        for i in range(len(children)):
-            self._projectObject( children[ i ], camera, sortObjects )
+        for i in children:
+            self._projectObject( i, camera, sortObjects )
 
     def render(self, scene, camera, renderTarget=None, forceClear=False):
         """

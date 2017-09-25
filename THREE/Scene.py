@@ -8,6 +8,8 @@ from THREE.Object3D import *
 
 
 class Scene(Object3D):
+    isScene = True
+
     def __init__(self):
         super().__init__( )
 

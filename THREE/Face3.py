@@ -26,7 +26,7 @@ class Face3:
 
         if isinstance( color, list):
             self.vertexColors = color
-            self.color = Vector3()
+            self.color = Color()
         elif color and color.isVector3:
             self.color = color
             self.vertexColors = []

@@ -1,10 +1,31 @@
 import math
+import time
 
 
 class _number:
     def __init__(self):
         self.EPSILON = math.pow( 2, - 52 )
 
+
+class Profiler:
+    def __init__(self):
+        self.t0 = 0
+        self.times = []
+        self.run = False
+
+    def  start(self):
+        self.t0 = time.clock()
+
+    def stop(self):
+        t1 = time.clock()
+        self.times.append(t1 - self.t0)
+
+    def print(self):
+        for t in self.times:
+            print("%.15f" % t)
+
+
+profiler = Profiler()
 
 Number = _number()
 
