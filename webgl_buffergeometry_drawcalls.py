@@ -4,6 +4,7 @@
 import random
 from datetime import datetime
 from THREE import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
 WIDTH = 640
@@ -14,6 +15,7 @@ renderer=None
 mesh = None
 geometry = None
 
+container = None
 group = None
 particlesData = []
 positions = None
@@ -23,7 +25,7 @@ particlePositions = None
 linesMesh = None
 
 maxParticleCount = 1000
-particleCount = 500
+particleCount = 200
 r = 800
 rHalf = r / 2
 
@@ -49,9 +51,17 @@ effectController = EffectController()
 
 def init():
     global camera, scene, particlePositions,particles,maxParticleCount, particleData, particleCount, linesMesh,pointCloud
-    global positions, colors, lineMesh, group
+    global positions, colors, lineMesh, group, container, renderer
 
-    camera = THREE.PerspectiveCamera( 45, WIDTH / HEIGHT, 1, 4000 )
+    container = pyOpenGL()
+    container.addEventListener( 'resize', onWindowResize, False )
+    container.addEventListener( 'animationRequest', animate )
+
+    renderer = pyOpenGLRenderer({ 'antialias': False })
+    size = renderer.getSize()
+
+    camera = THREE.PerspectiveCamera( 45, size['width'] / size['height'], 1, 4000 )
+
     camera.position.z = 1750
 
     scene = THREE.Scene()
@@ -123,10 +133,6 @@ def init():
 
     # //
 
-    renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
-    renderer.setPixelRatio( 1 )
-    renderer.setSize( WIDTH, HEIGHT )
-
     renderer.gammaInput = True
     renderer.gammaOutput = True
 
@@ -136,28 +142,33 @@ def init():
 
 def animate():
     global particleCount, particlesData, particlePositions,effectController, linesMesh, pointCloud
-    global positions, colors
+    global positions, colors, renderer
 
     vertexpos = 0
     colorpos = 0
     numConnected = 0
 
+    profiler.start()
+
+    for particleData in particlesData:
+        particleData.numConnections = 0
+
     for i in range(particleCount):
-        particlesData[ i ].numConnections = 0
         # // get the particle
         particleData = particlesData[i]
 
-        particlePositions[ i * 3     ] += particleData.velocity.x
-        particlePositions[ i * 3 + 1 ] += particleData.velocity.y
-        particlePositions[ i * 3 + 2 ] += particleData.velocity.z
+        p = i*3
+        particlePositions[ p     ] += particleData.velocity.x
+        particlePositions[ p + 1 ] += particleData.velocity.y
+        particlePositions[ p + 2 ] += particleData.velocity.z
 
-        if particlePositions[ i * 3 + 1 ] < -rHalf or particlePositions[ i * 3 + 1 ] > rHalf:
+        if particlePositions[ p + 1 ] < -rHalf or particlePositions[ p + 1 ] > rHalf:
             particleData.velocity.y = -particleData.velocity.y
 
-        if particlePositions[ i * 3 ] < -rHalf or particlePositions[ i * 3 ] > rHalf:
+        if not -rHalf <= particlePositions[ p ] <= rHalf:
             particleData.velocity.x = -particleData.velocity.x
 
-        if particlePositions[ i * 3 + 2 ] < -rHalf or particlePositions[ i * 3 + 2 ] > rHalf:
+        if not -rHalf <= particlePositions[ p + 2 ] <= rHalf:
             particleData.velocity.z = -particleData.velocity.z
 
         if effectController.limitConnections and particleData.numConnections >= effectController.maxConnections:
@@ -169,10 +180,11 @@ def animate():
             if effectController.limitConnections and particleDataB.numConnections >= effectController.maxConnections:
                 continue
 
-            dx = particlePositions[ i * 3     ] - particlePositions[ j * 3     ]
-            dy = particlePositions[ i * 3 + 1 ] - particlePositions[ j * 3 + 1 ]
-            dz = particlePositions[ i * 3 + 2 ] - particlePositions[ j * 3 + 2 ]
-            dist = math.sqrt( dx * dx + dy * dy + dz * dz )
+            j3 = j * 3
+            dx = particlePositions[ p     ] - particlePositions[ j3     ]
+            dy = particlePositions[ p + 1 ] - particlePositions[ j3 + 1 ]
+            dz = particlePositions[ p + 2 ] - particlePositions[ j3 + 2 ]
+            dist = math.sqrt(dx * dx + dy * dy + dz * dz)
 
             if dist < effectController.minDistance:
                 particleData.numConnections += 1
@@ -180,14 +192,14 @@ def animate():
 
                 alpha = 1.0 - dist / effectController.minDistance
 
-                positions[ vertexpos ] = particlePositions[ i * 3     ]
-                positions[ vertexpos + 1 ] = particlePositions[ i * 3 + 1 ]
-                positions[ vertexpos + 2 ] = particlePositions[ i * 3 + 2 ]
+                positions[ vertexpos ] = particlePositions[ p     ]
+                positions[ vertexpos + 1 ] = particlePositions[ p + 1 ]
+                positions[ vertexpos + 2 ] = particlePositions[ p + 2 ]
                 vertexpos += 3
 
-                positions[ vertexpos ] = particlePositions[ j * 3     ]
-                positions[ vertexpos + 1 ] = particlePositions[ j * 3 + 1 ]
-                positions[ vertexpos + 2 ] = particlePositions[ j * 3 + 2 ]
+                positions[ vertexpos ] = particlePositions[ j3     ]
+                positions[ vertexpos + 1 ] = particlePositions[ j3 + 1 ]
+                positions[ vertexpos + 2 ] = particlePositions[ j3 + 2 ]
                 vertexpos += 3
 
                 colors[ colorpos  ] = alpha
@@ -208,6 +220,8 @@ def animate():
 
     pointCloud.geometry.attributes.position.needsUpdate = True
 
+    profiler.stop()
+
     render()
 
 def render():
@@ -217,27 +231,16 @@ def render():
     group.rotation.y = time * 0.1
     renderer.render( scene, camera )
 
-def reshape(width, height):
-    """window reshape callback."""
-    global camera, renderer
+
+def onWindowResize(event):
+    global camera, controls, scene, renderer, cross, container
+    height = event.height
+    width = event.width
 
     camera.aspect = width / height
     camera.updateProjectionMatrix()
 
-    renderer.setSize(width, height)
-
-    glViewport(0, 0, width, height)
-
-
-def mouse(button, state, x, y):
-    if button == GLUT_LEFT_BUTTON:
-        rotating = (state == GLUT_DOWN)
-    elif button == GLUT_RIGHT_BUTTON:
-        scaling = (state == GLUT_DOWN)
-
-
-def motion(x1, y1):
-    glutPostRedisplay()
+    renderer.setSize( width, height )
 
 
 def keyboard(c, x=0, y=0):
@@ -246,18 +249,16 @@ def keyboard(c, x=0, y=0):
     if c == b'q':
         sys.exit(0)
 
-    glutPostRedisplay()
-
 
 """
 """
 
 
 def main(argv=None):
-    global renderer, camera, scene
+    global container
 
-    renderer = init()
-    return renderer.loop()
+    init()
+    return container.loop()
 
 
 if __name__ == "__main__":
