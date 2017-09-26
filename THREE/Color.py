@@ -47,8 +47,8 @@ def _handleAlpha( string=None ):
     if string is None:
         return
 
-    if parseFloat( string ) < 1:
-        print( 'THREE.Color: Alpha component of ' + style + ' will be ignored.' )
+    if float( string ) < 1:
+        print( 'THREE.Color: Alpha component of %s will be ignored.' % string)
 
             
 class Color(pyOpenGLObject):
@@ -134,11 +134,11 @@ class Color(pyOpenGLObject):
                 color = r.match( components )
                 if color:
                     # // rgb(255,0,0) rgba(255,0,0,0.5)
-                    self.r = math.min( 255, parseInt( color[ 1 ], 10 ) ) / 255
-                    self.g = math.min( 255, parseInt( color[ 2 ], 10 ) ) / 255
-                    self.b = math.min( 255, parseInt( color[ 3 ], 10 ) ) / 255
+                    self.r = math.min( 255, int( color[ 1 ], 10 ) ) / 255
+                    self.g = math.min( 255, int( color[ 2 ], 10 ) ) / 255
+                    self.b = math.min( 255, int( color[ 3 ], 10 ) ) / 255
 
-                    handleAlpha( color[ 5 ] )
+                    _handleAlpha( color[ 5 ] )
 
                     return self
 
@@ -146,11 +146,11 @@ class Color(pyOpenGLObject):
                 color = r.match( components )
                 if color:
                     # // rgb(100%,0%,0%) rgba(100%,0%,0%,0.5)
-                    self.r = math.min( 100, parseInt( color[ 1 ], 10 ) ) / 100
-                    self.g = math.min( 100, parseInt( color[ 2 ], 10 ) ) / 100
-                    self.b = math.min( 100, parseInt( color[ 3 ], 10 ) ) / 100
+                    self.r = min( 100, int( color[ 1 ], 10 ) ) / 100
+                    self.g = min( 100, int( color[ 2 ], 10 ) ) / 100
+                    self.b = min( 100, int( color[ 3 ], 10 ) ) / 100
 
-                    handleAlpha( color[ 5 ] )
+                    _handleAlpha( color[ 5 ] )
 
                     return self
             elif name == 'hsl' or name == 'hsla':
@@ -158,11 +158,11 @@ class Color(pyOpenGLObject):
                 color = r.match( components )
                 if color:
                     # // hsl(120,50%,50%) hsla(120,50%,50%,0.5)
-                    h = parseFloat( color[ 1 ] ) / 360
-                    s = parseInt( color[ 2 ], 10 ) / 100
-                    l = parseInt( color[ 3 ], 10 ) / 100
+                    h = float( color[ 1 ] ) / 360
+                    s = int( color[ 2 ], 10 ) / 100
+                    l = int( color[ 3 ], 10 ) / 100
 
-                    handleAlpha( color[ 5 ] )
+                    _handleAlpha( color[ 5 ] )
 
                     return self.setHSL( h, s, l )
         elif m1:
@@ -172,21 +172,21 @@ class Color(pyOpenGLObject):
 
             if size == 3:
                 # // #ff0
-                self.r = parseInt( hex.charAt( 0 ) + hex.charAt( 0 ), 16 ) / 255
-                self.g = parseInt( hex.charAt( 1 ) + hex.charAt( 1 ), 16 ) / 255
-                self.b = parseInt( hex.charAt( 2 ) + hex.charAt( 2 ), 16 ) / 255
+                self.r = int( hex.charAt( 0 ) + hex.charAt( 0 ), 16 ) / 255
+                self.g = int( hex.charAt( 1 ) + hex.charAt( 1 ), 16 ) / 255
+                self.b = int( hex.charAt( 2 ) + hex.charAt( 2 ), 16 ) / 255
                 return self
             elif size == 6:
                 # // #ff0000
-                self.r = parseInt( hex.charAt( 0 ) + hex.charAt( 1 ), 16 ) / 255
-                self.g = parseInt( hex.charAt( 2 ) + hex.charAt( 3 ), 16 ) / 255
-                self.b = parseInt( hex.charAt( 4 ) + hex.charAt( 5 ), 16 ) / 255
+                self.r = int( hex.charAt( 0 ) + hex.charAt( 1 ), 16 ) / 255
+                self.g = int( hex.charAt( 2 ) + hex.charAt( 3 ), 16 ) / 255
+                self.b = int( hex.charAt( 4 ) + hex.charAt( 5 ), 16 ) / 255
 
                 return self
 
         if style and style.length > 0:
             # // color keywords
-            hex = ColorKeywords[ style ]
+            hex = self.ColorKeywords[ style ]
             if hex is not None:
                 # // red
                 self.setHex( hex )
@@ -250,37 +250,44 @@ class Color(pyOpenGLObject):
         return ( int(self.r * 255) ) << 16 ^ ( int(self.g * 255) ) << 8 ^ ( int(self.b * 255) ) << 0
 
     def getHexString(self):
-        return ( '000000' + self.getHex().toString( 16 ) ).slice( - 6 )
+        hx = str(self.getHex())
+        return ( '000000' + hx[:- 6] )
 
     def getHSL(self, optionalTarget=None ):
+        class _hsl:
+            def __init__(self):
+                self.h = 0
+                self.s = 0
+                self.l = 0
+
         # // h,s,l ranges are in 0.0 - 1.0
-        hsl = optionalTarget or { h: 0, s: 0, l: 0 }
+        hsl = optionalTarget or _hsl()
 
         r = self.r; g = self.g; b = self.b
 
-        max = max( r, g, b )
-        min = min( r, g, b )
+        mx = max( r, g, b )
+        mn = min( r, g, b )
 
-        lightness = ( min + max ) / 2.0
+        lightness = ( mn + mx ) / 2.0
 
-        if min == max:
+        if mn == mx:
             hue = 0
             saturation = 0
         else:
-            delta = max - min
+            delta = mx - mn
 
-            saturation = delta / ( 2 - max - min )
+            saturation = delta / ( 2 - mx - mn )
             if lightness <= 0.5:
-                saturation =  delta / ( max + min ) 
+                saturation =  delta / ( mx + mn )
 
-            if max == r:
+            if mx == r:
                 hxx = 0
                 if g < b:
                     hxx = 6
                 hue = ( g - b ) / delta + hxx
-            elif max == g:
+            elif mx == g:
                 hue = ( b - r ) / delta + 2
-            elif max == b:
+            elif mx == b:
                 hue = ( r - g ) / delta + 4
 
             hue /= 6
@@ -292,7 +299,7 @@ class Color(pyOpenGLObject):
         return hsl
 
     def getStyle(self):
-        return 'rgb(' + ( ( self.r * 255 ) | 0 ) + ',' + ( ( self.g * 255 ) | 0 ) + ',' + ( ( self.b * 255 ) | 0 ) + ')'
+        return 'rgb(%d,%d,%d)' % (int( self.r * 255 ) | 0 , int(self.g * 255 ) | 0, int( self.b * 255 ) | 0 )
 
     def offsetHSL(self, h, s, l ):
         hsl = self.getHSL()
@@ -325,9 +332,9 @@ class Color(pyOpenGLObject):
         return self
 
     def sub(self, color ):
-        self.r = math.max( 0, self.r - color.r )
-        self.g = math.max( 0, self.g - color.g )
-        self.b = math.max( 0, self.b - color.b )
+        self.r = max( 0, self.r - color.r )
+        self.g = max( 0, self.g - color.g )
+        self.b = max( 0, self.b - color.b )
 
         return self
 

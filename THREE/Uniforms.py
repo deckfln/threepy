@@ -84,7 +84,13 @@ class Uniforms:
     def __init__(self, lst):
         super().__setattr__('Uniforms', {})
         for uniform in lst:
-            self.Uniforms[uniform] = Uniform(lst[uniform])
+            source_uniform = lst[uniform]
+            if isinstance(source_uniform, Uniform):
+                # TODO FDE: is it better to get a reference of the uniform or clone the uniform ?
+                new_uniform = source_uniform
+            else:
+                new_uniform = Uniform(source_uniform)
+            self.Uniforms[uniform] = new_uniform
 
     def __getattr__(self, item):
         try:
