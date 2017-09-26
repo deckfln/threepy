@@ -253,7 +253,7 @@ class Quaternion:
     def setFromUnitVectors(self, vFrom, vTo):
         # // assumes direction vectors vFrom and vTo are normalized
         EPS = 0.000001
-        v1 = Vector3()
+        v1 = THREE.Vector3()
         r = vFrom.dot( vTo ) + 1
 
         if r < EPS:

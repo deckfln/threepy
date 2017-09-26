@@ -438,16 +438,5 @@ class TrackballControls(EventManager):
         self.lastPosition.copy( self.object.position )
 
     def dispose(self):
-        self.domElement.removeEventListener( 'contextmenu', contextmenu, False )
-        self.domElement.removeEventListener( 'mousedown', mousedown, False )
-        self.domElement.removeEventListener( 'wheel', mousewheel, False )
-
-        self.domElement.removeEventListener( 'touchstart', touchstart, False )
-        self.domElement.removeEventListener( 'touchend', touchend, False )
-        self.domElement.removeEventListener( 'touchmove', touchmove, False )
-
-        self.domElement.removeEventListener( 'mousemove', mousemove, False )
-        self.domElement.removeEventListener( 'mouseup', mouseup, False )
-
-        self.domElement.removeEventListener( 'keydown', keydown, False )
-        self.domElement.removeEventListener( 'keyup', keyup, False )
+        for event in self.events.keys():
+            self.domElement.removeEventListener(event, self.events[event])

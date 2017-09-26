@@ -16,6 +16,7 @@ from THREE.Layers import *
 from THREE.Sphere import *
 from THREE.Box3 import *
 from THREE.Frustum import *
+from THREE.Spherical import *
 from THREE.Geometry import *
 from THREE.BufferAttribute import *
 from THREE.InterleavedBufferAttribute import *
@@ -45,6 +46,7 @@ from THREE.Light import *
 from THREE.SpotLights import *
 from THREE.DirectionalLight import *
 from THREE.AmbientLight import *
+from THREE.HemisphereLight import *
 from THREE.Face3 import *
 from THREE.Points import *
 from THREE.Mesh import *
@@ -56,6 +58,8 @@ from THREE.Line import *
 from THREE.LineSegments import *
 from THREE.BoxHelper import *
 from THREE.CameraHelper import *
+from THREE.AxisHelper import *
+from THREE.PlaneHelper import *
 from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *
@@ -82,5 +86,6 @@ from THREE.TextureLoader import *
 import THREE.ImageUtils as ImageUtils
 
 from THREE.controls.TrackballControls import *
+from THREE.controls.OrbitControls import *
 
 global ShaderLib

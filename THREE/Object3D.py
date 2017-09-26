@@ -100,7 +100,7 @@ class Object3D(pyOpenGLObject):
         return self._quaternion
 
     rotation = property(onRotationRead, onRotationChange)
-    quaternion = property(onRotationRead, onQuaternionChange)
+    quaternion = property(onQuaternionRead, onQuaternionChange)
 
     def applyMatrix(self, matrix):
         self.matrix.multiplyMatrices(matrix, self.matrix)

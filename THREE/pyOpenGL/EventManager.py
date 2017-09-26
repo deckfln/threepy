@@ -30,7 +30,7 @@ class EventManager:
 
         self.callbacks[event].append(funct)
 
-    def removeEventListener(self, event, funct):
+    def removeEventListener(self, event, funct, compatibility=False):
         callbacks = self.callbacks[event]
 
         found = -1
@@ -41,6 +41,9 @@ class EventManager:
 
         if found >= 0:
             del self.callbacks[event][found]
+
+    def removeAllEventListeners(self):
+        self.callbacks.clear()
 
     def dispatchEvent(self, event=None):
         type = event['type']

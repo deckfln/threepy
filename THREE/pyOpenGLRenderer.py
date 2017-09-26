@@ -1645,29 +1645,3 @@ class pyOpenGLRenderer:
     def _init_pygame(self, width=800, height=600):
         pygame.init()
         pygame.display.set_mode((self._width, self._height), DOUBLEBUF | OPENGL | RESIZABLE)
-
-    def addEventListener(self, event, funct):
-        if event == 'resize':
-            self.onWindowResize = funct
-        elif event == 'onKeyDown':
-            self.onKeyDown = funct
-        elif event == 'animationFrame':
-            self.animationFrame = funct
-
-    def loop(self):
-        while True:
-            event = pygame.event.poll()
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            elif event.type == pygame.KEYDOWN:
-                if self.onKeyDown:
-                    self.onKeyDown(event.key)
-            elif event.type == VIDEORESIZE:
-                if self.onWindowResize:
-                    self.onWindowResize(event.w, event.h)
-            if self.animationFrame:
-                self.animationFrame()
-                pygame.display.flip()
-
-            pygame.time.delay(33)

@@ -23,8 +23,9 @@ class pyOpenGL(EventManager):
             'keyup'
             ])
 
-        self.width = 800
-        self.height = 600
+        self.clientWidth = 800
+        self.clientHeight = 600
+
 
     def loop(self):
         t0 = time.clock()
@@ -41,14 +42,16 @@ class pyOpenGL(EventManager):
                 profiler.print()
                 pygame.quit()
                 quit()
+
             elif event.type == pygame.KEYDOWN:
                 self.dispatchEvent({'type': 'keydown', 'key': event.key})
+
             elif event.type == VIDEORESIZE:
-                self.width = event.w
-                self.height = event.h
+                self.clientWidth = event.w
+                self.clientHeight = event.h
                 self.dispatchEvent({'type': 'resize',
-                                    'width': self.width,
-                                    "height": self.height})
+                                    'width': self.clientWidth,
+                                    "height": self.clientHeight})
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
                     # wheel up
@@ -65,17 +68,24 @@ class pyOpenGL(EventManager):
                     self.dispatchEvent({'type': 'mousedown',
                                         'button': event.button-1,
                                         'pageX': event.pos[0],
-                                        'pageY': event.pos[1]})
+                                        'pageY': event.pos[1],
+                                        'clientX': event.pos[0],
+                                        'clientY': event.pos[1]})
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button != 4 and event.button != 5:
                     self.dispatchEvent({'type': 'mouseup',
                                         'button': event.button-1,
                                         'pageX': event.pos[0],
-                                        'pageY': event.pos[1]})
+                                        'pageY': event.pos[1],
+                                        'clientX': event.pos[0],
+                                        'clientY': event.pos[1]})
 
             elif event.type == pygame.MOUSEMOTION:
                 self.dispatchEvent({'type': 'mousemove',
                                     'pageX': event.pos[0],
-                                    'pageY': event.pos[1]})
+                                    'pageY': event.pos[1],
+                                    'clientX': event.pos[0],
+                                    'clientY': event.pos[1]})
+
             elif event.type != 0:
                 print(event.type)
