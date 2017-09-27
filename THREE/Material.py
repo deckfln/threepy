@@ -146,7 +146,7 @@ class Material(pyOpenGLObject):
                 continue
 
             if key not in self.__dict__:
-                print("THREE." + self.type + ": '" + key + "' is not a property of self material.")
+                print("THREE.%s: %s is not a property of self material." % (self.type , key) )
                 continue
 
             currentValue = self[ key ]

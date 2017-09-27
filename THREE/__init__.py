@@ -95,5 +95,6 @@ from THREE.LoadingManager import *
 from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 import THREE.ImageUtils as ImageUtils
+import THREE.SceneUtils as SceneUtils
 
 global ShaderLib

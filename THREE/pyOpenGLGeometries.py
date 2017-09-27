@@ -107,7 +107,7 @@ class pyOpenGLGeometries:
         else:
             array = geometryAttributes.position.array
 
-            for i in range(0, len(array) / 3 - 1, 3):
+            for i in range(0, int(len(array) / 3) - 1, 3):
                 a = i + 0
                 b = i + 1
                 c = i + 2

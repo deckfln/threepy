@@ -56,3 +56,6 @@ class Face3:
             self.vertexColors[ i ] = source.vertexColors[ i ].clone()
 
         return self
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
