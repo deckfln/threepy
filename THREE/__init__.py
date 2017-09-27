@@ -60,6 +60,8 @@ from THREE.BoxHelper import *
 from THREE.CameraHelper import *
 from THREE.AxisHelper import *
 from THREE.PlaneHelper import *
+from THREE.Ray import *
+from THREE.Raycaster import *
 from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *
@@ -84,8 +86,5 @@ from THREE.LoadingManager import *
 from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 import THREE.ImageUtils as ImageUtils
-
-from THREE.controls.TrackballControls import *
-from THREE.controls.OrbitControls import *
 
 global ShaderLib

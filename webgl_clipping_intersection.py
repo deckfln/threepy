@@ -8,6 +8,7 @@ from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.TrackballControls import *
 from THREE.Constants import *
+from THREE.controls.OrbitControls import *
 
 camera = None
 scene = None
@@ -45,7 +46,7 @@ def init():
 
     camera.position.set( - 20, 30, 40 )
 
-    controls = THREE.OrbitControls( camera, container )
+    controls = OrbitControls( camera, container )
     controls.minDistance = 10
     controls.maxDistance = 100
     controls.enablePan = False

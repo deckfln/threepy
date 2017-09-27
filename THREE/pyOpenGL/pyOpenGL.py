@@ -7,6 +7,7 @@ from pygame.locals import *
 from THREE.pyOpenGL.EventManager import *
 from THREE.Constants import *
 
+import THREE.pyOpenGL.window as window
 
 class pyOpenGL(EventManager):
     def __init__(self):
@@ -25,6 +26,8 @@ class pyOpenGL(EventManager):
 
         self.clientWidth = 800
         self.clientHeight = 600
+        window.innerWidth = self.clientWidth
+        window.innerHeight = self.clientHeight
 
 
     def loop(self):
@@ -47,8 +50,8 @@ class pyOpenGL(EventManager):
                 self.dispatchEvent({'type': 'keydown', 'key': event.key})
 
             elif event.type == VIDEORESIZE:
-                self.clientWidth = event.w
-                self.clientHeight = event.h
+                window.innerWidth = self.clientWidth = event.w
+                window.innerHeight = self.clientHeight = event.h
                 self.dispatchEvent({'type': 'resize',
                                     'width': self.clientWidth,
                                     "height": self.clientHeight})
@@ -89,3 +92,4 @@ class pyOpenGL(EventManager):
 
             elif event.type != 0:
                 print(event.type)
+

@@ -19,6 +19,7 @@ from THREE.Triangle import *
 from THREE.Sphere import *
 from THREE.BufferGeometry import *
 from THREE.Face3 import *
+from THREE.Ray import *
 
 
 def _uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ):
@@ -51,11 +52,14 @@ def _checkIntersection( object, material, raycaster, ray, pA, pB, pC, point ):
     if distance < raycaster.near or distance > raycaster.far:
         return None
 
-    return {
-        'distance': distance,
-        'point': intersectionPointWorld.clone(),
-        'object': object
-    }
+    class _intersection:
+        def __init__(self, distance, point, object):
+            self.distance = distance
+            self.point = point
+            self.object = object
+            self.uv = None
+
+    return _intersection(distance, intersectionPointWorld.clone(), object)
 
     
 def _checkBufferGeometryIntersection( object, raycaster, ray, position, uv, a, b, c ):
@@ -225,7 +229,7 @@ class Mesh(Object3D):
             faces = geometry.faces
 
             faceVertexUvs = geometry.faceVertexUvs[ 0 ]
-            if faceVertexUvs.length > 0:
+            if len(faceVertexUvs)> 0:
                 uvs = faceVertexUvs
 
             for f in range(len(faces)):
@@ -280,7 +284,7 @@ class Mesh(Object3D):
 
                     intersection.face = face
                     intersection.faceIndex = f
-                    intersects.push( intersection )
+                    intersects.append( intersection )
 
     def clone(self):
         return type(self)(self.geometry, self.material ).copy( self )

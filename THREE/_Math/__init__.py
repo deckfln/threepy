@@ -85,11 +85,13 @@ def randFloatSpread( range ):
 
 
 def degToRad( degrees ):
-    return degrees * _Math.DEG2RAD
+    global DEG2RAD
+    return degrees * DEG2RAD
 
 
 def radToDeg( radians ):
-    return radians * _Math.RAD2DEG
+    global RAD2DEG
+    return radians * RAD2DEG
 
 
 def isPowerOfTwo( value ):

@@ -4,6 +4,7 @@
  */
 """
 
+
 def merge( uniforms ):
         merged = {}
 
@@ -17,7 +18,10 @@ def merge( uniforms ):
 
 
 def clone( uniforms_src ):
-        uniforms_dst = {}
+        if isinstance(uniforms_src, dict):
+            uniforms_dst = {}
+        else:
+            uniforms_dst = type(uniforms_src)()
 
         for u in uniforms_src:
             uniforms_dst[ u ] = {}

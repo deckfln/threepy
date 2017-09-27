@@ -191,7 +191,7 @@ class pyOpenGLPrograms:
         if material.defines is not None:
             for name in material.defines:
                 array.append(name)
-                array.append(material.defines[name])
+                array.append(str(material.defines[name]))
 
         for i in range(len(self.parameterNames)):
             array.append(str(parameters[ self.parameterNames[i]]))

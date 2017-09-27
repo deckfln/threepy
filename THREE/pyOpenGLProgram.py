@@ -115,7 +115,7 @@ def generateDefines(defines):
         if not value:
             continue
 
-        chunks.append('#define ' + name + ' ' + value)
+        chunks.append('#define %s %s' % (name, str(value)))
 
     return '\n'.join(chunks)
 
