@@ -165,7 +165,7 @@ class Geometry(pyOpenGLObject):
 
             j += 2
 
-        def addFace( a, b, c, materialIndex ):
+        def addFace( a, b, c, materialIndex=None ):
             vertexNormals = [ tempNormals[ a ].clone(), tempNormals[ b ].clone(), tempNormals[ c ].clone() ] if normals is not None else []
             vertexColors = [ scope.colors[ a ].clone(), scope.colors[ b ].clone(), scope.colors[ c ].clone() ] if colors is not None else []
 
@@ -195,12 +195,12 @@ class Geometry(pyOpenGLObject):
                         addFace( j, j + 1, j + 2, group.materialIndex )
 
         else:
-            if indices != None:
+            if indices is not None:
                 for i in range(0, len(indices), 3 ):
                     addFace( indices[ i ], indices[ i + 1 ], indices[ i + 2 ] )
 
             else:
-                for i in range (0, len(positions) / 3, 3 ):
+                for i in range (0, int(len(positions) / 3), 3 ):
                     addFace( i, i + 1, i + 2 )
 
         self.computeFaceNormals()

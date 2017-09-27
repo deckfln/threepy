@@ -124,9 +124,8 @@ class BufferGeometry(pyOpenGLObject):
         del self.attributes[name]
         return self
         
-    def addGroup(self, start, count, materialIndex ):
-        mi = 0 if materialIndex is None else materialIndex
-        self.groups.append( _groups(start, count, mi))
+    def addGroup(self, start, count, materialIndex=0 ):
+        self.groups.append( _groups(start, count, materialIndex))
 
     def clearGroups(self):
         self.groups = []
@@ -404,7 +403,7 @@ class BufferGeometry(pyOpenGLObject):
         groups = self.groups
         if attributes.position:
             positions = attributes.position.array
-            if attributes.normal is None:
+            if 'normal' not in attributes:
                 self.addAttribute( 'normal', BufferAttribute( np.zeros( len(positions), 'f' ), 3 ) )
             else:
                 # // reset existing normals to zero
@@ -494,7 +493,7 @@ class BufferGeometry(pyOpenGLObject):
     def normalizeNormals(self):
         vector = Vector3()
         normals = self.attributes.normal
-        for i in range(normals.count):
+        for i in range(int(normals.count)):
             vector.x = normals.getX( i )
             vector.y = normals.getY( i )
             vector.z = normals.getZ( i )

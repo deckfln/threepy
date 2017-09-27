@@ -4,11 +4,12 @@
      * @author Mugen87 / https://github.com/Mugen87
      */
 """
+from THREE.Geometry import *
 from THREE.BufferGeometry import *
+
 
 # // PlaneGeometry
 
-"""
 class PlaneGeometry(Geometry):
     def __init__(self, width, height, widthSegments, heightSegments ):
         super().__init__()
@@ -23,7 +24,6 @@ class PlaneGeometry(Geometry):
 
         self.fromBufferGeometry( PlaneBufferGeometry( width, height, widthSegments, heightSegments ) )
         self.mergeVertices()
-"""
 
 # // PlaneBufferGeometry
 

@@ -4,6 +4,7 @@
      */
 """
 from OpenGL.GL import *
+from OpenGL.GL.EXT.texture_filter_anisotropic import *
 import THREE._Math as _Math
 from THREE.Constants import *
 import PIL
@@ -156,7 +157,7 @@ class pyOpenGLTextures():
                 return
 
             if texture.anisotropy > 1 or self.properties.get( texture ).currentAnisotropy:
-                glTexParameterf( textureType, extension.TEXTURE_MAX_ANISOTROPY_EXT, min( texture.anisotropy, self.capabilities.getMaxAnisotropy() ) )
+                glTexParameterf( textureType, GL_TEXTURE_MAX_ANISOTROPY_EXT, min( texture.anisotropy, self.capabilities.getMaxAnisotropy() ) )
                 self.properties.get( texture ).currentAnisotropy = texture.anisotropy
 
     def uploadTexture(self, textureProperties, texture, slot ):

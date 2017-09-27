@@ -63,7 +63,7 @@ class Matrix3(pyOpenGLObject):
 
     def applyToBufferAttribute(self, attribute):
         v1 = Vector3()
-        for i in range(attribute.count):
+        for i in range(int(attribute.count)):
             v1.x = attribute.getX( i )
             v1.y = attribute.getY( i )
             v1.z = attribute.getZ( i )
