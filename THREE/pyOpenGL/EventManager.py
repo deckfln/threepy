@@ -3,6 +3,7 @@
 """
 import time
 
+
 class Event:
     def __init__(self, parameters):
         for key in parameters.keys():
@@ -45,13 +46,13 @@ class EventManager:
     def removeAllEventListeners(self):
         self.callbacks.clear()
 
-    def dispatchEvent(self, event=None):
+    def dispatchEvent(self, event=None, params=None):
         type = event['type']
 
         if type == 'animationRequest':
             callbacks = self.callbacks[type]
             for callback in callbacks:
-                callback()
+                callback(params)
 
         elif type in self.callbacks:
             callbacks = self.callbacks[type]
@@ -59,6 +60,6 @@ class EventManager:
             if len(callbacks) > 0:
                 eventObject = Event(event)
                 for callback in callbacks:
-                    callback(eventObject)
+                    callback(eventObject, params)
 
         # print("event %s in %f s" % (event, t1 - t0))

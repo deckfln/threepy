@@ -11,18 +11,35 @@ class Profiler:
     def __init__(self):
         self.t0 = 0
         self.times = []
+        self.total = 0
+        self.count = 0
         self.run = False
+        self.names = {}
 
-    def  start(self):
-        self.t0 = time.clock()
+    def  start(self, name=None):
+        if name:
+            if name not in self.names:
+                self.names[name] = [0, 0, 0]
+            self.names[name][0] = time.time()
 
-    def stop(self):
-        t1 = time.clock()
-        self.times.append(t1 - self.t0)
+        else:
+            self.t0 = time.clock()
+
+    def stop(self, name=None):
+        t1 = time.time()
+        if name:
+            p = self.names[name]
+            p[1] += (t1 - p[0])
+            p[2] += 1
+        else:
+            self.total += (t1 - self.t0)
+            self.count += 1
 
     def print(self):
-        for t in self.times:
-            print("%.15f" % t)
+        for name in self.names.keys():
+            p = self.names[name]
+            avg = p[1] / p[2]
+            print("%s %.15f %f %d" % (name, avg, p[1], p[2]))
 
 
 profiler = Profiler()

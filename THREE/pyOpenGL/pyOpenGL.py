@@ -9,8 +9,9 @@ from THREE.Constants import *
 
 import THREE.pyOpenGL.window as window
 
+
 class pyOpenGL(EventManager):
-    def __init__(self):
+    def __init__(self, params=None):
         super().__init__([
             'resize',
             'animationRequest',
@@ -29,13 +30,15 @@ class pyOpenGL(EventManager):
         window.innerWidth = self.clientWidth
         window.innerHeight = self.clientHeight
 
+        self.params = params
+
     def loop(self):
-        t0 = time.clock()
+        t0 = time.time()
 
         while True:
-            t1 = time.clock()
+            t1 = time.time()
             if t1 - t0 > 0.033:
-                self.dispatchEvent({'type': 'animationRequest'})
+                self.dispatchEvent({'type': 'animationRequest'}, self.params)
                 py.display.flip()
                 t0 = t1
 
@@ -53,7 +56,7 @@ class pyOpenGL(EventManager):
                 window.innerHeight = self.clientHeight = event.h
                 self.dispatchEvent({'type': 'resize',
                                     'width': self.clientWidth,
-                                    "height": self.clientHeight})
+                                    "height": self.clientHeight}, self.params)
             elif event.type == py.MOUSEBUTTONDOWN:
                 if event.button == 4:
                     # wheel up

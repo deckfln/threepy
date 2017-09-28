@@ -5,39 +5,47 @@ import random
 from datetime import datetime
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
+from numba import jit,prange
 
 
 WIDTH = 640
 HEIGHT = 480
-camera = None
-scene=None
-renderer=None
-mesh = None
-geometry = None
-
-container = None
-group = None
-particlesData = []
-positions = None
-colors = None
-particles = None
-particlePositions = None
-linesMesh = None
-
-maxParticleCount = 1000
-particleCount = 200
-r = 800
-rHalf = r / 2
 
 
 class EffectController:
     def __init__(self):
         self.showDots = True
         self.showLines = True
-        self.minDistance = 150
+        self.minDistance = 127
         self.limitConnections = False
         self.maxConnections = 20
         self.particleCount = 500
+
+
+class Params:
+    def __init__(self):
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.mesh = None
+        self.geometry = None
+
+        self.container = None
+        self.group = None
+        self.particlesData = []
+        self.positions = None
+        self.colors = None
+        self.particles = None
+        self.particlePositions = None
+        self.linesMesh = None
+
+        self.maxParticleCount = 1000
+        self.particleCount = 400
+        self.r = 1024
+        self.rHalf = self.r / 2
+
+        self.pointCloud = None
+        self.effectController = EffectController()
 
 
 class ParticleData:
@@ -46,14 +54,13 @@ class ParticleData:
         self.numConnections = numConnections
 
 
-effectController = EffectController()
+def init(params):
+    maxParticleCount = params.maxParticleCount
+    particleCount = params.particleCount
+    r = params.r
+    rHalf = params.rHalf
 
-
-def init():
-    global camera, scene, particlePositions,particles,maxParticleCount, particleData, particleCount, linesMesh,pointCloud
-    global positions, colors, lineMesh, group, container, renderer
-
-    container = pyOpenGL()
+    container = pyOpenGL(params)
     container.addEventListener( 'resize', onWindowResize, False )
     container.addEventListener( 'animationRequest', animate )
 
@@ -62,7 +69,7 @@ def init():
 
     camera = THREE.PerspectiveCamera( 45, size['width'] / size['height'], 1, 4000 )
 
-    camera.position.z = 1750
+    camera.position.z = 1950
 
     scene = THREE.Scene()
 
@@ -90,6 +97,8 @@ def init():
 
     particles = THREE.BufferGeometry()
     particlePositions = Float32Array( maxParticleCount * 3 )
+
+    particlesData = []
 
     for i in range(maxParticleCount):
         x = random.random() * r - r / 2
@@ -137,82 +146,173 @@ def init():
     renderer.gammaOutput = True
 
     # //
-    return renderer
+    params.camera = camera
+    params.scene = scene
+    params.renderer = renderer
+    params.geometry = geometry
+
+    params.container = container
+    params.group = group
+    params.particlesData = particlesData
+    params.positions = positions
+    params.colors = colors
+    params.particles = particles
+    params.particlePositions = particlePositions
+    params.linesMesh = linesMesh
+    params.pointCloud = pointCloud
+
+    params.rHalf = params.r / 2
 
 
-def animate():
-    global particleCount, particlesData, particlePositions,effectController, linesMesh, pointCloud
-    global positions, colors, renderer
+def animate(params):
+    camera = params.camera
+    scene = params.scene
+    renderer = params.renderer
+    geometry = params.geometry
+
+    container = params.container
+    group = params.group
+    particlesData = params.particlesData
+    positions = params.positions
+    colors = params.colors
+    particles = params.particles
+    particlePositions = params.particlePositions
+    linesMesh = params.linesMesh
+    particleCount = params.particleCount
+    pointCloud = params.pointCloud
+    effectController = params.effectController
+
+    rHalf = params.rHalf
 
     vertexpos = 0
     colorpos = 0
     numConnected = 0
 
-    profiler.start()
-
     for particleData in particlesData:
         particleData.numConnections = 0
+
+    # octree 16x16x16 x,y,z
+    octree = [[[[] for k in range(16)] for j in range(16)] for i in range(16)]
+
+    profiler.start("animate1")
 
     for i in range(particleCount):
         # // get the particle
         particleData = particlesData[i]
 
         p = i*3
-        particlePositions[ p     ] += particleData.velocity.x
-        particlePositions[ p + 1 ] += particleData.velocity.y
-        particlePositions[ p + 2 ] += particleData.velocity.z
+        x = particlePositions[ p ]
+        y = particlePositions[ p + 1 ]
+        z = particlePositions[ p + 2 ]
 
-        if particlePositions[ p + 1 ] < -rHalf or particlePositions[ p + 1 ] > rHalf:
-            particleData.velocity.y = -particleData.velocity.y
+        x += particleData.velocity.x
+        y += particleData.velocity.y
+        z += particleData.velocity.z
 
-        if not -rHalf <= particlePositions[ p ] <= rHalf:
+        if not -rHalf <= x <= rHalf:
             particleData.velocity.x = -particleData.velocity.x
+            x += particleData.velocity.x
 
-        if not -rHalf <= particlePositions[ p + 2 ] <= rHalf:
+        if not -rHalf <= y <= rHalf:
+            particleData.velocity.y = -particleData.velocity.y
+            y += particleData.velocity.y
+
+        if not -rHalf <= z <= rHalf:
             particleData.velocity.z = -particleData.velocity.z
+            z += particleData.velocity.z
 
         if effectController.limitConnections and particleData.numConnections >= effectController.maxConnections:
             continue
 
-        # // Check collision
-        for j in range(i + 1, particleCount):
-            particleDataB = particlesData[ j ]
-            if effectController.limitConnections and particleDataB.numConnections >= effectController.maxConnections:
-                continue
+        # store the particle in the octree
+        ox = int((x + rHalf) / 256)
+        if ox < 0:
+            ox = 0
+        elif ox > 3:
+            ox = 3
+        oy = int((y + rHalf) / 256)
+        if oy < 0:
+            oy = 0
+        elif oy >3:
+            oy = 3
+        oz = int((z + rHalf) / 256)
+        if oz < 0:
+            oz = 0
+        elif oz > 3:
+            oz = 3
 
-            j3 = j * 3
-            dx = particlePositions[ p     ] - particlePositions[ j3     ]
-            dy = particlePositions[ p + 1 ] - particlePositions[ j3 + 1 ]
-            dz = particlePositions[ p + 2 ] - particlePositions[ j3 + 2 ]
-            dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+        octree[ox][oy][oz].append(i)
 
-            if dist < effectController.minDistance:
-                particleData.numConnections += 1
-                particleDataB.numConnections += 1
+        particlePositions[ p ] = x
+        particlePositions[ p + 1 ] = y
+        particlePositions[ p + 2 ]  = z
 
-                alpha = 1.0 - dist / effectController.minDistance
+    # // Check collision
+    # use the octree to find the nearest points
+    for i in range(particleCount):
+        # // get the particle
+        particleData = particlesData[i]
+        i3 = i*3
+        x = particlePositions[ i3 ]
+        y = particlePositions[ i3 + 1 ]
+        z = particlePositions[ i3 + 2 ]
 
-                positions[ vertexpos ] = particlePositions[ p     ]
-                positions[ vertexpos + 1 ] = particlePositions[ p + 1 ]
-                positions[ vertexpos + 2 ] = particlePositions[ p + 2 ]
-                vertexpos += 3
+        # get the particle in the octree
+        ox = int((x + rHalf) / 256)
+        oy = int((y + rHalf) / 256)
+        oz = int((z + rHalf) / 256)
 
-                positions[ vertexpos ] = particlePositions[ j3     ]
-                positions[ vertexpos + 1 ] = particlePositions[ j3 + 1 ]
-                positions[ vertexpos + 2 ] = particlePositions[ j3 + 2 ]
-                vertexpos += 3
+        for px in range(ox-1, ox+1):
+            for py in range(oy-1, oy+1):
+                for pz in range(oz-1, oz+1):
+                    if not (0 <= px <= 3 and 0 <= py <= 3 and 0 <= pz <= 3):
+                        continue
 
-                colors[ colorpos  ] = alpha
-                colors[ colorpos + 1 ] = alpha
-                colors[ colorpos + 2 ] = alpha
-                colorpos += 3
+                    points = octree[px][py][pz]
 
-                colors[ colorpos ] = alpha
-                colors[ colorpos + 1 ] = alpha
-                colors[ colorpos + 2 ] = alpha
-                colorpos += 3
+                    for j in points:
+                        if i == j:
+                            continue
 
-                numConnected += 1
+                        particleDataB = particlesData[ j ]
+                        if effectController.limitConnections and particleDataB.numConnections >= effectController.maxConnections:
+                            continue
+
+                        j3 = j * 3
+                        dx = particlePositions[ i3     ] - particlePositions[ j3     ]
+                        dy = particlePositions[ i3 + 1 ] - particlePositions[ j3 + 1 ]
+                        dz = particlePositions[ i3 + 2 ] - particlePositions[ j3 + 2 ]
+                        dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+                        if dist < effectController.minDistance:
+                            particleData.numConnections += 1
+                            particleDataB.numConnections += 1
+
+                            alpha = 1.0 - dist / 150
+
+                            positions[ vertexpos ] = particlePositions[ i3     ]
+                            positions[ vertexpos + 1 ] = particlePositions[ i3 + 1 ]
+                            positions[ vertexpos + 2 ] = particlePositions[ i3 + 2 ]
+                            vertexpos += 3
+
+                            positions[ vertexpos ] = particlePositions[ j3     ]
+                            positions[ vertexpos + 1 ] = particlePositions[ j3 + 1 ]
+                            positions[ vertexpos + 2 ] = particlePositions[ j3 + 2 ]
+                            vertexpos += 3
+
+                            colors[ colorpos  ] = alpha
+                            colors[ colorpos + 1 ] = alpha
+                            colors[ colorpos + 2 ] = alpha
+                            colorpos += 3
+
+                            colors[ colorpos ] = alpha
+                            colors[ colorpos + 1 ] = alpha
+                            colors[ colorpos + 2 ] = alpha
+                            colorpos += 3
+
+                            numConnected += 1
+
+    profiler.stop("animate1")
 
     linesMesh.geometry.setDrawRange( 0, numConnected * 2 )
     linesMesh.geometry.attributes.position.needsUpdate = True
@@ -220,27 +320,23 @@ def animate():
 
     pointCloud.geometry.attributes.position.needsUpdate = True
 
-    profiler.stop()
+    render(params)
 
-    render()
-
-def render():
-    global group, scene, camera
+def render(params):
     time = datetime.now().timestamp()
 
-    group.rotation.y = time * 0.1
-    renderer.render( scene, camera )
+    params.group.rotation.y = time * 0.1
+    params.renderer.render( params.scene, params.camera )
 
 
-def onWindowResize(event):
-    global camera, controls, scene, renderer, cross, container
+def onWindowResize(event, params):
     height = event.height
     width = event.width
 
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    params.camera.aspect = width / height
+    params.camera.updateProjectionMatrix()
 
-    renderer.setSize( width, height )
+    params.renderer.setSize( width, height )
 
 
 def keyboard(c, x=0, y=0):
@@ -257,8 +353,10 @@ def keyboard(c, x=0, y=0):
 def main(argv=None):
     global container
 
-    init()
-    return container.loop()
+    params = Params()
+
+    init(params)
+    return params.container.loop()
 
 
 if __name__ == "__main__":
