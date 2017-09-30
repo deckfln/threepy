@@ -1,10 +1,11 @@
 """
 /**
- * @author mrdoob / http://mrdoob.com/
- * @author alteredq / http://alteredqualia.com/
+ * @author WestLangley / http://github.com/WestLangley
  *
  * parameters = {
  *  color: <hex>,
+ *  roughness: <float>,
+ *  metalness: <float>,
  *  opacity: <float>,
  *
  *  map: THREE.Texture( <Image> ),
@@ -19,13 +20,25 @@
  *  emissiveIntensity: <float>
  *  emissiveMap: THREE.Texture( <Image> ),
  *
- *  specularMap: THREE.Texture( <Image> ),
+ *  bumpMap: THREE.Texture( <Image> ),
+ *  bumpScale: <float>,
+ *
+ *  normalMap: THREE.Texture( <Image> ),
+ *  normalScale: <Vector2>,
+ *
+ *  displacementMap: THREE.Texture( <Image> ),
+ *  displacementScale: <float>,
+ *  displacementBias: <float>,
+ *
+ *  roughnessMap: THREE.Texture( <Image> ),
+ *
+ *  metalnessMap: THREE.Texture( <Image> ),
  *
  *  alphaMap: THREE.Texture( <Image> ),
  *
- *  envMap: THREE.TextureCube( [posx, negx, posy, negy, posz, negz] ),
- *  combine: THREE.Multiply,
- *  reflectivity: <float>,
+ *  envMap: THREE.CubeTexture( [posx, negx, posy, negy, posz, negz] ),
+ *  envMapIntensity: <float>
+ *
  *  refractionRatio: <float>,
  *
  *  wireframe: <boolean>,
@@ -37,20 +50,23 @@
  * }
  */
 """
-from THREE.Material import*
+from THREE.Material import *
 from THREE.Color import *
-from THREE.Constants import *
 
 
-class MeshLambertMaterial(Material):
-    isMeshLambertMaterial = True
+class MeshStandardMaterial(Material):
+    isMeshStandardMaterial = True
     
-    def __init__(self, parameters=None):
+    def __init__(self, parameters=None ):
         super().__init__()
 
-        self.type = 'MeshLambertMaterial'
+        self.defines = { 'STANDARD': '' }
 
-        self.color = Color(0xffffff)   # // diffuse
+        self.type = 'MeshStandardMaterial'
+
+        self.color = Color( 0xffffff )    # // diffuse
+        self.roughness = 0.5
+        self.metalness = 0.5
 
         self.map = None
 
@@ -60,17 +76,29 @@ class MeshLambertMaterial(Material):
         self.aoMap = None
         self.aoMapIntensity = 1.0
 
-        self.emissive = Color(0x000000)
+        self.emissive = Color( 0x000000 )
         self.emissiveIntensity = 1.0
         self.emissiveMap = None
 
-        self.specularMap = None
+        self.bumpMap = None
+        self.bumpScale = 1
+
+        self.normalMap = None
+        self.normalScale = Vector2( 1, 1 )
+
+        self.displacementMap = None
+        self.displacementScale = 1
+        self.displacementBias = 0
+
+        self.roughnessMap = None
+
+        self.metalnessMap = None
 
         self.alphaMap = None
 
         self.envMap = None
-        self.combine = MultiplyOperation
-        self.reflectivity = 1
+        self.envMapIntensity = 1.0
+
         self.refractionRatio = 0.98
 
         self.wireframe = False
@@ -84,10 +112,14 @@ class MeshLambertMaterial(Material):
 
         self.setValues( parameters )
 
-    def copy(self, source):
-        super().copy(source)
+    def copy(self, source ):
+        super().copy( source )
 
-        self.color.copy(source.color)
+        self.defines = { 'STANDARD': '' }
+
+        self.color.copy( source.color )
+        self.roughness = source.roughness
+        self.metalness = source.metalness
 
         self.map = source.map
 
@@ -101,13 +133,25 @@ class MeshLambertMaterial(Material):
         self.emissiveMap = source.emissiveMap
         self.emissiveIntensity = source.emissiveIntensity
 
-        self.specularMap = source.specularMap
+        self.bumpMap = source.bumpMap
+        self.bumpScale = source.bumpScale
+
+        self.normalMap = source.normalMap
+        self.normalScale.copy( source.normalScale )
+
+        self.displacementMap = source.displacementMap
+        self.displacementScale = source.displacementScale
+        self.displacementBias = source.displacementBias
+
+        self.roughnessMap = source.roughnessMap
+
+        self.metalnessMap = source.metalnessMap
 
         self.alphaMap = source.alphaMap
 
         self.envMap = source.envMap
-        self.combine = source.combine
-        self.reflectivity = source.reflectivity
+        self.envMapIntensity = source.envMapIntensity
+
         self.refractionRatio = source.refractionRatio
 
         self.wireframe = source.wireframe

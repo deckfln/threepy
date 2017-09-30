@@ -6,10 +6,10 @@
  * parameters = {
  *  color: <hex>,
  *  opacity: <float>,
+ *  map: new THREE.Texture( <Image> ),
  *
- *  linewidth: <float>,
- *  linecap: "round",
- *  linejoin: "round"
+ *  size: <float>,
+ *  sizeAttenuation: <bool>
  * }
  */
 """
@@ -17,19 +17,20 @@ from THREE.Material import *
 from THREE.Color import *
 
 
-class LineBasicMaterial(Material):
-    isLineBasicMaterial = True
-
-    def __init__(self, parameters=None ):
+class PointsMaterial(Material):
+    isPointsMaterial = True
+    
+    def __int__(self, parameters ):
         super().__init__()
 
-        self.type = 'LineBasicMaterial'
+        self.type = 'PointsMaterial'
 
         self.color = Color( 0xffffff )
 
-        self.linewidth = 1
-        self.linecap = 'round'
-        self.linejoin = 'round'
+        self.map = None
+
+        self.size = 1
+        self.sizeAttenuation = True
 
         self.lights = False
 
@@ -40,8 +41,9 @@ class LineBasicMaterial(Material):
 
         self.color.copy( source.color )
 
-        self.linewidth = source.linewidth
-        self.linecap = source.linecap
-        self.linejoin = source.linejoin
+        self.map = source.map
+
+        self.size = source.size
+        self.sizeAttenuation = source.sizeAttenuation
 
         return self

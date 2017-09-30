@@ -57,7 +57,7 @@ from THREE.Vector2 import *
 class MeshPhongMaterial(Material):
     isMeshPhongMaterial = True
     
-    def  __init__(self, parameters ):
+    def __init__(self, parameters=None ):
         super().__init__()
 
         self.type = 'MeshPhongMaterial'
@@ -107,7 +107,6 @@ class MeshPhongMaterial(Material):
         self.morphNormals = False
 
         self.setValues( parameters )
-
 
     def copy(self, source ):
         super().copy( source )

@@ -37,3 +37,6 @@ class TextureLoader:
     def setPath(self, value ):
         self.path = value
         return self
+
+    def setCrossOrigin(self, value):
+        return True

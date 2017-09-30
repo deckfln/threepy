@@ -29,7 +29,7 @@ from THREE.Vector3 import *
 class MeshDistanceMaterial(Material):
     isMeshDistanceMaterial = True
     
-    def __init__(self, parameters ):
+    def __init__(self, parameters=None ):
         super().__init__()
 
         self.type = 'MeshDistanceMaterial'

@@ -42,13 +42,21 @@ from THREE.Camera import *
 from THREE.ArrayCamera import *
 from THREE.ShaderChunk import *
 from THREE.Material import *
+from THREE.ShadowMaterial import *
 from THREE.ShaderMaterial import *
+from THREE.SpriteMaterial import *
+from THREE.PointsMaterial import *
 from THREE.MeshBasicMaterial import *
 from THREE.MeshLambertMaterial import *
 from THREE.MeshPhongMaterial import *
 from THREE.RawShaderMaterial import *
 from THREE.MeshDepthMaterial import *
 from THREE.MeshDistanceMaterial import *
+from THREE.MeshStandardMaterial import *
+from THREE.MeshPhysicalMaterial import *
+from THREE.MeshToonMaterial import *
+from THREE.MeshNormalMaterial import *
+from THREE.LineDashedMaterial import *
 from THREE.Light import *
 from THREE.SpotLights import *
 from THREE.DirectionalLight import *
@@ -92,8 +100,12 @@ from THREE.pyOpenGLShadowMap import *
 from THREE.pyOpenGLRenderTarget import *
 from THREE.pyOpenGLRenderer import *
 from THREE.LoadingManager import *
+from THREE.Loader import *
+from THREE.FileLoader import *
+from THREE.MaterialLoader import *
 from THREE.ImageLoader import *
 from THREE.TextureLoader import *
+from THREE.JSONLoader import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils
 

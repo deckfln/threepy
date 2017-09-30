@@ -63,19 +63,19 @@ class pyOpenGL(EventManager):
                     self.dispatchEvent({'type': 'wheel',
                                         'button': event.button-1,
                                         'deltaMode': -1,
-                                        'deltaY': -100})
+                                        'deltaY': -100}, self.params)
                 elif event.button == 5:
                     # wheel down
                     self.dispatchEvent({'type': 'wheel',
                                         'deltaMode': -1,
-                                        'deltaY': 100})
+                                        'deltaY': 100}, self.params)
                 else:
                     self.dispatchEvent({'type': 'mousedown',
                                         'button': event.button-1,
                                         'pageX': event.pos[0],
                                         'pageY': event.pos[1],
                                         'clientX': event.pos[0],
-                                        'clientY': event.pos[1]})
+                                        'clientY': event.pos[1]}, self.params)
             elif event.type == py.MOUSEBUTTONUP:
                 if event.button != 4 and event.button != 5:
                     self.dispatchEvent({'type': 'mouseup',
@@ -83,14 +83,14 @@ class pyOpenGL(EventManager):
                                         'pageX': event.pos[0],
                                         'pageY': event.pos[1],
                                         'clientX': event.pos[0],
-                                        'clientY': event.pos[1]})
+                                        'clientY': event.pos[1]}, self.params)
 
             elif event.type == py.MOUSEMOTION:
                 self.dispatchEvent({'type': 'mousemove',
                                     'pageX': event.pos[0],
                                     'pageY': event.pos[1],
                                     'clientX': event.pos[0],
-                                    'clientY': event.pos[1]})
+                                    'clientY': event.pos[1]}, self.params)
 
             elif event.type != 0:
                 print(event.type)

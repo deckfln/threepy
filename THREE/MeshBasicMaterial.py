@@ -42,7 +42,7 @@ from THREE.Color import *
 class MeshBasicMaterial(Material):
     isMeshBasicMaterial = True
     
-    def __init__(self, parameters ):
+    def __init__(self, parameters=None ):
         super().__init__( )
 
         self.type = 'MeshBasicMaterial'
