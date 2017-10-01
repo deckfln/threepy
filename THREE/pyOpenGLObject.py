@@ -1,6 +1,7 @@
 """
 placeholder to simulate javascript feature like "isObject"
 """
+from numba import *
 
 
 class pyOpenGLObject:

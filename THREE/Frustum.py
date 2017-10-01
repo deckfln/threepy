@@ -7,6 +7,7 @@
 """
 from THREE.Plane import *
 from THREE.Sphere import *
+from numba import *
 
 
 class Frustum:
@@ -60,6 +61,7 @@ class Frustum:
 
         return self
 
+    @jit(cache=True)
     def intersectsObject(self, object):
         sphere = Sphere()
         geometry = object.geometry
@@ -72,6 +74,7 @@ class Frustum:
         return self.intersectsSphere( sphere )
 
 
+    @jit(cache=True)
     def intersectsSprite(self, sprite):
         sphere = Sphere()
 
@@ -82,13 +85,14 @@ class Frustum:
         return self.intersectsSphere( sphere )
 
 
+    @jit(cache=True)
     def intersectsSphere(self, sphere ):
         planes = self.planes
         center = sphere.center
         negRadius = - sphere.radius
 
-        for i in range(6):
-            distance = planes[ i ].distanceToPoint( center )
+        for p in planes:
+            distance = p.distanceToPoint( center )
 
             if distance < negRadius:
                 return False

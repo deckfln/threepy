@@ -15,19 +15,21 @@
 import math
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
-
+from numba import *
+import numpy as np
 
 class Matrix4(pyOpenGLObject):
     isMatrix4 = True
 
     def __init__(self):
-        self.elements = [
+        self.elements = np.array([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
-            ]
+            ], 'f')
 
+    @jit(cache=True)
     def set(self, n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44):
         te = self.elements
 
@@ -38,6 +40,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def get(self):
         return [
             [self.elements[0], self.elements[1], self.elements[2], self.elements[3]],
@@ -46,6 +49,7 @@ class Matrix4(pyOpenGLObject):
             [self.elements[12], self.elements[13], self.elements[14], self.elements[15]]
        ]
     
+    @jit(cache=True)
     def identity(self):
             self.set(
                 1, 0, 0, 0,
@@ -55,9 +59,11 @@ class Matrix4(pyOpenGLObject):
            )
             return self
 
+    @jit(cache=True)
     def clone(self):
         return type(self)().fromArray(self.elements)
 
+    @jit(cache=True)
     def copy(self, m):
         te = self.elements
         me = m.elements
@@ -69,6 +75,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def copyPosition(self, m):
         te = self.elements, me = m.elements
 
@@ -78,6 +85,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def extractBasis(self, xAxis, yAxis, zAxis):
         xAxis.setFromMatrixColumn(self, 0)
         yAxis.setFromMatrixColumn(self, 1)
@@ -85,6 +93,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def makeBasis(self, xAxis, yAxis, zAxis):
         self.set(
             xAxis.x, yAxis.x, zAxis.x, 0,
@@ -94,6 +103,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def extractRotation(self, m):
         v1 = Vector3()
         te = self.elements
@@ -117,6 +127,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def makeRotationFromEuler(self, euler):
         if not (euler and euler.isEuler):
             print('THREE.Matrix4: .makeRotationFromEuler() now expects a Euler rotation rather than a Vector3 and order.')
@@ -246,6 +257,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def makeRotationFromQuaternion(self, q):
         te = self.elements
 
@@ -280,6 +292,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def lookAt(self, eye, target, up):
         x = THREE.Vector3()
         y = THREE.Vector3()
@@ -315,6 +328,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def multiply(self, m, n=None):
         if n is not None:
             print('THREE.Matrix4: .multiply() now only accepts one argument. Use .multiplyMatrices(a, b) instead.')
@@ -322,9 +336,11 @@ class Matrix4(pyOpenGLObject):
 
         return self.multiplyMatrices(self, m)
 
+    @jit(cache=True)
     def premultiply(self, m):
         return self.multiplyMatrices(m, self)
 
+    @jit(cache=True)
     def multiplyMatrices(self, a, b):
         ae = a.elements
         be = b.elements
@@ -362,6 +378,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def multiplyScalar(self, s):
         te = self.elements
 
@@ -384,6 +401,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def applyToBufferAttribute(self, attribute):
         v1 = THREE.Vector3()
         for i in range(int(attribute.count)):
@@ -397,6 +415,7 @@ class Matrix4(pyOpenGLObject):
 
         return attribute
 
+    @jit(cache=True)
     def determinant(self):
         te = self.elements
 
@@ -443,6 +462,7 @@ class Matrix4(pyOpenGLObject):
            )
        )
 
+    @jit(cache=True)
     def transpose(self):
         te = self.elements
 
@@ -456,6 +476,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def setPosition(self, v):
         te = self.elements
 
@@ -465,6 +486,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def getInverse(self, m, throwOnDegenerate=False):
         # // based on http:# //www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
         te = self.elements
@@ -510,6 +532,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def scale(self, v):
         te = self.elements
         x = v.x; y = v.y; z = v.z
@@ -529,6 +552,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def getMaxScaleOnAxis(self):
         te = self.elements
 
@@ -538,6 +562,7 @@ class Matrix4(pyOpenGLObject):
 
         return math.sqrt(max(scaleXSq, scaleYSq, scaleZSq))
 
+    @jit(cache=True)
     def makeTranslation(self, x, y, z):
         self.set(
             1, 0, 0, x,
@@ -547,6 +572,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeRotationX(self, theta):
         c = math.cos(theta); s = math.sin(theta)
 
@@ -558,6 +584,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeRotationY(self, theta):
         c = math.cos(theta); s = math.sin(theta)
 
@@ -569,6 +596,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeRotationZ(self, theta):
         c = math.cos(theta); s = math.sin(theta)
 
@@ -580,6 +608,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeRotationAxis(self, axis, angle):
         # // Based on http:# //www.gamedev.net/reference/articles/article1199.asp
         c = math.cos(angle)
@@ -596,6 +625,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeScale(self, x, y, z):
         self.set(
             x, 0, 0, 0,
@@ -605,6 +635,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def makeShear(self, x, y, z):
         self.set(
             1, y, z, 0,
@@ -614,6 +645,7 @@ class Matrix4(pyOpenGLObject):
        )
         return self
 
+    @jit(cache=True)
     def compose(self, position, quaternion, scale):
         self.makeRotationFromQuaternion(quaternion)
         self.scale(scale)
@@ -621,6 +653,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def decompose(self, position, quaternion, scale):
         vector = THREE.Vector3()
         matrix = Matrix4()
@@ -666,6 +699,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def makePerspective(self, left, right, top, bottom, near, far=None):
         if far is None:
             print('THREE.Matrix4: .makePerspective() has been redefined and has a signature. Please check the docs.')
@@ -686,6 +720,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def makeOrthographic(self, left, right, top, bottom, near, far):
         te = self.elements
         w = 1.0 / (right - left)
@@ -703,6 +738,7 @@ class Matrix4(pyOpenGLObject):
 
         return self
 
+    @jit(cache=True)
     def equals(self, matrix):
         te = self.elements
         me = matrix.elements
@@ -713,12 +749,14 @@ class Matrix4(pyOpenGLObject):
 
         return True
 
+    @jit(cache=True)
     def fromArray(self, array, offset=0):
         for i in range(16):
             self.elements[i] = array[i + offset]
 
         return self
 
+    @jit(cache=True)
     def toArray(self, array=None, offset=0):
         if array is None:
             array = []

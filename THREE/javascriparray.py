@@ -4,11 +4,32 @@
 import numpy as np
 
 
-def Float32Array(size):
+def Uint8Array(size):
     if isinstance(size, list):
-        return np.zeros(size, 'f')
+        return np.array(size, 'B')
     else:
-        return np.zeros(int(size), 'f')
+        return np.zeros(int(size), 'B')
+
+
+def Int8Array(size):
+    if isinstance(size, list):
+        return np.array(size, 'b')
+    else:
+        return np.zeros(int(size), 'b')
+
+
+def Uint8ClampedArray(size):
+    if isinstance(size, list):
+        return np.array(size, 'B')
+    else:
+        return np.zeros(int(size), 'B')
+
+
+def Int16Array(size):
+    if isinstance(size, list):
+        return np.array(size, 'h')
+    else:
+        return np.zeros(int(size), 'h')
 
 
 def Uint16Array(size):
@@ -18,8 +39,30 @@ def Uint16Array(size):
         return np.zeros(int(size), 'H')
 
 
-def Uint8Array(size):
+def Int32Array(size):
     if isinstance(size, list):
-        return np.array(size, 'B')
+        return np.array(size, 'l')
     else:
-        return np.zeros(int(size), 'B')
+        return np.zeros(int(size), 'l')
+
+
+def Uint32Array(size):
+    if isinstance(size, list):
+        return np.array(size, 'L')
+    else:
+        return np.zeros(int(size), 'L')
+
+
+def Float32Array(size):
+    if isinstance(size, list):
+        return np.array(size, 'f')
+    else:
+        return np.zeros(int(size), 'f')
+
+
+def Float64Array(size):
+    if isinstance(size, list):
+        return np.array(size, 'd')
+    else:
+        return np.zeros(int(size), 'd')
+

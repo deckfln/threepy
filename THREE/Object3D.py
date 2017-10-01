@@ -15,6 +15,9 @@ from THREE.Matrix4 import *
 from THREE.Euler import *
 from THREE.Quaternion import *
 from THREE.Layers import *
+from THREE.Constants import *
+
+from numba import *
 
 
 _object3DId = 0
@@ -317,11 +320,13 @@ class Object3D(pyOpenGLObject):
             callback(parent)
             parent.traverseAncestors(callback)
 
+    @jit(cache=True)
     def updateMatrix(self):
         self.matrix.compose(self.position, self._quaternion, self.scale)
 
         self.matrixWorldNeedsUpdate = True
 
+    @jit(cache=True)
     def updateMatrixWorld(self, force=False):
         if self.matrixAutoUpdate:
             self.updateMatrix()
@@ -338,8 +343,8 @@ class Object3D(pyOpenGLObject):
 
         # // update children
         children = self.children
-        for i in range(len(children)):
-            children[ i ].updateMatrixWorld(force)
+        for child in children:
+            child.updateMatrixWorld(force)
 
     def toJSON(self, meta):
         # // meta is '' when called from JSON.stringify

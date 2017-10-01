@@ -67,6 +67,7 @@ from THREE.Points import *
 from THREE.Mesh import *
 from THREE.Scene import *
 from THREE.Texture import *
+from THREE.CanvasTexture import *
 from THREE.Fog import *
 from THREE.LineBasicMaterial import *
 from THREE.Line import *
@@ -78,6 +79,7 @@ from THREE.AxisHelper import *
 from THREE.PlaneHelper import *
 from THREE.Ray import *
 from THREE.Raycaster import *
+from THREE.Sprite import *
 from THREE.pyOpenGLCapabilities import *
 from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *
@@ -99,6 +101,7 @@ from THREE.pyOpenGLPrograms import *
 from THREE.pyOpenGLShadowMap import *
 from THREE.pyOpenGLRenderTarget import *
 from THREE.pyOpenGLRenderer import *
+from THREE.pyOpenGLSpriteRenderer import *
 from THREE.LoadingManager import *
 from THREE.Loader import *
 from THREE.FileLoader import *
@@ -106,6 +109,7 @@ from THREE.MaterialLoader import *
 from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 from THREE.JSONLoader import *
+from THREE.BufferGeometryLoader import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils
 

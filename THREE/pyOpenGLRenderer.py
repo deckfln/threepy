@@ -9,26 +9,24 @@
 """
 import sys
 import time
-from OpenGL.GL import *
+from numba import *
 import pygame
 from pygame.locals import *
+from ctypes import c_void_p
+
+from OpenGL.GL import *
+
 from THREE import *
 import THREE._Math as _Math
-from ctypes import c_void_p
 from THREE.ShaderLib import *
 from THREE.Javascript import *
 from THREE.Constants import *
+from THREE.pyOpenGLSpriteRenderer import *
+
 
 """
 stubs
 """
-class pyOpenGLSpriteRenderer:
-    def __init__(self, renderer, state, textures, capabilities ):
-        self.renderer = renderer
-
-    def render(self, sprites, scene, camera):
-        return True
-
 
 class pyOpenGLFlareRenderer:
     def __init__(self, renderer, state, textures, capabilities ) :
@@ -1369,6 +1367,7 @@ class pyOpenGLRenderer:
         else:
             renderer.render(drawStart, drawCount)
 
+    @jit(cache=True)
     def _projectObject(self, object, camera, sortObjects ):
         """
 
@@ -1453,8 +1452,10 @@ class pyOpenGLRenderer:
 
         # // update scene graph
 
+        profiler.start("render>updateMatrixWorld")
         if scene.autoUpdate:
             scene.updateMatrixWorld()
+        profiler.stop("render>updateMatrixWorld")
 
         # // update camera matrices and frustum
 
@@ -1479,7 +1480,9 @@ class pyOpenGLRenderer:
         self.currentRenderList = self.renderLists.get( scene, camera )
         self.currentRenderList.init()
 
+        profiler.start("render>projectObjects")
         self._projectObject( scene, camera, self.sortObjects )
+        profiler.stop("render>projectObjects")
 
         if self.sortObjects:
             self.currentRenderList.sort()
@@ -1515,6 +1518,8 @@ class pyOpenGLRenderer:
         opaqueObjects = self.currentRenderList.opaque
         transparentObjects = self.currentRenderList.transparent
 
+        profiler.start("render>opaque")
+
         if scene.overrideMaterial:
             overrideMaterial = scene.overrideMaterial
 
@@ -1531,6 +1536,8 @@ class pyOpenGLRenderer:
             # // transparent pass (back-to-front order)
             if len(transparentObjects) > 0:
                 self._renderObjects( transparentObjects, scene, camera )
+
+        profiler.stop("render>opaque")
 
         # // custom renderers
 
@@ -1613,7 +1620,7 @@ class pyOpenGLRenderer:
         textureUnit = self._usedTextureUnits
 
         if textureUnit >= self.capabilities.maxTextures:
-            raise RuntimeWarning( 'THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + capabilities.maxTextures );
+            raise RuntimeWarning( 'THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + self.capabilities.maxTextures )
 
         self._usedTextureUnits += 1
         return textureUnit
@@ -1645,3 +1652,7 @@ class pyOpenGLRenderer:
     def _init_pygame(self, width=800, height=600):
         pygame.init()
         pygame.display.set_mode((self._width, self._height), DOUBLEBUF | OPENGL | RESIZABLE)
+
+        # TODO FDE: implement antialias
+        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
+        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)

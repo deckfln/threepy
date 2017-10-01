@@ -84,7 +84,10 @@ class Color(pyOpenGLObject):
         return self
 
     def setHex(self, hex ):
-        hex = math.floor( hex )
+        if isinstance(hex, str):
+            hex = float.fromhex(hex)
+
+        hex = int(hex)
 
         self.r = ( hex >> 16 & 255 ) / 255
         self.g = ( hex >> 8 & 255 ) / 255
