@@ -7,7 +7,6 @@
 import math
 from THREE.Vector3 import *
 from THREE.Box3 import *
-from numba import *
 
 
 class Sphere:
@@ -58,7 +57,6 @@ class Sphere:
     def distanceToPoint(self, point ):
         return ( point.distanceTo( self.center ) - self.radius )    
 
-    @jit(cache=True)
     def intersectsSphere(self, sphere ):
         radiusSum = self.radius + sphere.radius    
 
@@ -91,7 +89,6 @@ class Sphere:
 
         return box    
 
-    @jit(cache=True)
     def applyMatrix4(self, matrix ):
         self.center.applyMatrix4( matrix )    
         self.radius = self.radius * matrix.getMaxScaleOnAxis()    

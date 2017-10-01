@@ -9,7 +9,6 @@
 """
 import sys
 import time
-from numba import *
 import pygame
 from pygame.locals import *
 from ctypes import c_void_p
@@ -1367,7 +1366,6 @@ class pyOpenGLRenderer:
         else:
             renderer.render(drawStart, drawCount)
 
-    @jit(cache=True)
     def _projectObject(self, object, camera, sortObjects ):
         """
 

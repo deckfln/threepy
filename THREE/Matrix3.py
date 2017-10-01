@@ -11,7 +11,6 @@ import math
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
-from numba import *
 
 
 class Matrix3(pyOpenGLObject):
@@ -24,7 +23,6 @@ class Matrix3(pyOpenGLObject):
             0, 0, 1
         ], 'f')
 
-    @jit(cache=True)
     def set(self, n11, n12, n13, n21, n22, n23, n31, n32, n33):
         te = self.elements
 
@@ -45,7 +43,6 @@ class Matrix3(pyOpenGLObject):
     def clone(self):
         return type(self)().fromArray( self.elements )
 
-    @jit(cache=True)
     def copy(self, m ):
         te = self.elements
         me = m.elements
@@ -56,7 +53,6 @@ class Matrix3(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def setFromMatrix4(self, m ):
         me = m.elements
         self.set(
@@ -66,7 +62,6 @@ class Matrix3(pyOpenGLObject):
         )
         return self
 
-    @jit(cache=True)
     def applyToBufferAttribute(self, attribute):
         v1 = Vector3()
         for i in range(int(attribute.count)):
@@ -86,7 +81,6 @@ class Matrix3(pyOpenGLObject):
     def  premultiply(self, m ):
         return self.multiplyMatrices( m, self )
 
-    @jit(cache=True)
     def multiplyMatrices(self, a, b ):
         ae = a.elements
         be = b.elements
@@ -114,7 +108,6 @@ class Matrix3(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def multiplyScalar(self, s ):
         te = self.elements
 
@@ -124,7 +117,6 @@ class Matrix3(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def determinant(self):
         te = self.elements
 
@@ -134,7 +126,6 @@ class Matrix3(pyOpenGLObject):
 
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
-    @jit(cache=True)
     def  getInverse(self, matrix, throwOnDegenerate=None ):
         if matrix and matrix.isMatrix4:
             print( "THREE.Matrix3: .getInverse() no longer takes a Matrix4 argument." )
@@ -172,7 +163,6 @@ class Matrix3(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def transpose(self):
         m = self.elements
 
@@ -185,7 +175,6 @@ class Matrix3(pyOpenGLObject):
     def getNormalMatrix(self, matrix4 ):
         return self.setFromMatrix4( matrix4 ).getInverse( self ).transpose()
 
-    @jit(cache=True)
     def transposeIntoArray(self, r ):
         m = self.elements
 
@@ -201,7 +190,6 @@ class Matrix3(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def equals(self, matrix ):
         te = self.elements
         me = matrix.elements
@@ -212,14 +200,12 @@ class Matrix3(pyOpenGLObject):
 
         return True
 
-    @jit(cache=True)
     def fromArray(self, array, offset=0 ):
         for i in range(9):
             self.elements[ i ] = array[ i + offset ]
 
         return self
 
-    @jit(cache=True)
     def toArray(self, array=None, offset=0):
         if array is None:
             array = []

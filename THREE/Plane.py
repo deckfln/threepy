@@ -5,7 +5,6 @@
 """
 from THREE.Vector3 import *
 from THREE.Matrix3 import *
-from numba import *
 
 
 class Plane:
@@ -63,11 +62,9 @@ class Plane:
 
         return self
 
-    @jit(cache=True)
     def distanceToPoint(self, point ):
         return self.normal.dot( point ) + self.constant
 
-    @jit(cache=True)
     def distanceToSphere(self, sphere ):
         return self.distanceToPoint( sphere.center ) - sphere.radius
 

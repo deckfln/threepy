@@ -10,7 +10,6 @@ import THREE._Math as _Math
 from THREE.Matrix4 import *
 from THREE.Quaternion import *
 from THREE.pyOpenGLObject import *
-from numba import *
 
 
 class Euler(pyOpenGLObject):
@@ -87,7 +86,6 @@ class Euler(pyOpenGLObject):
 
         return self
 
-    @jit(cache=True)
     def setFromRotationMatrix(self, m, order=None, update=True):
         clamp = _Math.clamp
 
@@ -173,7 +171,6 @@ class Euler(pyOpenGLObject):
     def equals(self, euler):
         return (euler._x == self._x) and (euler._y == self._y) and (euler._z == self._z) and (euler._order == self._order)
 
-    @jit(cache=True)
     def fromArray(self, array):
         self._x = array[ 0 ]
         self._y = array[ 1 ]
@@ -186,7 +183,6 @@ class Euler(pyOpenGLObject):
             
         return self
 
-    @jit(cache=True)
     def toArray(self, array=None, offset=0):
         if array is None:
             array = []

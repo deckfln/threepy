@@ -17,8 +17,6 @@ from THREE.Quaternion import *
 from THREE.Layers import *
 from THREE.Constants import *
 
-from numba import *
-
 
 _object3DId = 0
 
@@ -320,13 +318,11 @@ class Object3D(pyOpenGLObject):
             callback(parent)
             parent.traverseAncestors(callback)
 
-    @jit(cache=True)
     def updateMatrix(self):
         self.matrix.compose(self.position, self._quaternion, self.scale)
 
         self.matrixWorldNeedsUpdate = True
 
-    @jit(cache=True)
     def updateMatrixWorld(self, force=False):
         if self.matrixAutoUpdate:
             self.updateMatrix()
