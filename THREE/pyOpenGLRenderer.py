@@ -1512,8 +1512,6 @@ class pyOpenGLRenderer:
         opaqueObjects = self.currentRenderList.opaque
         transparentObjects = self.currentRenderList.transparent
 
-        profiler.start("render>opaque")
-
         if scene.overrideMaterial:
             overrideMaterial = scene.overrideMaterial
 
@@ -1530,8 +1528,6 @@ class pyOpenGLRenderer:
             # // transparent pass (back-to-front order)
             if len(transparentObjects) > 0:
                 self._renderObjects( transparentObjects, scene, camera )
-
-        profiler.stop("render>opaque")
 
         # // custom renderers
 

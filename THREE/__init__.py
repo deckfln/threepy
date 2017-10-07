@@ -113,6 +113,7 @@ from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 from THREE.JSONLoader import *
 from THREE.BufferGeometryLoader import *
+from THREE.Clock import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils
 

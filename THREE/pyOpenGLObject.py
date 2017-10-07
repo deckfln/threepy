@@ -54,6 +54,8 @@ class pyOpenGLObject:
     isPointLight = False
     isWebGLRenderTargetCube = False
     isSpotLightShadow = False
+    isFog = False
+    isFogExp2 = False
     """
     profiler shows that dynamic "is" is slowwww
     def __getattr__(self, item):

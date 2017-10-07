@@ -17,6 +17,7 @@ from THREE.Color import *
 from THREE.Face3 import *
 from THREE.Sphere import *
 from THREE.BufferGeometry import *
+import numpy as np
 
 
 class Geometry(pyOpenGLObject):
@@ -144,27 +145,37 @@ class Geometry(pyOpenGLObject):
         if uvs2 != None:
             self.faceVertexUvs[ 1 ] = []
 
-        tempNormals = []
-        tempUVs = []
-        tempUVs2 = []
+        l = int(attributes.position.count)
+        tempNormals = np.empty(l, THREE.Vector3) # []
+        tempUVs = np.empty(l, THREE.Vector2) # []
+        tempUVs2 = np.empty(l, THREE.Vector2) # []
+        tempVertices = np.empty(l, THREE.Vector3)
 
         j = 0
+        k = 0
         for i in range(0, len(positions), 3):
-            scope.vertices.append( Vector3( positions[ i ], positions[ i + 1 ], positions[ i + 2 ] ) )
+            # scope.vertices.append( Vector3( positions[ i ], positions[ i + 1 ], positions[ i + 2 ] ) )
+
+            tempVertices[k] = Vector3( positions[ i ], positions[ i + 1 ], positions[ i + 2 ] )
 
             if normals is not None:
-                tempNormals.append( Vector3( normals[ i ], normals[ i + 1 ], normals[ i + 2 ] ) )
+                # tempNormals.append( Vector3( normals[ i ], normals[ i + 1 ], normals[ i + 2 ] ) )
+                tempNormals[k] = Vector3( normals[ i ], normals[ i + 1 ], normals[ i + 2 ] )
 
             if colors is not None:
-                scope.colors.append( Color( colors[ i ], colors[ i + 1 ], colors[ i + 2 ] ) )
+                self.colors.append( Color( colors[ i ], colors[ i + 1 ], colors[ i + 2 ] ) )
 
             if uvs is not None:
-                tempUVs.append( Vector2( uvs[ j ], uvs[ j + 1 ] ) )
+                # tempUVs.append( Vector2( uvs[ j ], uvs[ j + 1 ] ) )
+                tempUVs[k] = Vector2( uvs[ j ], uvs[ j + 1 ] )
 
             if uvs2 is not None:
                 tempUVs2.append( Vector2( uvs2[ j ], uvs2[ j + 1 ] ) )
 
             j += 2
+            k += 1
+
+        self.vertices = tempVertices
 
         def addFace( a, b, c, materialIndex=None ):
             vertexNormals = [ tempNormals[ a ].clone(), tempNormals[ b ].clone(), tempNormals[ c ].clone() ] if normals is not None else []
@@ -247,9 +258,7 @@ class Geometry(pyOpenGLObject):
         cb = Vector3()
         ab = Vector3()
 
-        for f in range (len(self.faces)):
-            face = self.faces[ f ]
-
+        for face in self.faces:
             vA = self.vertices[ face.a ]
             vB = self.vertices[ face.b ]
             vC = self.vertices[ face.c ]
@@ -261,7 +270,6 @@ class Geometry(pyOpenGLObject):
             cb.normalize()
 
             face.normal.copy( cb )
-
 
     def computeVertexNormals(self, areaWeighted=True ):
         vertices = self.vertices[:]
@@ -591,7 +599,7 @@ class Geometry(pyOpenGLObject):
         # // Use unique set of vertices
 
         diff = len(self.vertices) - len(unique)
-        self.vertices = unique
+        self.vertices = np.array(unique, object)
         return diff
 
     def sortFacesByMaterialIndex(self):

@@ -4,6 +4,8 @@
  */
 """
 from THREE.Vector2 import *
+from THREE.Vector3 import *
+import numpy as np
 
 
 class _group:
@@ -78,6 +80,12 @@ class DirectGeometry:
         hasFaceVertexUv = faceVertexUvs[ 0 ] and len(faceVertexUvs[ 0 ]) > 0
         hasFaceVertexUv2 = len(faceVertexUvs) > 1 and len(faceVertexUvs[ 1 ]) > 0
 
+        #self.vertices = np.empty(int(len(faces) * 3), THREE.Vector3)
+        #self.normals = np.empty(int(len(faces) * 3), THREE.Vector3)
+        #self.colors = np.empty(int(len(faces) * 3), THREE.Vector3)
+        #if hasFaceVertexUv:
+        #    self.uvs = np.empty(int(len(faces) * 3), THREE.Vector2)
+
         # // morphs
 
         morphTargets = geometry.morphTargets
@@ -112,37 +120,56 @@ class DirectGeometry:
 
         # //
 
-        for i in range(len(faces)):
-            face = faces[ i ]
-
+        k = 0
+        i = 0
+        for face in faces:
             self.vertices.extend([ vertices[ face.a ], vertices[ face.b ], vertices[ face.c ] ])
+            #self.vertices[k] = vertices[ face.a ]
+            #self.vertices[k + 1] = vertices[ face.b ]
+            #self.vertices[k + 2] = vertices[ face.c ]
 
             vertexNormals = face.vertexNormals
 
             if len(vertexNormals) == 3:
                 self.normals.extend([ vertexNormals[ 0 ], vertexNormals[ 1 ], vertexNormals[ 2 ] ])
+                #self.normals[k] = vertexNormals[ 0 ]
+                #self.normals[k + 1] = vertexNormals[ 1 ]
+                #self.normals[k + 2] = vertexNormals[ 2 ]
             else:
                 normal = face.normal
-
                 self.normals.extend([ normal, normal, normal ])
+                #self.normals[k] = normal
+                #self.normals[k + 1] = normal
+                #self.normals[k + 2] = normal
 
             vertexColors = face.vertexColors
 
             if len(vertexColors) == 3:
                 self.colors.extend([ vertexColors[ 0 ], vertexColors[ 1 ], vertexColors[ 2 ] ])
+                #self.colors[k] = vertexColors[ 0 ]
+                #self.colors[k + 1] = vertexColors[ 1 ]
+                #self.colors[k + 2] = vertexColors[ 2 ]
             else:
                 color = face.color
-
                 self.colors.extend([ color, color, color ])
+                #self.colors[k] = color
+                #self.colors[k + 1] = color
+                #self.colors[k + 2] = color
 
             if hasFaceVertexUv == True:
                 vertexUvs = faceVertexUvs[ 0 ][ i ]
 
                 if vertexUvs is not None:
                     self.uvs.extend([ vertexUvs[ 0 ], vertexUvs[ 1 ], vertexUvs[ 2 ] ])
+                    #self.uvs[k] = vertexUvs[ 0 ]
+                    #self.uvs[k + 1] = vertexUvs[ 1 ]
+                    #self.uvs[k + 2] = vertexUvs[ 2 ]
                 else:
                     print( 'THREE.DirectGeometry.fromGeometry(): Undefined vertexUv ', i )
                     self.uvs.extend([ Vector2(), Vector2(), Vector2() ])
+                    #self.uvs[k] = Vector2()
+                    #self.uvs[k + 1] = Vector2()
+                    #self.uvs[k + 2] = Vector2()
 
             if hasFaceVertexUv2 == True:
                 vertexUvs = faceVertexUvs[ 1 ][ i ]
@@ -172,6 +199,9 @@ class DirectGeometry:
 
             if hasSkinWeights:
                 self.skinWeights.extend([ skinWeights[ face.a ], skinWeights[ face.b ], skinWeights[ face.c ] ])
+
+            k += 3
+            i += 1
 
         self.computeGroups( geometry )
 

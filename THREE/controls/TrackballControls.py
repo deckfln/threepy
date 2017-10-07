@@ -7,7 +7,6 @@
  */
 """
 import math
-from enum import Enum
 import THREE.Vector3
 from THREE.pyOpenGL.EventManager import *
 

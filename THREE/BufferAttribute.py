@@ -99,9 +99,7 @@ class BufferAttribute(pyOpenGLObject):
     def copyColorsArray(self, colors):
         array = self.array; offset = 0
 
-        for i in range(len(colors)):
-            color = colors[i]
-
+        for color in colors:
             if color is None:
                 print('THREE.BufferAttribute.copyColorsArray(): color is undefined', i)
                 color = Color()
@@ -116,9 +114,7 @@ class BufferAttribute(pyOpenGLObject):
     def copyIndicesArray(self, indices):
         array = self.array; offset = 0
 
-        for i in range(len(indices)):
-            index = indices[i]
-
+        for index in indices:
             array[offset] = index.a
             array[offset + 1] = index.b
             array[offset + 2] = index.c
@@ -129,9 +125,7 @@ class BufferAttribute(pyOpenGLObject):
     def copyVector2sArray(self, vectors):
         array = self.array; offset = 0
 
-        for i in range(len(vectors)):
-            vector = vectors[i]
-
+        for vector in vectors:
             if vector is None:
                 print('THREE.BufferAttribute.copyVector2sArray(): vector is undefined', i)
                 vector = Vector2()
@@ -143,28 +137,24 @@ class BufferAttribute(pyOpenGLObject):
         return self
 
     def copyVector3sArray(self, vectors):
-        array = self.array; offset = 0
+        array = self.array
+        offset = 0
 
-        for i in range(len(vectors)):
-            vector = vectors[i]
-
+        for vector in vectors:
             if vector is None:
-                print('THREE.BufferAttribute.copyVector3sArray(): vector is undefined', i)
+                print('THREE.BufferAttribute.copyVector3sArray(): vector is undefined')
                 vector = Vector3()
-
             array[offset] = vector.x
             array[offset + 1] = vector.y
             array[offset + 2] = vector.z
             offset += 3
-
         return self
 
     def copyVector4sArray(self, vectors):
-        array = self.array; offset = 0
+        array = self.array
+        offset = 0
 
-        for i in range(len(vectors)):
-            vector = vectors[i]
-
+        for vector in vectors:
             if vector is None:
                 print('THREE.BufferAttribute.copyVector4sArray(): vector is undefined', i)
                 vector = Vector4()
@@ -172,7 +162,7 @@ class BufferAttribute(pyOpenGLObject):
             array[offset] = vector.x
             array[offset + 1] = vector.y
             array[offset + 2] = vector.z
-            array[offset + 4] = vector.w
+            array[offset + 3] = vector.w
             offset += 4
 
         return self
