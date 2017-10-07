@@ -62,7 +62,7 @@ class Matrix4(pyOpenGLObject):
         te = self.elements
         me = m.elements
 
-        te = me.copy()
+        np.copyto(self.elements, m.elements)
         """
         te[0] = me[0]; te[1] = me[1]; te[2] = me[2]; te[3] = me[3]
         te[4] = me[4]; te[5] = me[5]; te[6] = me[6]; te[7] = me[7]
@@ -389,7 +389,7 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def applyToBufferAttribute(self, attribute):
-        v1 = Vector3()
+        v1 = THREE.Vector3()
         for i in range(int(attribute.count)):
             v1.x = attribute.getX(i)
             v1.y = attribute.getY(i)

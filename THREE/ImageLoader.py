@@ -35,8 +35,11 @@ class ImageLoader:
             if onError:
                 onError("File %s not found" % url)
 
-        img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
-        width, height = image.size
+        # img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
+        # width, height = image.size
+        if image.palette:
+            image = image.convert('RGBA')
+
         self.manager.itemEnd(url)
 
         Cache.add(url, image)
