@@ -62,11 +62,13 @@ class Matrix4(pyOpenGLObject):
         te = self.elements
         me = m.elements
 
+        te = me.copy()
+        """
         te[0] = me[0]; te[1] = me[1]; te[2] = me[2]; te[3] = me[3]
         te[4] = me[4]; te[5] = me[5]; te[6] = me[6]; te[7] = me[7]
         te[8] = me[8]; te[9] = me[9]; te[10] = me[10]; te[11] = me[11]
         te[12] = me[12]; te[13] = me[13]; te[14] = me[14]; te[15] = me[15]
-
+        """
         return self
 
     def copyPosition(self, m):
@@ -365,6 +367,8 @@ class Matrix4(pyOpenGLObject):
     def multiplyScalar(self, s):
         te = self.elements
 
+        te *= s
+        """
         te[0] *= s
         te[4] *= s
         te[8] *= s
@@ -381,11 +385,11 @@ class Matrix4(pyOpenGLObject):
         te[7] *= s
         te[11] *= s
         te[15] *= s
-
+        """
         return self
 
     def applyToBufferAttribute(self, attribute):
-        v1 = THREE.Vector3()
+        v1 = Vector3()
         for i in range(int(attribute.count)):
             v1.x = attribute.getX(i)
             v1.y = attribute.getY(i)
@@ -514,6 +518,8 @@ class Matrix4(pyOpenGLObject):
         te = self.elements
         x = v.x; y = v.y; z = v.z
 
+        te *= (x, x, x, 1, y, y, y, 1, z, z, z, 1, 1, 1, 1, 1)
+        """
         te[0] *= x
         te[4] *= y 
         te[8] *= z
@@ -526,7 +532,7 @@ class Matrix4(pyOpenGLObject):
         te[3] *= x 
         te[7] *= y 
         te[11] *= z
-
+        """
         return self
 
     def getMaxScaleOnAxis(self):

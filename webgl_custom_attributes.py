@@ -113,7 +113,7 @@ def init():
     container.addEventListener( 'resize', onWindowResize, False )
 
     
-def onWindowResize(event):
+def onWindowResize(event, params):
     global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes
     height = event.height
     width = event.width
@@ -123,7 +123,7 @@ def onWindowResize(event):
     renderer.setSize(width, height)
 
 
-def animate():
+def animate(params):
     render()
 
 

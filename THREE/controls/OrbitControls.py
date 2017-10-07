@@ -132,7 +132,7 @@ class OrbitControls(EventManager):
         # // event handlers - FSM: listen for events and reset self.state
         # //
 
-        def onMouseDown(event):
+        def onMouseDown(event, params):
             if self.enabled == False:
                 return
 
@@ -167,7 +167,7 @@ class OrbitControls(EventManager):
 
                 self.dispatchEvent(self.startEvent)
 
-        def onMouseMove(event):
+        def onMouseMove(event, params):
             if self.enabled == False:
                 return
 
@@ -189,7 +189,7 @@ class OrbitControls(EventManager):
 
                 self.handleMouseMovePan(event)
 
-        def onMouseUp(event):
+        def onMouseUp(event, params):
             if self.enabled == False:
                 return
 
@@ -202,7 +202,7 @@ class OrbitControls(EventManager):
 
             self.state = self._STATE_NONE
 
-        def onMouseWheel(event):
+        def onMouseWheel(event, params):
             if self.enabled == False or self.enableZoom == False or (
                     self.state != self._STATE_NONE and self.state != self._STATE_ROTATE):
                 return
@@ -215,13 +215,13 @@ class OrbitControls(EventManager):
             self.dispatchEvent(self.startEvent)   # // not sure why these are here...
             self.dispatchEvent(self.endEvent)
 
-        def onKeyDown(event):
+        def onKeyDown(event, params):
             if self.enabled == False or self.enableKeys == False or self.enablePan == False:
                 return
 
             self.handleKeyDown(event)
 
-        def onTouchStart(event):
+        def onTouchStart(event, params):
             if self.enabled == False:
                 return
 
@@ -255,7 +255,7 @@ class OrbitControls(EventManager):
             if self.state != self._STATE_NONE:
                 self.dispatchEvent(self.startEvent)
 
-        def onTouchMove(event):
+        def onTouchMove(event, params):
             if self.enabled == False:
                 return
 
@@ -288,7 +288,7 @@ class OrbitControls(EventManager):
             else:
                 self.state = self._STATE_NONE
 
-        def onTouchEnd(event):
+        def onTouchEnd(event, params):
             if self.enabled == False:
                 return
 
@@ -298,7 +298,7 @@ class OrbitControls(EventManager):
 
             self.state = self._STATE_NONE
 
-        def onContextMenu(event):
+        def onContextMenu(event, params):
             if self.enabled == False:
                 return
 

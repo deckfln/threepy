@@ -92,7 +92,7 @@ class pyOpenGLRenderList:
         if len(self.opaque) > 1:
             self.opaque.sort(key=_painter)
         if len(self.transparent) > 1:
-            self.transparent.sort(key=_painter, reverse=True)
+            self.transparent.sort(key=_painter)
 
 
 class pyOpenGLRenderLists:

@@ -114,7 +114,7 @@ def init():
     container.addEventListener( 'resize', onWindowResize, False )
 
     
-def onWindowResize(event):
+def onWindowResize(event, params):
     global container, camera, scene, renderer
     height = event.height
     width = event.width
@@ -125,7 +125,7 @@ def onWindowResize(event):
 
 # //
 
-def animate():
+def animate(params):
     global container, camera, scene, renderer
     render()
 

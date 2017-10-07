@@ -88,7 +88,7 @@ def init():
     container.addEventListener( 'animationRequest', render, False )
 
 
-def onWindowResize(event):
+def onWindowResize(event, params):
     global camera, controls, scene, renderer, cross, container
     height = event.height
     width = event.width
@@ -99,7 +99,7 @@ def onWindowResize(event):
     renderer.setSize( width, height )
 
 
-def render():
+def render(params):
     global camera, scene, renderer, container
     
     renderer.render( scene, camera )

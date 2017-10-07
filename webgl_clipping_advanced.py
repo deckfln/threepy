@@ -6,6 +6,7 @@ import math
 import sys
 from datetime import datetime
 from THREE import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
 def planesFromMesh( vertices, indices ):
@@ -114,6 +115,7 @@ GlobalClippingPlanes = cylindricalPlanes( 5, 3.5 )
 
 Empty = []
 
+container = None
 camera = None
 scene = None
 renderer = None
@@ -125,8 +127,9 @@ volumeVisualization = None
 globalClippingPlanes = None
 
 def init():
-    global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes
+    global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes,container
     
+    container = pyOpenGL()
     renderer = pyOpenGLRenderer()
 
     size = renderer.getSize()
@@ -234,9 +237,8 @@ def init():
     renderer = THREE.pyOpenGLRenderer()
     renderer.shadowMap.enabled = True
     renderer.shadowMap.renderSingleSided = False
-    renderer.addEventListener( 'resize', onWindowResize)
-    renderer.addEventListener( 'animationFrame', animate)
-    
+    container.addEventListener( 'resize', onWindowResize)
+
     # // Clipping setup:
     globalClippingPlanes = createPlanes(len(GlobalClippingPlanes))
     renderer.clippingPlanes = Empty
@@ -247,12 +249,12 @@ def init():
     startTime = datetime.now().timestamp()
 
 
-def onWindowResize(width, height):
+def onWindowResize(event, params):
     global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes
-    camera.aspect = width / height
+    camera.aspect = event.width / event.height
     camera.updateProjectionMatrix()
 
-    renderer.setSize( width, height )
+    renderer.setSize( event.width, event.height )
 
 
 def setObjectWorldMatrix( object, matrix ):
@@ -268,7 +270,7 @@ transform = THREE.Matrix4()
 tmpMatrix = THREE.Matrix4()
 
 
-def animate():
+def animate(params):
     global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes
     global transform, tmpMatrix
 
@@ -309,9 +311,10 @@ def onKeyDown( c, x=0, y=0 ):
 
 
 def main(argv=None):
-    global renderer
+    global container
     init()
-    return renderer.loop()
+    container.addEventListener( 'animationRequest', animate)
+    return container.loop()
 
 
 if __name__ == "__main__":

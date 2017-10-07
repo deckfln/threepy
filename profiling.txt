@@ -1,0 +1,2 @@
+python -m cProfile -s tottime -o out.prof webgl_clipping_advanceded.py
+snakeviz out.prof

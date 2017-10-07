@@ -1450,10 +1450,8 @@ class pyOpenGLRenderer:
 
         # // update scene graph
 
-        profiler.start("render>updateMatrixWorld")
         if scene.autoUpdate:
             scene.updateMatrixWorld()
-        profiler.stop("render>updateMatrixWorld")
 
         # // update camera matrices and frustum
 
@@ -1478,9 +1476,7 @@ class pyOpenGLRenderer:
         self.currentRenderList = self.renderLists.get( scene, camera )
         self.currentRenderList.init()
 
-        profiler.start("render>projectObjects")
         self._projectObject( scene, camera, self.sortObjects )
-        profiler.stop("render>projectObjects")
 
         if self.sortObjects:
             self.currentRenderList.sort()

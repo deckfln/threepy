@@ -100,7 +100,7 @@ class TrackballControls(EventManager):
 
         # // listeners
 
-        def keydown(event):
+        def keydown(event, params):
             if self.enabled == False:
                 return
 
@@ -120,7 +120,7 @@ class TrackballControls(EventManager):
             elif event.keyCode == self.keys[self._STATE_PAN] and not self.noPan:
                 self._state = self._STATE_PAN
 
-        def keyup(event):
+        def keyup(event, params):
             if self.enabled == False:
                 return
 
@@ -128,7 +128,7 @@ class TrackballControls(EventManager):
 
             self.domElement.addEventListener('keydown', keydown, False)
 
-        def mousedown(event):
+        def mousedown(event, params):
             if self.enabled == False:
                 return
 
@@ -155,7 +155,7 @@ class TrackballControls(EventManager):
 
             self.dispatchEvent(self.startEvent)
 
-        def mousemove(event):
+        def mousemove(event, params):
             if self.enabled == False:
                 return
 
@@ -172,7 +172,7 @@ class TrackballControls(EventManager):
             elif self._state == self._STATE_PAN and not self.noPan:
                 self._panEnd.copy(self.getMouseOnScreen(event.pageX, event.pageY))
 
-        def mouseup(event):
+        def mouseup(event, params):
             if self.enabled == False:
                 return
 
@@ -185,7 +185,7 @@ class TrackballControls(EventManager):
             document.removeEventListener('mouseup', mouseup)
             self.dispatchEvent(self.endEvent)
 
-        def mousewheel(event):
+        def mousewheel(event, params):
             if self.enabled == False:
                 return
 
@@ -206,7 +206,7 @@ class TrackballControls(EventManager):
             self.dispatchEvent(self.startEvent)
             self.dispatchEvent(self.endEvent)
 
-        def touchstart(event):
+        def touchstart(event, params):
             if self.enabled == False:
                 return
 
@@ -227,7 +227,7 @@ class TrackballControls(EventManager):
 
             self.dispatchEvent(self.startEvent)
 
-        def touchmove(event):
+        def touchmove(event, params):
             if self.enabled == False:
                 return
 
@@ -246,7 +246,7 @@ class TrackballControls(EventManager):
                 y = (event.touches[0].pageY + event.touches[1].pageY) / 2
                 self._panEnd.copy(self.getMouseOnScreen(x, y))
 
-        def touchend(event):
+        def touchend(event, params):
             if self.enabled == False:
                 return
 
@@ -259,7 +259,7 @@ class TrackballControls(EventManager):
 
             self.dispatchEvent(self.endEvent)
 
-        def contextmenu(event):
+        def contextmenu(event, params):
             if self.enabled == False:
                 return
 

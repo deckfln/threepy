@@ -35,6 +35,8 @@ from THREE.TetrahedronBufferGeometry import *
 from THREE.CircleBufferGeometry import *
 from THREE.RingBufferGeometry import *
 from THREE.LatheBufferGeometry import *
+from THREE.DodecahedronBufferGeometry import *
+from THREE.Line3 import *
 from THREE.Color import *
 from THREE.Object3D import *
 from THREE.Group import *
@@ -62,6 +64,7 @@ from THREE.SpotLights import *
 from THREE.DirectionalLight import *
 from THREE.AmbientLight import *
 from THREE.HemisphereLight import *
+from THREE.PointLight import *
 from THREE.Face3 import *
 from THREE.Points import *
 from THREE.Mesh import *

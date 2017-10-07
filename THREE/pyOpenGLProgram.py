@@ -415,7 +415,7 @@ class pyOpenGLProgram:
 
                 customDefines,
 
-                '#define ALPHATEST ' + parameters['alphaTest'] if parameters['alphaTest'] else '',
+                '#define ALPHATEST %s ' % parameters['alphaTest'] if parameters['alphaTest'] else '',
 
                 '#define GAMMA_FACTOR %f' % gammaFactorDefine,
 

@@ -20,7 +20,7 @@ from THREE.Color import *
 class PointsMaterial(Material):
     isPointsMaterial = True
     
-    def __int__(self, parameters ):
+    def __init__(self, parameters ):
         super().__init__()
 
         self.type = 'PointsMaterial'

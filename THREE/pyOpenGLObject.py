@@ -43,6 +43,17 @@ class pyOpenGLObject:
     isLineDashedMaterial = False
     isLineSegments = False
     isLineLoop = False
+    isMeshToonMaterial = False
+    isLineBasicMaterial = False
+    isPointsMaterial = False
+    isShadowMaterial = False
+    isCamera = False
+    isDirectionalLight = False
+    isSpotLight = False
+    isRectAreaLight = False
+    isPointLight = False
+    isWebGLRenderTargetCube = False
+    isSpotLightShadow = False
     """
     profiler shows that dynamic "is" is slowwww
     def __getattr__(self, item):

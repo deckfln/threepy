@@ -154,7 +154,7 @@ def init():
     container.addEventListener( 'resize', onWindowResize, False )
 
 
-def onWindowResize(event):
+def onWindowResize(event, params):
     global container,camera,scene,renderer,mesh,group1,group2,group3,light,windowHalfX,windowHalfY
 
     windowHalfX = window.innerWidth / 2
@@ -166,7 +166,7 @@ def onWindowResize(event):
     renderer.setSize( window.innerWidth, window.innerHeight )
 
     
-def onDocumentMouseMove( event ):
+def onDocumentMouseMove( event, params ):
     global container,camera,scene,renderer,mesh,group1,group2,group3,light, mouseX, mouseY
 
     mouseX = ( event.clientX - windowHalfX )
@@ -174,12 +174,12 @@ def onDocumentMouseMove( event ):
 
 # //
 
-def animate():
+def animate(params):
     global container,camera,scene,renderer,mesh,group1,group2,group3,light
 
-    render()
+    render(params)
 
-def render():
+def render(params):
     global container,camera,scene,renderer,mesh,group1,group2,group3,light
 
     camera.position.x += ( mouseX - camera.position.x ) * 0.05
