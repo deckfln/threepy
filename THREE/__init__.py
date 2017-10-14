@@ -87,6 +87,8 @@ from THREE.BoxHelper import *
 from THREE.CameraHelper import *
 from THREE.AxisHelper import *
 from THREE.PlaneHelper import *
+from THREE.GridHelper import *
+from THREE.PolarGridHelper import *
 from THREE.Ray import *
 from THREE.Raycaster import *
 from THREE.Sprite import *

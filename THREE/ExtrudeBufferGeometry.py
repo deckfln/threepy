@@ -160,7 +160,7 @@ class ExtrudeBufferGeometry(BufferGeometry):
         bevelSize = options['bevelSize'] if 'bevelSize' in options else bevelThickness - 2   # // 8
         bevelSegments = options['bevelSegments'] if 'bevelSegments' in options else 3
 
-        bevelEnabled = options['bevelEnabled'] if 'bevelEnabled ' in options else True    # // false
+        bevelEnabled = options['bevelEnabled'] if 'bevelEnabled' in options else True    # // false
 
         curveSegments = options['curveSegments'] if 'curveSegments' in options else 12
 
@@ -220,11 +220,11 @@ class ExtrudeBufferGeometry(BufferGeometry):
 
         # /* Vertices */
 
-        contour = vertices   # // vertices has all points but contour has only points of circumference
+        contour = vertices[:]   # // vertices has all points but contour has only points of circumference
 
         for h in range(len(holes)):
             ahole = holes[h]
-            vertices = vertices.concat(ahole)
+            vertices += ahole
 
         def scalePt2(pt, vec, size):
             if not vec:
@@ -239,10 +239,10 @@ class ExtrudeBufferGeometry(BufferGeometry):
             return 1 if x >= 0 else -1
 
         def addVertex(index):
-            indicesArray.append(len(verticesArray) / 3)
-            verticesArray.append(placeholder[ index * 3 + 0])
-            verticesArray.append(placeholder[ index * 3 + 1])
-            verticesArray.append(placeholder[ index * 3 + 2])
+            indicesArray.append(int(len(verticesArray) / 3))
+            verticesArray.append(placeholder[index * 3 + 0])
+            verticesArray.append(placeholder[index * 3 + 1])
+            verticesArray.append(placeholder[index * 3 + 2])
 
         def addUV(vector2):
             uvArray.append(vector2.x)
@@ -417,7 +417,7 @@ class ExtrudeBufferGeometry(BufferGeometry):
                 k+=1
 
             holesMovements.append( oneHoleMovements )
-            verticesMovements = verticesMovements.concat( oneHoleMovements )
+            verticesMovements += oneHoleMovements
 
         # // Loop bevelSegments, 1 for the front, 1 for the back
         for b in range(bevelSegments):
@@ -586,7 +586,7 @@ class ExtrudeBufferGeometry(BufferGeometry):
                 sidewalls( ahole, layeroffset )
 
                 # //, true
-                layeroffset += ahole.length
+                layeroffset += len(ahole)
 
             self.addGroup( start, len(verticesArray)/3 -start, options['extrudeMaterial'] if 'extrudeMaterial' in options else 1)
 

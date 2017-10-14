@@ -47,7 +47,7 @@ class CurvePath(Curve):
     # // 3. Get t for the curve
     # // 4. Return curve.getPointAt(t')
     """
-    def getPoint(self, t ):
+    def getPoint(self, t):
         d = t * self.getLength()
         curveLengths = self.getCurveLengths()
         i = 0
@@ -122,9 +122,7 @@ class CurvePath(Curve):
 
         return points
 
-    def getPoints(self, divisions ):
-        divisions = divisions or 12
-
+    def getPoints(self, divisions=12 ):
         points = []
         last = None
 

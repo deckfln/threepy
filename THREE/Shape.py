@@ -85,12 +85,12 @@ def _isPointInsidePolygon(inPt, inPolygon):
 
 
 class Shape(Path):
-    def __init__(self, pts):
+    def __init__(self, pts=None):
         super().__init__(pts )
         self.holes = []
 
     def getPointsHoles(self, divisions ):
-        holesPts = []
+        holesPts = [None for i in range(len(self.holes))]
 
         for i in range(len(self.holes)):
             holesPts[ i ] = self.holes[ i ].getPoints( divisions )
@@ -138,7 +138,7 @@ class ShapePath:
     def splineThru(self, pts ):
         self.currentPath.splineThru( pts )
 
-    def toShapes(self, isCCW, noHoles ):
+    def toShapes(self, isCCW, noHoles=False ):
         isClockWise = ShapeUtils.isClockWise
 
         subPaths = self.subPaths
@@ -162,9 +162,8 @@ class ShapePath:
 
         # // console.log("Holes first", holesFirst)
 
-        betterShapeHoles = []
-        newShapes = []
-        newShapeHoles = []
+        newShapes = [None for i in range(len(self.subPaths))]
+        newShapeHoles = [None for i in range(len(self.subPaths))]
         mainIdx = 0
 
         newShapes[ mainIdx ] = None
@@ -200,20 +199,19 @@ class ShapePath:
             return _toShapesNoHoles( self.subPaths )
 
         if len(newShapes) > 1:
+            betterShapeHoles = [[] for i in range(mainIdx+1)]
+
             ambiguous = False
             toChange = []
 
-            for sIdx in range(len(newShapes)):
-                betterShapeHoles[ sIdx ] = []
-
-            for sIdx in range(len(newShapes)):
+            for sIdx in range(mainIdx+1):
                 sho = newShapeHoles[ sIdx ]
 
                 for hIdx in range(len(sho)):
                     ho = sho[ hIdx ]
                     hole_unassigned = True
 
-                    for s2Idx in range(len(newShapes)):
+                    for s2Idx in range(mainIdx+1):
                         if _isPointInsidePolygon( ho['p'], newShapes[ s2Idx ]['p'] ):
 
                             if sIdx != s2Idx:
@@ -234,7 +232,7 @@ class ShapePath:
                 if not ambiguous:
                     newShapeHoles = betterShapeHoles
 
-        for i in range(len(newShapes)):
+        for i in range(mainIdx+1):
             tmpShape = newShapes[ i ]['s']
             shapes.append( tmpShape )
             tmpHoles = newShapeHoles[ i ]

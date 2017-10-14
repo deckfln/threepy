@@ -377,7 +377,7 @@ def triangulateShape( contour, holes ):
 
         def isCutLineInsideAngles( inShapeIdx, inHoleIdx ):
             # // Check if hole point lies within angle around shape point
-            lastShapeIdx = shape.length - 1
+            lastShapeIdx = len(shape) - 1
 
             prevShapeIdx = inShapeIdx - 1
             if prevShapeIdx < 0:
@@ -393,7 +393,7 @@ def triangulateShape( contour, holes ):
                 return    False
 
             # // Check if shape point lies within angle around hole point
-            lastHoleIdx = hole.length - 1
+            lastHoleIdx = len(hole) - 1
 
             prevHoleIdx = inHoleIdx - 1
             if prevHoleIdx < 0:
@@ -413,9 +413,9 @@ def triangulateShape( contour, holes ):
         def intersectsShapeEdge( inShapePt, inHolePt ):
             # // checks for intersections with shape edges
             for sIdx in range(len(shape)):
-                nextIdx = sIdx + 1; nextIdx %= shape.length
+                nextIdx = sIdx + 1; nextIdx %= len(shape)
                 intersection = intersect_segments_2D( inShapePt, inHolePt, shape[ sIdx ], shape[ nextIdx ], True )
-                if intersection.length > 0:
+                if len(intersection) > 0:
                     return    True
 
             return    False
@@ -427,9 +427,9 @@ def triangulateShape( contour, holes ):
             for ihIdx in range(len(indepHoles)):
                 chkHole = holes[ indepHoles[ ihIdx ] ]
                 for hIdx in range(len(chkHole)):
-                    nextIdx = hIdx + 1; nextIdx %= chkHole.length
+                    nextIdx = hIdx + 1; nextIdx %= len(chkHole)
                     intersection = intersect_segments_2D( inShapePt, inHolePt, chkHole[ hIdx ], chkHole[ nextIdx ], True )
-                    if intersection.length > 0:
+                    if len(intersection) > 0:
                         return    True
 
             return    False
@@ -448,7 +448,7 @@ def triangulateShape( contour, holes ):
 
             # // search for shape-vertex and hole-vertex,
             # // which can be connected without intersections
-            for shapeIndex in range(minShapeIndex, len(shape.length)):
+            for shapeIndex in range(minShapeIndex, len(shape)):
                 shapePt = shape[ shapeIndex ]
                 holeIndex    = - 1
 
@@ -457,8 +457,8 @@ def triangulateShape( contour, holes ):
                     holeIdx = indepHoles[ h ]
 
                     # // prevent multiple checks
-                    cutKey = shapePt.x + ':' + shapePt.y + ':' + holeIdx
-                    if failedCuts[ cutKey ] is not None:
+                    cutKey = "%f:%f:%d" % (shapePt.x, shapePt.y, holeIdx)
+                    if cutKey in failedCuts:
                         continue
 
                     hole = holes[ holeIdx ]
@@ -472,14 +472,14 @@ def triangulateShape( contour, holes ):
                             continue
 
                         holeIndex = h2
-                        indepHoles.splice( h, 1 )
+                        del indepHoles[h]
 
-                        tmpShape1 = shape.slice( 0, shapeIndex + 1 )
-                        tmpShape2 = shape.slice( shapeIndex )
-                        tmpHole1 = hole.slice( holeIndex )
-                        tmpHole2 = hole.slice( 0, holeIndex + 1 )
+                        tmpShape1 = shape[0:shapeIndex + 1]
+                        tmpShape2 = shape[shapeIndex:]
+                        tmpHole1 = hole[holeIndex:]
+                        tmpHole2 = hole[0:holeIndex + 1]
 
-                        shape = tmpShape1.concat( tmpHole1 ).concat( tmpHole2 ).concat( tmpShape2 )
+                        shape = tmpShape1 + tmpHole1 + tmpHole2 + tmpShape2
 
                         minShapeIndex = shapeIndex
 
@@ -489,7 +489,7 @@ def triangulateShape( contour, holes ):
                         break
 
                     if holeIndex >= 0:
-                        break;        # // hole-vertex found
+                        break        # // hole-vertex found
 
                     failedCuts[ cutKey ] = True            # // remember failure
 
@@ -505,7 +505,7 @@ def triangulateShape( contour, holes ):
     allpoints = contour[:]
 
     for h in range(len(holes)):
-        allpoints.apped(holes[h])
+        allpoints.extend(holes[h])
 
     # //console.log( "allpoints",allpoints, allpoints.length )
 
