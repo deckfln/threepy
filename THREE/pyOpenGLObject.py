@@ -56,6 +56,7 @@ class pyOpenGLObject:
     isSpotLightShadow = False
     isFog = False
     isFogExp2 = False
+    isEllipseCurve = False
     """
     profiler shows that dynamic "is" is slowwww
     def __getattr__(self, item):

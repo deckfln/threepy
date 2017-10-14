@@ -10,7 +10,7 @@ from THREE.Camera import *
 class PointLight(Light):
     isPointLight = True
     
-    def __init__(self, color, intensity, distance=0, decay=1 ):
+    def __init__(self, color, intensity=1, distance=0, decay=1 ):
         super().__init__(color, intensity )
 
         self.type = 'PointLight'

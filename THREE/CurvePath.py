@@ -5,6 +5,7 @@
  **/
 """
 from THREE.Curve import *
+from THREE.Bezier import *
 from THREE.Vector2 import *
 from THREE.Vector3 import *
 from THREE.Geometry import *
@@ -125,9 +126,9 @@ class CurvePath(Curve):
         divisions = divisions or 12
 
         points = []
+        last = None
 
-        for i in range(len(self.curves)):
-            curve = curves[ i ]
+        for curve in self.curves:
             if curve and curve.isEllipseCurve:
                 resolution = divisions * 2
             elif curve and curve.isLineCurve:
@@ -148,7 +149,7 @@ class CurvePath(Curve):
                 points.append( point )
                 last = point
 
-        if self.autoClose and points.length > 1 and not points[ points.length - 1 ].equals( points[ 0 ] ):
+        if self.autoClose and len(points) > 1 and not points[ len(points) - 1 ].equals( points[ 0 ] ):
             points.append( points[ 0 ] )
 
         return points
@@ -199,7 +200,6 @@ class EllipseCurve(Curve):
 
         self.aRotation = aRotation or 0
 
-
     def getPoint(self, t ):
         twoPi = math.pi * 2
         deltaAngle = self.aEndAngle - self.aStartAngle
@@ -217,7 +217,7 @@ class EllipseCurve(Curve):
             else:
                 deltaAngle = twoPi
 
-        if self.aClockwise == True && ! samePoints:
+        if self.aClockwise == True and not samePoints:
             if deltaAngle == twoPi:
                 deltaAngle = - twoPi
             else:
@@ -254,7 +254,7 @@ class SplineCurve(Curve):
         points = self.points
         point = ( len(self.points) - 1 ) * t
 
-        intPoint = math.floor( point )
+        intPoint = int( point )
         weight = point - intPoint
 
         point0 = points[ intPoint if intPoint == 0 else intPoint - 1 ]
@@ -270,7 +270,7 @@ class SplineCurve(Curve):
         
 class CubicBezierCurve(Curve):
     def __init__(self, v0, v1, v2, v3 ):
-        super().__init_()
+        super().__init__()
 
         self.v0 = v0
         self.v1 = v1

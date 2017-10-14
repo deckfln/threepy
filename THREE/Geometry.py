@@ -197,8 +197,8 @@ class Geometry(pyOpenGLObject):
             for i in range (len(groups)):
                 group = groups[ i ]
 
-                start = group.start
-                count = group.count
+                start = int(group.start)
+                count = int(group.count)
 
                 for j in range (start, start + count, 3):
                     if indices is not None:

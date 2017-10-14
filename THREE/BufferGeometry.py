@@ -34,7 +34,9 @@ class _attributesList(object):
     def __getitem__(self, item):
         if isinstance(item, bytes):
             item = item.decode("utf-8")
-        return self._attr[item]
+        if item in self._attr:
+            return self._attr[item]
+        return None
 
     def __setitem__(self, item, value):
         self._attr[item] = value
@@ -426,8 +428,8 @@ class BufferGeometry(pyOpenGLObject):
 
                 for j in range(len(groups)):
                     group = groups[ j ]
-                    start = group.start
-                    count = group.count
+                    start = int(group.start)
+                    count = int(group.count)
                     for i in range(start, start + count, 3 ):
                         vA = indices[ i + 0 ] * 3
                         vB = indices[ i + 1 ] * 3

@@ -35,9 +35,11 @@ from THREE.Matrix4 import *
 
 
 import THREE._Math as _Math
+from THREE.Constants import *
+from THREE.pyOpenGLObject import *
 
 
-class Curve:
+class Curve(pyOpenGLObject):
     """
     /**************************************************************
      *    Abstract Curve base class
@@ -46,6 +48,8 @@ class Curve:
     def __init__(self):
         self.arcLengthDivisions = 200
         self.needsUpdate = False
+        self.cacheArcLengths = None
+        self.type = None
 
     def getPoint(self, t):
         """
@@ -133,7 +137,7 @@ class Curve:
         self.needsUpdate = True
         self.getLengths()
 
-    def getUtoTmapping(self, u, distance ):
+    def getUtoTmapping(self, u, distance=None):
         """
         # // Given u ( 0 .. 1 ), get a t to find p. This gives you points which are equidistant
         """
@@ -222,9 +226,9 @@ class Curve:
 
         normal = Vector3()
 
-        tangents = []
-        normals = []
-        binormals = []
+        tangents = [None for i in range(segments+1)]
+        normals = [None for i in range(segments+1)]
+        binormals = [None for i in range(segments+1)]
 
         vec = Vector3()
         mat = Matrix4()
@@ -234,15 +238,15 @@ class Curve:
         for i in range(segments+1):
             u = i / segments
 
-            tangents[ i ] = self.getTangentAt( u )
-            tangents[ i ].normalize()
+            tangents[i] = self.getTangentAt(u)
+            tangents[i].normalize()
 
         # // select an initial normal vector perpendicular to the first tangent vector,
         # // and in the direction of the minimum tangent xyz component
 
         normals[ 0 ] = Vector3()
         binormals[ 0 ] = Vector3()
-        min = Number.MAX_VALUE
+        min = float("+inf")
         tx = abs( tangents[ 0 ].x )
         ty = abs( tangents[ 0 ].y )
         tz = abs( tangents[ 0 ].z )
@@ -304,6 +308,7 @@ class Curve:
 
 class LineCurve(Curve):
     isLineCurve = True
+
     def __init__(self, v1, v2 ):
         super().__init__()
 

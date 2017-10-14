@@ -11,6 +11,7 @@
 # // STEP 3b - Triangulate each shape, add faces.
 """
 from THREE.Path import *
+import THREE.ShapeUtils as ShapeUtils
 
 
 def _toShapesNoHoles(inSubpaths):
@@ -84,14 +85,14 @@ def _isPointInsidePolygon(inPt, inPolygon):
 
 
 class Shape(Path):
-    def __init__(self):
-        super().apply( arguments )
+    def __init__(self, pts):
+        super().__init__(pts )
         self.holes = []
 
     def getPointsHoles(self, divisions ):
         holesPts = []
 
-        for i in (len(self.holes)):
+        for i in range(len(self.holes)):
             holesPts[ i ] = self.holes[ i ].getPoints( divisions )
 
         return holesPts
@@ -114,7 +115,8 @@ class Shape(Path):
  **/
 """
 
-class ShapePath
+
+class ShapePath:
     def __init__(self):
         self.subPaths = []
         self.currentPath = None
@@ -140,7 +142,7 @@ class ShapePath
         isClockWise = ShapeUtils.isClockWise
 
         subPaths = self.subPaths
-        if subPaths.length == 0:
+        if len(subPaths) == 0:
             return []
 
         if noHoles == True:

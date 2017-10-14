@@ -275,8 +275,8 @@ class TrackballControls(EventManager):
         self.domElement.addEventListener( 'keydown', keydown, False )
         self.domElement.addEventListener( 'keyup', keyup, False )
 
-        self.screen.width = self.domElement.width
-        self.screen.height = self.domElement.height
+        self.screen.width = self.domElement.clientWidth
+        self.screen.height = self.domElement.clientHeight
 
         # // force an update at start
         self.update()
