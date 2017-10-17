@@ -86,6 +86,7 @@ class Material(pyOpenGLObject):
         self.needsUpdate = True
 
         #FDE addition
+        """
         self.defines = None
         self.map = None
         self.envMap = None
@@ -106,7 +107,7 @@ class Material(pyOpenGLObject):
         self.program = None
         self.index0AttributeName = None
         self.clipping = False
-        self.emissive = None
+        # self.emissive = None
         self.defaultAttributeValues = None
         self.skinning = None
         self.morphTargets = None
@@ -115,7 +116,8 @@ class Material(pyOpenGLObject):
         self.wireframe = False
         self.linewidth = 1
         self.color = None
-
+        """
+		
     def onBeforeCompile(self, shader):
         return True
 
@@ -183,122 +185,122 @@ class Material(pyOpenGLObject):
         }
 
         # // standard Material serialization
-        data.uuid = self.uuid
-        data.type = self.type
+        data['uuid'] = self.uuid
+        data['type'] = self.type
 
         if self.name != '':
-            data.name = self.name
+            data['name'] = self.name
 
-        if self.color and self.color.isColor:
-            data.color = self.color.getHex()
+        if 'color' in self.__dict__ and self.color.isColor:
+            data['color'] = self.color.getHex()
 
-        if self.roughness is not None:
-            data.roughness = self.roughness
-        if self.metalness is not None:
-            data.metalness = self.metalness
+        if 'roughness' in self.__dict__:
+            data['roughness'] = self.roughness
+        if 'metalness' in self.__dict__:
+            data['metalness'] = self.metalness
 
-        if self.emissive and self.emissive.isColor:
-            data.emissive = self.emissive.getHex()
-        if self.specular and self.specular.isColor:
-            data.specular = self.specular.getHex()
-        if self.shininess is not None:
-            data.shininess = self.shininess
-        if self.clearCoat is not None:
-            data.clearCoat = self.clearCoat
-        if self.clearCoatRoughness is not None:
-            data.clearCoatRoughness = self.clearCoatRoughness
+        if 'emissive' in self.__dict__ and self.emissive.isColor:
+            data['emissive'] = self.emissive.getHex()
+        if 'specular' in self.__dict__ and self.specular.isColor:
+            data['specular'] = self.specular.getHex()
+        if 'shininess' in self.__dict__:
+            data['shininess'] = self.shininess
+        if 'clearCoat' in self.__dict__:
+            data['clearCoat'] = self.clearCoat
+        if 'clearCoatRoughness' in self.__dict__:
+            data['clearCoatRoughness'] = self.clearCoatRoughness
 
-        if self.map and self.map.isTexture:
-            data.map = self.map.toJSON( meta ).uuid
-        if self.alphaMap and self.alphaMap.isTexture:
-            data.alphaMap = self.alphaMap.toJSON( meta ).uuid
-        if self.lightMap and self.lightMap.isTexture:
-            data.lightMap = self.lightMap.toJSON( meta ).uuid
-        if self.bumpMap and self.bumpMap.isTexture:
-            data.bumpMap = self.bumpMap.toJSON( meta ).uuid
-            data.bumpScale = self.bumpScale
-        if self.normalMap and self.normalMap.isTexture:
-            data.normalMap = self.normalMap.toJSON( meta ).uuid
-            data.normalScale = self.normalScale.toArray()
-        if self.displacementMap and self.displacementMap.isTexture:
-            data.displacementMap = self.displacementMap.toJSON( meta ).uuid
-            data.displacementScale = self.displacementScale
-            data.displacementBias = self.displacementBias
-        if self.roughnessMap and self.roughnessMap.isTexture:
-            data.roughnessMap = self.roughnessMap.toJSON( meta ).uuid
-        if self.metalnessMap and self.metalnessMap.isTexture:
-            data.metalnessMap = self.metalnessMap.toJSON( meta ).uuid
+        if 'map' in self.__dict__ and self.map and self.map.isTexture:
+            data['map'] = self.map.toJSON( meta ).uuid
+        if 'alphaMap' in self.__dict__ and self.alphaMap and self.alphaMap.isTexture:
+            data['alphaMap'] = self.alphaMap.toJSON( meta ).uuid
+        if 'lightMap' in self.__dict__ and self.lightMap and self.lightMap.isTexture:
+            data['lightMap'] = self.lightMap.toJSON( meta ).uuid
+        if 'bumpMap' in self.__dict__ and self.bumpMap.isTexture:
+            data['bumpMap'] = self.bumpMap.toJSON( meta ).uuid
+            data['bumpScale'] = self.bumpScale
+        if 'normalMap' in self.__dict__ and self.normalMap.isTexture:
+            data['normalMap'] = self.normalMap.toJSON( meta ).uuid
+            data['normalScale'] = self.normalScale.toArray()
+        if 'displacementMap' in self.__dict__ and self.displacementMap.isTexture:
+            data['displacementMap'] = self.displacementMap.toJSON( meta ).uuid
+            data['displacementScale'] = self.displacementScale
+            data['displacementBias'] = self.displacementBias
+        if 'roughnessMap' in self.__dict__ and self.roughnessMap.isTexture:
+            data['roughnessMap'] = self.roughnessMap.toJSON( meta ).uuid
+        if 'metalnessMap' in self.__dict__ and self.metalnessMap.isTexture:
+            data['metalnessMap'] = self.metalnessMap.toJSON( meta ).uuid
 
-        if self.emissiveMap and self.emissiveMap.isTexture:
-            data.emissiveMap = self.emissiveMap.toJSON( meta ).uuid
-        if self.specularMap and self.specularMap.isTexture:
-            data.specularMap = self.specularMap.toJSON( meta ).uuid
+        if 'emissiveMap' in self.__dict__ and self.emissiveMap.isTexture:
+            data['emissiveMap'] = self.emissiveMap.toJSON( meta ).uuid
+        if 'specularMap' in self.__dict__ and self.specularMap and self.specularMap.isTexture:
+            data['specularMap'] = self.specularMap.toJSON( meta ).uuid
 
-        if self.envMap and self.envMap.isTexture :
-            data.envMap = self.envMap.toJSON( meta ).uuid
-            data.reflectivity = self.reflectivity; # // Scale behind envMap
+        if 'envMap' in self.__dict__ and self.envMap and self.envMap.isTexture :
+            data['envMap'] = self.envMap.toJSON( meta ).uuid
+            data['reflectivity'] = self.reflectivity; # // Scale behind envMap
 
-        if self.gradientMap and self.gradientMap.isTexture:
-            data.gradientMap = self.gradientMap.toJSON( meta ).uuid
+        if 'gradientMap' in self.__dict__ and self.gradientMap.isTexture:
+            data['gradientMap'] = self.gradientMap.toJSON( meta ).uuid
 
-        if self.size is not None:
-            data.size = self.size
-        if self.sizeAttenuation is not None:
-            data.sizeAttenuation = self.sizeAttenuation
+        if 'size' in self.__dict__ is not None:
+            data['size'] = self.size
+        if 'sizeAttenuation' in self.__dict__ is not None:
+            data['sizeAttenuation'] = self.sizeAttenuation
 
         if self.blending != NormalBlending:
-            data.blending = self.blending
-        if self.flatShading == True:
-            data.flatShading = self.flatShading
+            data['blending'] = self.blending
+        if self.flatShading:
+            data['flatShading'] = self.flatShading
         if self.side != FrontSide:
-            data.side = self.side
+            data['side'] = self.side
         if self.vertexColors != NoColors:
-            data.vertexColors = self.vertexColors
+            data['vertexColors'] = self.vertexColors
 
         if self.opacity < 1:
-            data.opacity = self.opacity
-        if self.transparent == True:
-            data.transparent = self.transparent
+            data['opacity'] = self.opacity
+        if self.transparent:
+            data['transparent'] = self.transparent
 
-        data.depthFunc = self.depthFunc
-        data.depthTest = self.depthTest
-        data.depthWrite = self.depthWrite
+        data['depthFunc'] = self.depthFunc
+        data['depthTest'] = self.depthTest
+        data['depthWrite'] = self.depthWrite
 
         if self.dithering:
-            data.dithering = True
+            data['dithering'] = True
 
         if self.alphaTest > 0:
-            data.alphaTest = self.alphaTest
+            data['alphaTest'] = self.alphaTest
         if self.premultipliedAlpha:
-            data.premultipliedAlpha = self.premultipliedAlpha
+            data['premultipliedAlpha'] = self.premultipliedAlpha
 
         if self.wireframe:
-            data.wireframe = self.wireframe
+            data['wireframe'] = self.wireframe
         if self.wireframeLinewidth > 1:
-            data.wireframeLinewidth = self.wireframeLinewidth
+            data['wireframeLinewidth'] = self.wireframeLinewidth
         if self.wireframeLinecap != 'round':
-            data.wireframeLinecap = self.wireframeLinecap
+            data['wireframeLinecap'] = self.wireframeLinecap
         if self.wireframeLinejoin != 'round':
-            data.wireframeLinejoin = self.wireframeLinejoin
+            data['wireframeLinejoin'] = self.wireframeLinejoin
 
-        if self.morphTargets == True:
-            data.morphTargets = True
-        if self.skinning == True:
-            data.skinning = True
+        if self.morphTargets:
+            data['morphTargets'] = True
+        if self.skinning:
+            data['skinning'] = True
 
-        if self.visible == False:
-            data.visible = False
-        if JSON.stringify( self.userData ) != '{}':
-            data.userData = self.userData
+        if not self.visible:
+            data['visible'] = False
+        if json.dumps( self.userData ) != '{}':
+            data['userData'] = self.userData
 
         if isRoot:
             textures = _extractFromCache( meta.textures )
             images = _extractFromCache( meta.images )
 
             if textures.length > 0:
-                data.textures = textures
+                data['textures'] = textures
             if images.length > 0:
-                data.images = images
+                data['images'] = images
 
         return data
 

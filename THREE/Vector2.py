@@ -224,12 +224,12 @@ class Vector2(pyOpenGLObject):
         self.y = array[ offset + 1 ]
         return self
 
-    def toArray(self, array=None, offset=0 ):
+    def toArray(self, array=None, offset=0):
         if array is None:
-            array = []
-
-        array[ offset ] = self.x
-        array[ offset + 1 ] = self.y
+            array = [self.x, self.y]
+        else:
+            array[offset] = self.x
+            array[offset + 1] = self.y
         return array
 
     def fromBufferAttribute(self, attribute, index, offset=None ):

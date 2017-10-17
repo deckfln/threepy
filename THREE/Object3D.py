@@ -7,6 +7,8 @@
  * @author elephantatwork / www.elephantatwork.ch
  */
 """
+import json
+
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.Vector3 import *
@@ -359,7 +361,7 @@ class Object3D(pyOpenGLObject):
                 'images': {}
             }
 
-            output.metadata = {
+            output['metadata'] = {
                 'version': '4.5',
                 'type': 'Object',
                 'generator': 'Object3D.toJSON'
@@ -367,47 +369,48 @@ class Object3D(pyOpenGLObject):
 
         # // standard Object3D serialization
         object = {}
-        object.uuid = self.uuid
-        object.type = self.type
+        object['uuid'] = self.uuid
+        object['type'] = self.type
+        object['position'] = self.position.toArray()
 
         if self.name != '':
-            object.name = self.name
+            object['name'] = self.name
         if self.castShadow:
-            object.castShadow = True
+            object['castShadow'] = True
         if self.receiveShadow:
-            object.receiveShadow = True
+            object['receiveShadow'] = True
         if not self.visible:
-            object.visible = False
-        if JSON.stringify(self.userData) != '{}':
-            object.userData = self.userData
+            object['visible'] = False
+        if json.dumps(self.userData) != '{}':
+            object['userData'] = self.userData
 
-        object.matrix = self.matrix.toArray()
+        object['matrix'] = self.matrix.toArray()
 
         # //
         def serialize(library, element):
-            if library[ element.uuid ] is None:
+            if element.uuid  not in library:
                 library[ element.uuid ] = element.toJSON(meta)
 
             return element.uuid
 
         if self.geometry is not None:
-            object.geometry = serialize(meta.geometries, self.geometry)
+            object['geometry'] = serialize(meta['geometries'], self.geometry)
 
         if self.material is not None:
             if isinstance(self.material, list):
                 uuids = []
                 for i in range(len(self.material)):
-                    uuids.append(serialize(meta.materials, self.material[ i ]))
+                    uuids.append(serialize(meta['materials'], self.material[ i ]))
 
-                object.material = uuids
+                object['material'] = uuids
             else:
-                object.material = serialize(meta.materials, self.material)
+                object['material'] = serialize(meta['materials'], self.material)
 
         # //
         if len(self.children) > 0:
-            object.children = []
+            object['children'] = []
             for i in range(len(self.children)):
-                object.children.append(self.children[ i ].toJSON(meta).object)
+                object['children'].append(self.children[ i ].toJSON(meta).object)
 
 
         # // extract data from the cache hash
@@ -417,27 +420,27 @@ class Object3D(pyOpenGLObject):
             values = []
             for key in cache:
                 data = cache[ key ]
-                del data.metadata
-                values.push(data)
+                del data['metadata']
+                values.append(data)
 
             return values
                 
         if isRootObject:
-            geometries = extractFromCache(meta.geometries)
-            materials = extractFromCache(meta.materials)
-            textures = extractFromCache(meta.textures)
-            images = extractFromCache(meta.images)
+            geometries = extractFromCache(meta['geometries'])
+            materials = extractFromCache(meta['materials'])
+            textures = extractFromCache(meta['textures'])
+            images = extractFromCache(meta['images'])
 
             if len(geometries) > 0:
-                output.geometries = geometries
+                output['geometries'] = geometries
             if len(materials) > 0:
-                output.materials = materials
+                output['materials'] = materials
             if len(textures) > 0:
-                output.textures = textures
+                output['textures'] = textures
             if len(images) > 0:
-                output.images = images
+                output['images'] = images
 
-        output.object = object
+        output['object'] = object
 
         return output
 
@@ -468,7 +471,7 @@ class Object3D(pyOpenGLObject):
         self.frustumCulled = source.frustumCulled
         self.renderOrder = source.renderOrder
 
-        self.userData = JSON.parse(JSON.stringify(source.userData))
+        self.userData = json.loads(json.dumps(source.userData))
 
         if recursive:
             for i in range(len(source.children)):

@@ -727,28 +727,28 @@ class Matrix4(pyOpenGLObject):
 
     def toArray(self, array=None, offset=0):
         if array is None:
-            array = []
+            array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0]
 
         te = self.elements
 
-        array[offset] = te[0]
-        array[offset + 1] = te[1]
-        array[offset + 2] = te[2]
-        array[offset + 3] = te[3]
+        array[offset] = float(te[0])
+        array[offset + 1] = float(te[1])
+        array[offset + 2] = float(te[2])
+        array[offset + 3] = float(te[3])
 
-        array[offset + 4] = te[4]
-        array[offset + 5] = te[5]
-        array[offset + 6] = te[6]
-        array[offset + 7] = te[7]
+        array[offset + 4] = float(te[4])
+        array[offset + 5] = float(te[5])
+        array[offset + 6] = float(te[6])
+        array[offset + 7] = float(te[7])
 
-        array[offset + 8] = te[8]
-        array[offset + 9] = te[9]
-        array[offset + 10] = te[10]
-        array[offset + 11] = te[11]
+        array[offset + 8] = float(te[8])
+        array[offset + 9] = float(te[9])
+        array[offset + 10] = float(te[10])
+        array[offset + 11] = float(te[11])
 
-        array[offset + 12] = te[12]
-        array[offset + 13] = te[13]
-        array[offset + 14] = te[14]
-        array[offset + 15] = te[15]
+        array[offset + 12] = float(te[12])
+        array[offset + 13] = float(te[13])
+        array[offset + 14] = float(te[14])
+        array[offset + 15] = float(te[15])
 
         return array

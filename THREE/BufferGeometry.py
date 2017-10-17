@@ -528,7 +528,7 @@ class BufferGeometry(pyOpenGLObject):
 
         return geometry2
         
-    def toJSON(self):
+    def toJSON(self, meta=None):
         data = {
             'metadata': {
                 'version': '4.5',
@@ -537,10 +537,10 @@ class BufferGeometry(pyOpenGLObject):
             }
         }
         # // standard BufferGeometry serialization
-        data.uuid = self.uuid
-        data.type = self.type
+        data['uuid'] = self.uuid
+        data['type'] = self.type
         if self.name != '':
-            data.name = self.name
+            data['name'] = self.name
         if self.parameters is not None:
             parameters = self.parameters
             for key in parameters:
@@ -549,33 +549,35 @@ class BufferGeometry(pyOpenGLObject):
 
             return data
 
-        data.data = { 'attributes': {} }
+        data['data'] = { 'attributes': {} }
         index = self.index
-        if index != None:
-            array = Array.prototype.slice.call( index.array )
-            data.data.index = {
-                'type': index.array.constructor.name,
+        if index is not None:
+            array = index.array.tolist()
+            type = index.__class__.__name__.replace("BufferAttribute", "Array")
+            data['data']['index'] = {
+                'type': type,
                 'array': array
             }
 
         attributes = self.attributes
         for key in attributes:
             attribute = attributes[ key ]
-            array = Array.prototype.slice.call( attribute.array )
-            data.data.attributes[ key ] = {
+            array = attribute.array.tolist()
+            type = attribute.__class__.__name__.replace("BufferAttribute", "Array")
+            data['data']['attributes'][ key ] = {
                 'itemSize': attribute.itemSize,
-                'type': attribute.array.constructor.name,
+                'type': type,
                 'array': array,
                 'normalized': attribute.normalized
             }
 
         groups = self.groups
         if len(groups) > 0:
-            data.data.groups = JSON.parse( JSON.stringify( groups ) )
+            data['data']['groups'] = json.loads( json.dumps( groups ) )
 
         boundingSphere = self.boundingSphere
         if boundingSphere is not None:
-            data.data.boundingSphere = {
+            data['data']['boundingSphere'] = {
                 'center': boundingSphere.center.toArray(),
                 'radius': boundingSphere.radius
             }

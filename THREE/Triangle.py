@@ -6,6 +6,7 @@
 """
 import math
 from THREE.Vector3 import *
+from THREE.Plane import *
 
 
 class Triangle:
@@ -76,7 +77,7 @@ class Triangle:
         # // barycentric coordinates must always sum to 1
         return result.set( 1 - u - v, v, u )
 
-    def containsPoint(self, point, a, b, c):
+    def containsPoint(self, point):
         v1 = Vector3()
         result = self.barycoordFromPoint( point, v1 )
 
@@ -124,8 +125,10 @@ class Triangle:
 
         return result.setFromCoplanarPoints( self.a, self.b, self.c )
 
+    """
     def containsPoint(self, point ):
         return Triangle.containsPoint( point, self.a, self.b, self.c )
+    """
 
     def closestPointToPoint(self, optionalTarget=None):
         plane = Plane()

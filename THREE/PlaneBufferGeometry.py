@@ -79,13 +79,3 @@ class PlaneBufferGeometry(BufferGeometry):
         self.addAttribute( 'position', Float32BufferAttribute(vertices, 3))
         self.addAttribute( 'normal', Float32BufferAttribute(normals, 3))
         self.addAttribute( 'uv', Float32BufferAttribute(uvs, 2))
-
-    def toJSON(self):
-        j = super().toJSON();
-        j["parameters"] = {
-            "width": self.parameters["width"],
-            "height": self.parameters["height"],
-            "widthSegments": self.parameters["widthSegments"],
-            "heightSegments": self.parameters["heightSegments"]
-        }
-        return j
