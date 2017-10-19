@@ -86,6 +86,7 @@ class Material(pyOpenGLObject):
         self.needsUpdate = True
 
         #FDE addition
+        self.program = None
         """
         self.defines = None
         self.map = None
@@ -104,7 +105,6 @@ class Material(pyOpenGLObject):
         self.combine = False
         self.sizeAttenuation = 0
         self.depthPacking = False
-        self.program = None
         self.index0AttributeName = None
         self.clipping = False
         # self.emissive = None

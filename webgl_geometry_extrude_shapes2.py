@@ -281,6 +281,7 @@ def addGeoObject( group, svgObject ):
 
 # // Main
 
+
 class Params:
     def __init__(self):
         self.camera = None

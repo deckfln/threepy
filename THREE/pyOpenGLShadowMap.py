@@ -332,7 +332,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
         visible = object.layers.test( camera.layers )
 
-        if visible and ( object.isMesh or object.isLine or object.isPoints ):
+        if visible and ( object.is_a('Mesh') or object.isLine or object.isPoints ):
             if object.castShadow and ( not object.frustumCulled or self._frustum.intersectsObject( object ) ):
                 object.modelViewMatrix.multiplyMatrices( shadowCamera.matrixWorldInverse, object.matrixWorld )
 

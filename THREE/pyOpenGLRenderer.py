@@ -535,7 +535,7 @@ class pyOpenGLRenderer:
 
             if 'cameraPosition' in p_uniforms.map:
                 uCamPos = p_uniforms.map['cameraPosition']
-                uCamPos.setValue(None, Vector3().setFromMatrixPosition(camera.matrixWorld))
+                uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
 
         if material.isMeshPhongMaterial or \
                 material.isMeshLambertMaterial or \
@@ -684,7 +684,7 @@ class pyOpenGLRenderer:
         if material.color:
             uniforms.diffuse.value = material.color
 
-        if material.emissive:
+        if hasattr(material, 'emissive') and material.emissive:
             uniforms.emissive.value.copy(material.emissive).multiplyScalar(material.emissiveIntensity)
 
         if material.map:
@@ -728,19 +728,19 @@ class pyOpenGLRenderer:
             uvScaleMap = material.map
         elif material.specularMap:
             uvScaleMap = material.specularMap
-        elif material.displacementMap:
+        elif hasattr(material, 'displacementMap') and material.displacementMap:
             uvScaleMap = material.displacementMap
-        elif material.normalMap:
+        elif hasattr(material, 'normalMap') and material.normalMap:
             uvScaleMap = material.normalMap
-        elif material.bumpMap:
+        elif hasattr(material, 'bumpMap') and material.bumpMap:
             uvScaleMap = material.bumpMap
-        elif material.roughnessMap:
+        elif hasattr(material, 'roughnessMap') and material.roughnessMap:
             uvScaleMap = material.roughnessMap
-        elif material.metalnessMap:
+        elif hasattr(material, 'metalnessMap') and material.metalnessMap:
             uvScaleMap = material.metalnessMap
-        elif material.alphaMap:
+        elif hasattr(material, 'alphaMap') and material.alphaMap:
             uvScaleMap = material.alphaMap
-        elif material.emissiveMap:
+        elif hasattr(material, 'emissiveMap') and material.emissiveMap:
             uvScaleMap = material.emissiveMap
 
         if uvScaleMap is not None:
@@ -1014,7 +1014,7 @@ class pyOpenGLRenderer:
 
         geometryAttributes = geometry.attributes
         programAttributes = program.getAttributes()
-        materialDefaultAttributeValues = material.defaultAttributeValues
+        materialDefaultAttributeValues = material.defaultAttributeValues if hasattr(material, 'defaultAttributeValues') else None
 
         for name in programAttributes:
             programAttribute = programAttributes[ name ]
@@ -1326,7 +1326,7 @@ class pyOpenGLRenderer:
 
         # //
 
-        if object.isMesh:
+        if object.is_a('Mesh'):
             if material.wireframe:
                 self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
                 renderer.setMode(GL_LINES)
@@ -1400,7 +1400,7 @@ class pyOpenGLRenderer:
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
 
-            elif object.isMesh or object.isLine or object.isPoints:
+            elif object.is_a('Mesh') or object.isLine or object.isPoints:
                 if object.isSkinnedMesh:
                     object.skeleton.update()
 
@@ -1619,7 +1619,7 @@ class pyOpenGLRenderer:
         warned = False
         if texture and texture.isWebGLRenderTarget:
             if not warned:
-                print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." );
+                print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." )
                 warned = True
 
             texture = texture.texture
@@ -1629,9 +1629,31 @@ class pyOpenGLRenderer:
     def setTexture(self, texture, slot):
         warned = False
         if not warned:
-            print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." );
+            print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." )
             warned = True
         self.textures.setTexture2D( texture, slot )
+
+    def setTextureCube(self, texture, slot):
+        warned = False
+
+        # // backwards compatibility: peel texture.texture
+        if texture and texture.isWebGLRenderTargetCube:
+            if not warned:
+                print(
+                    "THREE.WebGLRenderer.setTextureCube: don't use cube render targets as textures. Use their .texture property instead.")
+                warned = True
+
+            texture = texture.texture
+
+        # // currently relying on the fact that WebGLRenderTargetCube.texture is a Texture and NOT a CubeTexture
+        # // TODO: unify these code paths
+        if (texture and texture.isCubeTexture) or (isinstance(texture.image, list) and len(texture.image) == 6):
+            # // CompressedTexture can have Array in image :/
+            # // this function alone should take care of cube textures
+            self.textures.setTextureCube(texture, slot)
+        else:
+            # // assumed: texture property of THREE.WebGLRenderTargetCube
+            self.textures.setTextureCubeDynamic(texture, slot)
 
     def _build(self, camera, object):
         # self._initMaterial(object.material, None, object)

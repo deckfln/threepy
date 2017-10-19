@@ -72,7 +72,8 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def copyPosition(self, m):
-        te = self.elements, me = m.elements
+        te = self.elements
+        me = m.elements
 
         te[12] = me[12]
         te[13] = me[13]

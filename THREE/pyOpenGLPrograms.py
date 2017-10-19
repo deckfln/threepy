@@ -102,6 +102,21 @@ class pyOpenGLPrograms:
 
         currentRenderTarget = self.renderer.getRenderTarget()
 
+        map = material.map if hasattr(material, 'map') else None
+        envMap = material.envMap if hasattr(material, 'envMap') else None
+        lightMap = material.lightMap if hasattr(material, 'lightMap') else None
+        aoMap = material.aoMap if hasattr(material, 'aoMap') else None
+        emissiveMap = material.emissiveMap if hasattr(material, 'emissiveMap') else None
+        bumpMap = material.bumpMap if hasattr(material, 'bumpMap') else None
+        normalMap = material.normalMap if hasattr(material, 'normalMap') else None
+        displacementMap = material.displacementMap if hasattr(material, 'displacementMap') else None
+        roughnessMap = material.roughnessMap if hasattr(material, 'roughnessMap') else None
+        metalnessMap = material.metalnessMap if hasattr(material, 'metalnessMap') else None
+        specularMap = material.specularMap if hasattr(material, 'specularMap') else None
+        alphaMap = material.alphaMap if hasattr(material, 'alphaMap') else None
+        gradientMap = material.gradientMap if hasattr(material, 'gradientMap') else None
+        combine = material.combine if hasattr(material, 'combine') else None
+
         parameters = {
 
             'shaderID': shaderID,
@@ -109,27 +124,27 @@ class pyOpenGLPrograms:
             'precision': precision,
             'supportsVertexTextures': self.capabilities.vertexTextures,
             'outputEncoding': _getTextureEncodingFromMap(currentRenderTarget.texture if currentRenderTarget else None, self.renderer.gammaOutput),
-            'map': not not material.map,
-            'mapEncoding': _getTextureEncodingFromMap(material.map, self.renderer.gammaInput),
-            'envMap': not not material.envMap,
-            'envMapMode': material.envMap and material.envMap.mapping,
-            'envMapEncoding': _getTextureEncodingFromMap(material.envMap, self.renderer.gammaInput),
-            'envMapCubeUV': ( not not material.envMap ) and ( ( material.envMap.mapping == CubeUVReflectionMapping ) or ( material.envMap.mapping == CubeUVRefractionMapping ) ),
-            'lightMap': not not material.lightMap,
-            'aoMap': not not material.aoMap,
-            'emissiveMap': not not material.emissiveMap,
-            'emissiveMapEncoding': _getTextureEncodingFromMap(material.emissiveMap, self.renderer.gammaInput),
-            'bumpMap': not not material.bumpMap,
-            'normalMap': not not material.normalMap,
-            'displacementMap': not not material.displacementMap,
-            'roughnessMap': not not material.roughnessMap,
-            'metalnessMap': not not material.metalnessMap,
-            'specularMap': not not material.specularMap,
-            'alphaMap': not not material.alphaMap,
+            'map': map is not None,
+            'mapEncoding': _getTextureEncodingFromMap(map, self.renderer.gammaInput),
+            'envMap': envMap is not None,
+            'envMapMode': envMap and envMap.mapping,
+            'envMapEncoding': _getTextureEncodingFromMap(envMap, self.renderer.gammaInput),
+            'envMapCubeUV': ( envMap is not None ) and ( ( material.envMap.mapping == CubeUVReflectionMapping ) or ( material.envMap.mapping == CubeUVRefractionMapping ) ),
+            'lightMap': lightMap is not None,
+            'aoMap': aoMap is not None,
+            'emissiveMap': emissiveMap is not None,
+            'emissiveMapEncoding': _getTextureEncodingFromMap(emissiveMap, self.renderer.gammaInput),
+            'bumpMap': bumpMap is not None,
+            'normalMap': normalMap is not None,
+            'displacementMap': displacementMap is not None,
+            'roughnessMap': roughnessMap is not None,
+            'metalnessMap': metalnessMap is not None,
+            'specularMap': specularMap is not None,
+            'alphaMap': alphaMap is not None,
 
-            'gradientMap': not not material.gradientMap,
+            'gradientMap': gradientMap is not None,
 
-            'combine': material.combine,
+            'combine': combine,
 
             'vertexColors': material.vertexColors,
 
@@ -139,7 +154,7 @@ class pyOpenGLPrograms:
 
             'flatShading': material.flatShading,
 
-            'sizeAttenuation': material.sizeAttenuation,
+            'sizeAttenuation': material.sizeAttenuation if 'sizeAttenuation' in material.__dict__ else None,
             'logarithmicDepthBuffer': self.capabilities.logarithmicDepthBuffer,
 
             'skinning': material.skinning and maxBones > 0,
@@ -174,7 +189,7 @@ class pyOpenGLPrograms:
             'doubleSided': material.side == DoubleSide,
             'flipSided': material.side == BackSide,
 
-            'depthPacking': material.depthPacking if (material.depthPacking is not None) else False
+            'depthPacking': 'depthPacking' in material.__dict__ and material.depthPacking is not None
         }
 
         return parameters
@@ -188,7 +203,7 @@ class pyOpenGLPrograms:
             array.append(material['fragmentShader'])
             array.append(material['vertexShader'])
 
-        if material.defines is not None:
+        if 'defines' in material.__dict__:
             for name in material.defines:
                 array.append(name)
                 array.append(str(material.defines[name]))
@@ -215,7 +230,7 @@ class pyOpenGLPrograms:
                 break
 
         if program is None:
-            program = pyOpenGLProgram(self.renderer, extensions, code, material, shader, parameters)
+            program = pyOpenGLProgram(self.renderer, self.extensions, code, material, shader, parameters)
             self.programs.append(program)
 
         return program

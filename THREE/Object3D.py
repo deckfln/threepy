@@ -77,7 +77,7 @@ class Object3D(pyOpenGLObject):
 
     def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
         if self._onBeforeRender:
-            return self._onBeforeRender(self._onBeforeRenderParent, renderer, scene, camera, geometry, material, group)
+            return self._onBeforeRender(self, renderer, scene, camera, geometry, material, group)
 
         return True
 

@@ -78,6 +78,7 @@ from THREE.Mesh import *
 from THREE.Scene import *
 from THREE.Texture import *
 from THREE.CanvasTexture import *
+from THREE.CubeTexture import *
 from THREE.Fog import *
 from THREE.LineBasicMaterial import *
 from THREE.Line import *
@@ -122,6 +123,7 @@ from THREE.ImageLoader import *
 from THREE.TextureLoader import *
 from THREE.JSONLoader import *
 from THREE.BufferGeometryLoader import *
+from THREE.CubeTextureLoader import *
 from THREE.Clock import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils

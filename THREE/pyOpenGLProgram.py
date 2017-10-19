@@ -94,10 +94,11 @@ def generateExtensions(extensions, parameters, rendererExtensions):
     extensions = extensions or {}
 
     chunks = [
-        '#extension GL_OES_standard_derivatives : enable' if (extensions.derivatives or parameters.envMapCubeUV or parameters.bumpMap or parameters.normalMap or parameters.flatShading) else '',
-        '#extension GL_EXT_frag_depth : enable' if (extensions.fragDepth or parameters.logarithmicDepthBuffer) and rendererExtensions.get('EXT_frag_depth') else '',
-        '#extension GL_EXT_draw_buffers : require' if (extensions.drawBuffers) and rendererExtensions.get('WEBGL_draw_buffers') else '',
-        '#extension GL_EXT_shader_texture_lod : enable' if (extensions.shaderTextureLOD or parameters.envMap) and rendererExtensions.get('EXT_shader_texture_lod') else ''
+        '#extension GL_OES_standard_derivatives : enable' if ('derivatives' in extensions or parameters['envMapCubeUV'] or parameters['bumpMap'] or parameters['normalMap'] or parameters['flatShading']) else '',
+        '#extension GL_EXT_frag_depth : enable' if ('fragDepth' in extensions or parameters['logarithmicDepthBuffer']) and rendererExtensions.get('EXT_frag_depth') else '',
+        '#extension GL_EXT_draw_buffers : require' if ('drawBuffers' in extensions) and rendererExtensions.get('WEBGL_draw_buffers') else '',
+        '#extension GL_EXT_shader_texture_lod : enable' if ('shaderTextureLOD' in extensions or parameters['envMap']) and rendererExtensions.get('EXT_shader_texture_lod') else '',
+        '#extension GL_NV_shadow_samplers_cube : enable'  # TODO FDE: how to find there is a textureCube in the shader ?
     ]
 
     return '\n'.join([string for string in chunks if string != ''])
@@ -233,7 +234,7 @@ class pyOpenGLProgram:
         self.code = code
         self.usedTimes = 1
 
-        defines = material.defines
+        defines = material.defines if 'defines' in material.__dict__ else None
 
         vertexShader = shader['vertexShader']
         fragmentShader = shader['fragmentShader']
@@ -252,13 +253,13 @@ class pyOpenGLProgram:
 
         if parameters[ 'envMap' ]:
             _envmap_mapping= {
-                'CubeReflectionMapping': 'ENVMAP_TYPE_CUBE',
-                'CubeRefractionMapping': 'ENVMAP_TYPE_CUBE',
-                'CubeUVReflectionMapping': 'ENVMAP_TYPE_CUBE_UV',
-                'CubeUVRefractionMapping': 'ENVMAP_TYPE_CUBE_UV',
-                'EquirectangularReflectionMapping': 'ENVMAP_TYPE_EQUIREC',
-                'EquirectangularRefractionMapping': 'ENVMAP_TYPE_EQUIREC',
-                'SphericalReflectionMapping': 'ENVMAP_TYPE_SPHERE'
+                CubeReflectionMapping: 'ENVMAP_TYPE_CUBE',
+                CubeRefractionMapping: 'ENVMAP_TYPE_CUBE',
+                CubeUVReflectionMapping: 'ENVMAP_TYPE_CUBE_UV',
+                CubeUVRefractionMapping: 'ENVMAP_TYPE_CUBE_UV',
+                EquirectangularReflectionMapping: 'ENVMAP_TYPE_EQUIREC',
+                EquirectangularRefractionMapping: 'ENVMAP_TYPE_EQUIREC',
+                SphericalReflectionMapping: 'ENVMAP_TYPE_SPHERE'
             }
             envMapTypeDefine = _envmap_mapping[material.envMap.mapping]
 
@@ -266,9 +267,9 @@ class pyOpenGLProgram:
                 envMapModeDefine = 'ENVMAP_MODE_REFRACTION'
 
             _combine = {
-                'MultiplyOperation': 'ENVMAP_BLENDING_MULTIPLY',
-                'MixOperation': 'ENVMAP_BLENDING_MIX',
-                'AddOperation': 'ENVMAP_BLENDING_ADD'
+                MultiplyOperation: 'ENVMAP_BLENDING_MULTIPLY',
+                MixOperation: 'ENVMAP_BLENDING_MIX',
+                AddOperation: 'ENVMAP_BLENDING_ADD'
             }
             envMapBlendingDefine = _combine[material.combine]
 
@@ -277,9 +278,8 @@ class pyOpenGLProgram:
             gammaFactorDefine = renderer.gammaFactor
 
         # // console.log('building program ')
-        # TODO FDE: implement dict sending back none
-        # customExtensions = generateExtensions(material.extensions, parameters, extensions)
-        customExtensions = ''
+        exts = material.extensions if hasattr(material, 'extensions') else None
+        customExtensions = generateExtensions(exts, parameters, extensions)
 
         customDefines = generateDefines(defines)
 
@@ -504,7 +504,7 @@ class pyOpenGLProgram:
 
         # // Force a particular attribute to index 0.
 
-        if material.index0AttributeName is not None:
+        if hasattr(material, 'index0AttributeName') and material.index0AttributeName:
             glBindAttribLocation(program, 0, material.index0AttributeName)
         elif parameters['morphTargets']:
             # // programs with morphTargets displace position out of attribute 0

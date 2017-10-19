@@ -31,7 +31,7 @@ class Face3:
             self.color = color
             self.vertexColors = []
         else:
-            self.color = Vector3()
+            self.color = Color()
             self.vertexColors= []
 
         self.materialIndex = materialIndex

@@ -230,7 +230,7 @@ class pyOpenGLTextures():
 
             self.state.texImage2D( GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, glFormat, glType, None )
 
-        elif texture.isDataTexture:
+        elif texture.is_a('DataTexture'):
             # // use manually created mipmaps if available
             # // if there are no manual mipmaps
             # // set 0 level mipmap and then use GL to generate other mipmap levels
@@ -397,22 +397,23 @@ class pyOpenGLTextures():
     def setTextureCube(self, texture, slot ):
         textureProperties = self.properties.get( texture )
 
-        if texture.image.length == 6:
+        if len(texture.image) == 6:
             if texture.version > 0 and textureProperties.version != texture.version:
-                if not textureProperties.__imageopenglTextureCube:
-                    texture.addEventListener( 'dispose', onTextureDispose )
-                    textureProperties.__imageopenglTextureCube = glGenTextures(1)
+                if not textureProperties.imageopenglTextureCube:
+                    texture.addEventListener( 'dispose', self.onTextureDispose )
+                    textureProperties.imageopenglTextureCube = glGenTextures(1)
                     self.infoMemory.textures += 1
 
                 self.state.activeTexture( GL_TEXTURE0 + slot )
-                self.state.bindTexture( GL_TEXTURE_CUBE_MAP, textureProperties.__imageopenglTextureCube )
+                self.state.bindTexture( GL_TEXTURE_CUBE_MAP, textureProperties.imageopenglTextureCube )
 
-                glPixelStorei( GL_UNPACK_FLIP_Y_WEBGL, texture.flipY )
+                # TODO FDE:is this needed with openGL ?
+                # glPixelStorei( GL_UNPACK_FLIP_Y_WEBGL, texture.flipY )
 
                 isCompressed = ( texture and texture.isCompressedTexture )
-                isDataTexture = ( texture.image[ 0 ] and texture.image[ 0 ].isDataTexture )
+                isDataTexture = ( texture.image[ 0 ] and hasattr(texture.image[ 0 ], 'isDataTexture' ))
 
-                cubeImage = []
+                cubeImage = [None, None, None, None, None, None]
 
                 for i in range(6):
                     if not isCompressed and not isDataTexture:
@@ -420,7 +421,7 @@ class pyOpenGLTextures():
                     else:
                         cubeImage[ i ] = texture.image[ i ].image if isDataTexture else texture.image[ i ]
 
-                image = cubeImage[ 0 ],
+                image = cubeImage[ 0 ]
                 isPowerOfTwoImage = _isPowerOfTwo( image )
                 glFormat = self.utils.convert( texture.format )
                 glType = self.utils.convert( texture.type )
@@ -432,7 +433,21 @@ class pyOpenGLTextures():
                         if isDataTexture:
                             self.state.texImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, cubeImage[ i ].width, cubeImage[ i ].height, 0, glFormat, glType, cubeImage[ i ].data )
                         else:
-                            self.state.texImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, glFormat, glType, cubeImage[ i ] )
+                            #TODO FDE: optimize data cache ?
+
+                            # glTexImage2D expects the first element of the image data to be the bottom-left corner of the image.
+                            # Subsequent elements go left to right, with subsequent lines going from bottom to top.
+                            #
+                            # However, the image data was created with PIL Image tostring and numpy's fromstring, which means we
+                            # have to do a bit of reorganization. The first element in the data output by tostring() will be the
+                            # top-left corner of the image, with following values going left-to-right and lines going top-to-bottom.
+                            # So, we need to flip the vertical coordinate (y).
+
+                            im = cubeImage[i].transpose(Image.FLIP_TOP_BOTTOM);
+
+                            img_data = numpy.fromstring(im.tobytes(), numpy.uint8)
+                            ix, iy = cubeImage[i].size
+                            self.state.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glFormat, ix, iy, 0, glFormat, glType, img_data )
                     else:
                         mipmap, mipmaps = cubeImage[ i ].mipmaps
 
@@ -456,8 +471,8 @@ class pyOpenGLTextures():
                     texture.onUpdate( texture )
 
             else:
-                self.state.activeTexture( GL_TEXTURE0 + slot )
-                self.state.bindTexture( GL_TEXTURE_CUBE_MAP, textureProperties.__imageopenglTextureCube )
+                self.state.activeTexture(GL_TEXTURE0 + slot)
+                self.state.bindTexture(GL_TEXTURE_CUBE_MAP, textureProperties.imageopenglTextureCube)
 
     def setTextureCubeDynamic(self, texture, slot ):
         self.state.activeTexture( GL_TEXTURE0 + slot )

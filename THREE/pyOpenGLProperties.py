@@ -18,7 +18,7 @@ class _map:
         self.depthBuffer = None
         self.version = -1
         self.clippingState = None
-
+        self.imageopenglTextureCube = None
 
 class pyOpenGLProperties:
     def __init__(self):

@@ -5,7 +5,6 @@ from numba import *
 
 
 class pyOpenGLObject:
-    isMesh = False
     isColor = False
     isMatrix3 = False
     isMatrix4 = False
@@ -35,7 +34,6 @@ class pyOpenGLObject:
     isMeshLambertMaterial = False
     isWebGLRenderTarget = False
     isDepthTexture = False
-    isDataTexture = False
     isCompressedTexture = False
     isMeshNormalMaterial = False
     isMeshDepthMaterial = False
@@ -65,3 +63,12 @@ class pyOpenGLObject:
 
         raise AttributeError("Missing attribute %s" % item)
     """
+
+    def __init__(self):
+        self.onDispose = None
+
+    def addEventListener(self, event, func):
+        self.onDispose = func
+
+    def is_a(self, kind):
+        return hasattr(self, "is"+kind)

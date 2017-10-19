@@ -12,15 +12,6 @@ from THREE.ShaderLib import *
 from THREE.Mesh import *
 
 
-def _onBeforeRenderBackgroup(self, renderer, scene, camera ):
-    scale = camera.far
-
-    self.matrixWorld.makeScale( scale, scale, scale )
-    self.matrixWorld.copyPosition( camera.matrixWorld )
-
-    self.material.polygonOffsetUnits = scale * 10
-
-    
 class pyOpenGLBackground:
     def __init__(self, renderer, state, geometries, premultipliedAlpha ):
         self.clearColor = Color( 0x000000 )
@@ -65,6 +56,14 @@ class pyOpenGLBackground:
 
                 self.boxMesh.geometry.removeAttribute( 'normal' )
                 self.boxMesh.geometry.removeAttribute( 'uv' )
+
+                def _onBeforeRenderBackgroup(object, renderer, scene, camera, geometry=None, material=None, group=None):
+                    scale = camera.far
+
+                    object.matrixWorld.makeScale(scale, scale, scale)
+                    object.matrixWorld.copyPosition(camera.matrixWorld)
+
+                    object.material.polygonOffsetUnits = scale * 10
 
                 self.boxMesh.setOnBeforeRender(self, _onBeforeRenderBackgroup)
 

@@ -41,6 +41,9 @@ class _attributesList(object):
     def __setitem__(self, item, value):
         self._attr[item] = value
 
+    def __delitem__(self, item):
+        del self._attr[item]
+
     def __getattr__(self, k):
         if isinstance(k, bytes):
             k = k.decode("utf-8")
@@ -220,7 +223,7 @@ class BufferGeometry(pyOpenGLObject):
 
             if geometry.boundingBox is not None:
                 self.boundingBox = geometry.boundingBox.clone()
-        elif object.isMesh:
+        elif object.is_a('Mesh'):
             if geometry and geometry.isGeometry:
                 self.fromGeometry( geometry )
 
@@ -228,7 +231,7 @@ class BufferGeometry(pyOpenGLObject):
         
     def updateFromObject(self, object ):
         geometry = object.geometry
-        if object.isMesh:
+        if object.is_a('Mesh'):
             direct = geometry._directGeometry
             if geometry.elementsNeedUpdate:
                 direct = None

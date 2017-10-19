@@ -10,8 +10,12 @@ class FileLoader:
     def __init__(self, manager=None ):
         self.manager = manager if manager is not None else DefaultLoadingManager
         self.path = None
+        self.responseType = ''
+        self.withCredentials = False
+        self.mimeType = None
+        self.requestHeader = None
 
-    def load(self, url, onLoad, onProgress, onError ):
+    def load(self, url, onLoad, onProgress=None, onError=None):
         global Cache
 
         if url is None:
@@ -26,7 +30,8 @@ class FileLoader:
             return cached
 
         response = None
-        with open(url) as f:
+        flag = 'r'+self.responseType
+        with open(url, flag) as f:
             response = f.read()
             if onLoad:
                 onLoad( response )
@@ -40,7 +45,10 @@ class FileLoader:
         return self
 
     def setResponseType(self, value ):
-        self.responseType = value
+        if value == 'arraybuffer':
+            self.responseType = 'b'
+        else:
+            self.responseType = ''
         return self
 
     def setWithCredentials(self, value ):

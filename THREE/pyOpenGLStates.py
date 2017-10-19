@@ -519,6 +519,9 @@ class pyOpenGLState:
     def texImage2D(self, target, level, internalFormat, width, height, border, format, type, data):
         glTexImage2D( target, level, internalFormat, width, height, border, format, type, data )
 
+    def texImage2Df(self, target, level, internalFormat, border, format, data):
+        glTexImage2Df( target, level, internalFormat, border, format, data )
+
     def scissor(self, scissor ):
         if not self.currentScissor.equals( scissor ):
             glScissor( int(scissor.x), int(scissor.y), int(scissor.z), int(scissor.w) )

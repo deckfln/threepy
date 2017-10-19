@@ -532,7 +532,7 @@ class Geometry(pyOpenGLObject):
             uvs1.append( uvCopy )
 
     def mergeMesh(self, mesh ):
-        if not ( mesh and mesh.isMesh ):
+        if not ( mesh and mesh.is_a('Mesh') ):
             raise RuntimeError( 'THREE.Geometry.mergeMesh(): mesh not an instance of THREE.Mesh.', mesh )
             return
 
