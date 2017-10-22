@@ -84,6 +84,9 @@ class BufferGeometry(pyOpenGLObject):
     def __init__(self):
         self.id = GeometryIdCount()
 
+        super().__init__()
+        self.set_class(isBufferGeometry)
+
         self.uuid = _Math.generateUUID()
         self.name = ''
         self.type = 'BufferGeometry'
@@ -109,7 +112,7 @@ class BufferGeometry(pyOpenGLObject):
             self.index = index
 
     def addAttribute(self, name, attribute):
-        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.isInterleavedBufferAttribute):
+        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.my_class(isInterleavedBufferAttribute)):
             print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
             self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
             return
@@ -209,7 +212,7 @@ class BufferGeometry(pyOpenGLObject):
     def setFromObject(self, object ):
         # // console.log( 'THREE.BufferGeometry.setFromObject(). Converting', object, self )
         geometry = object.geometry
-        if object.isPoints or object.isLine:
+        if object.my_class(isPoints) or object.my_class(isLine):
             positions = Float32BufferAttribute( len(geometry.vertices) * 3, 3 )
             colors = Float32BufferAttribute( len(geometry.colors) * 3, 3 )
             self.addAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) )
@@ -223,15 +226,15 @@ class BufferGeometry(pyOpenGLObject):
 
             if geometry.boundingBox is not None:
                 self.boundingBox = geometry.boundingBox.clone()
-        elif object.is_a('Mesh'):
-            if geometry and geometry.isGeometry:
+        elif object.my_class(isMesh):
+            if geometry and geometry.my_class(isGeometry):
                 self.fromGeometry( geometry )
 
         return self
         
     def updateFromObject(self, object ):
         geometry = object.geometry
-        if object.is_a('Mesh'):
+        if object.my_class(isMesh):
             direct = geometry._directGeometry
             if geometry.elementsNeedUpdate:
                 direct = None
@@ -475,7 +478,7 @@ class BufferGeometry(pyOpenGLObject):
             attributes.normal.needsUpdate = True
 
     def merge(self, geometry, offset=0 ):
-        if not ( geometry and geometry.isBufferGeometry ):
+        if not ( geometry and geometry.my_class(isBufferGeometry) ):
             print( 'THREE.BufferGeometry.merge(): geometry not an instance of THREE.BufferGeometry.', geometry )
             return
 

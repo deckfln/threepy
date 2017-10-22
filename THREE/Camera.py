@@ -17,6 +17,8 @@ class Camera(Object3D):
 
     def __init__(self):
         super().__init__()
+        self.set_class(isCamera)
+
         self.type = 'Camera'
 
         self.matrixWorldInverse = Matrix4()

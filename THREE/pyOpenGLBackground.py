@@ -31,14 +31,14 @@ class pyOpenGLBackground:
 
         if background is None:
             self.setClear( self.clearColor, self.clearAlpha )
-        elif background and background.isColor:
+        elif background and background.my_class(isColor):
             self.setClear( background, 1 )
             forceClear = True
 
         if self.renderer.autoClear or forceClear:
             self.renderer.clear( self.renderer.autoClearColor, self.renderer.autoClearDepth, self.renderer.autoClearStencil )
 
-        if background and background.isCubeTexture:
+        if background and background.my_class(isCubeTexture):
             if self.boxMesh is None:
                 self.boxMesh = Mesh(
                     BoxBufferGeometry( 1, 1, 1 ),
@@ -73,7 +73,7 @@ class pyOpenGLBackground:
 
             renderList.push( self.boxMesh, self.boxMesh.geometry, self.boxMesh.material, 0, None )
 
-        elif background and background.isTexture:
+        elif background and background.my_class(isTexture):
             if self.planeCamera is None:
                 planeCamera = OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
 

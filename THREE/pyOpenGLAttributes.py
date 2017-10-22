@@ -4,6 +4,8 @@
  */
 """
 from OpenGL.GL import *
+from THREE.pyOpenGLObject import *
+
 
 _conv = {
     'float32': GL_FLOAT,
@@ -25,7 +27,7 @@ class _pyOPenGLAattribute:
         self.version = version
 
 
-class pyOpenGLAttributes:
+class pyOpenGLAttributes(pyOpenGLObject):
     def __init__(self):
         self.buffers = {}
 
@@ -73,13 +75,13 @@ class pyOpenGLAttributes:
     # //
 
     def get(self, attribute ):
-        if attribute.isInterleavedBufferAttribute:
+        if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
         return self.buffers[attribute.uuid]
 
     def remove(self, attribute):
-        if attribute.isInterleavedBufferAttribute:
+        if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
         if attribute.uuid in self.buffers:
@@ -88,7 +90,7 @@ class pyOpenGLAttributes:
             del self.buffers[attribute.uuid]
 
     def update(self, attribute, bufferType):
-        if attribute.isInterleavedBufferAttribute:
+        if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
         if attribute.uuid in self.buffers:

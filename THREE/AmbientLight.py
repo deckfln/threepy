@@ -11,6 +11,7 @@ class AmbientLight(Light):
 
     def __init__(self, color, intensity=1):
         super().__init__(color, intensity)
+        self.set_class(isAmbientLight)
 
         self.type = 'AmbientLight'
 

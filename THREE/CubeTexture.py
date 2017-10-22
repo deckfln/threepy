@@ -18,6 +18,7 @@ class CubeTexture(Texture):
             mapping = CubeReflectionMapping
 
         super().__init__(images, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy, encoding)
+        self.set_class(isCubeTexture)
 
         self.flipY = False
 

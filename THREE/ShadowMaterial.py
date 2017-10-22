@@ -17,6 +17,7 @@ class ShadowMaterial(Material):
     
     def __init__(self, parameters ):
         super().__init__()
+        self.set_class(isShadowMaterial)
 
         self.type = 'ShadowMaterial'
 

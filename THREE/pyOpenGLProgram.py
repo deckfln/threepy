@@ -234,7 +234,7 @@ class pyOpenGLProgram:
         self.code = code
         self.usedTimes = 1
 
-        defines = material.defines if 'defines' in material.__dict__ else None
+        defines = material.defines
 
         vertexShader = shader['vertexShader']
         fragmentShader = shader['fragmentShader']
@@ -278,7 +278,7 @@ class pyOpenGLProgram:
             gammaFactorDefine = renderer.gammaFactor
 
         # // console.log('building program ')
-        exts = material.extensions if hasattr(material, 'extensions') else None
+        exts = material.extensions
         customExtensions = generateExtensions(exts, parameters, extensions)
 
         customDefines = generateDefines(defines)
@@ -287,7 +287,7 @@ class pyOpenGLProgram:
 
         program = glCreateProgram()
 
-        if material.isRawShaderMaterial:
+        if material.my_class(isRawShaderMaterial):
             prefixVertex = '\n'.join([
                 customDefines,
                 '\n'
@@ -486,7 +486,7 @@ class pyOpenGLProgram:
         fragmentShader = parseIncludes(fragmentShader)
         fragmentShader = replaceLightNums(fragmentShader, parameters)
 
-        if not material.isShaderMaterial:
+        if not material.my_class(isShaderMaterial):
             vertexShader = unrollLoops(vertexShader)
             fragmentShader = unrollLoops(fragmentShader)
 
@@ -504,7 +504,7 @@ class pyOpenGLProgram:
 
         # // Force a particular attribute to index 0.
 
-        if hasattr(material, 'index0AttributeName') and material.index0AttributeName:
+        if material.index0AttributeName:
             glBindAttribLocation(program, 0, material.index0AttributeName)
         elif parameters['morphTargets']:
             # // programs with morphTargets displace position out of attribute 0

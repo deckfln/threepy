@@ -15,6 +15,7 @@ class Light(Object3D):
     
     def __init__(self, color=0xffffff, intensity=1 ):
         super().__init__()
+        self.set_class(isLight)
 
         self.type = 'Light'
 
@@ -69,6 +70,7 @@ class Light(Object3D):
 
 class LightShadow(pyOpenGLObject):
     def __init__(self, camera):
+        super().__init__()
         self.camera = camera
 
         self.bias = 0

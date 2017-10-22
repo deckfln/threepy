@@ -124,10 +124,10 @@ UniformsLib = {
 
     'lights': {
 
-        'ambientLightColor': { 'value': [] },
+        'ambientLightColor': { 'value': None },
 
         'directionalLights': { 'value': [],
-                                        'properties': {
+           'properties': {
             'direction': {},
             'color': {},
 

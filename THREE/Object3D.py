@@ -33,6 +33,9 @@ class Object3D(pyOpenGLObject):
         self.id = _object3DId
         _object3DId += 1
 
+        super().__init__()
+        self.set_class(isObject3D)
+
         self.uuid = _Math.generateUUID()
 
         self.name = ''
@@ -183,7 +186,7 @@ class Object3D(pyOpenGLObject):
         else:
             vector.copy(x)
 
-        if self.isCamera:
+        if self.my_class(isCamera):
             m1.lookAt(self.position, vector, self.up)
         else:
             m1.lookAt(vector, self.position, self.up)

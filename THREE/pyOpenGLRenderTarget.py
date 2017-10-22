@@ -25,6 +25,9 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
     def __init__(self, width=0, height=0, options=None ):
         self.uuid = _Math.generateUUID()
 
+        super().__init__()
+        self.set_class(isWebGLRenderTarget)
+
         self.width = width
         self.height = height
 

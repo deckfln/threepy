@@ -221,14 +221,12 @@ class SingleUniform:
             glUniform2f(self.addr, v.x, v.y)
 
     def setValue3fv(self, v, renderer=None):
-        if hasattr(v, 'x'):
-            glUniform3f(self.addr, v.x, v.y, v.z)
-        elif hasattr(v, 'r'):
-            glUniform3f(self.addr, v.r, v.g, v.b)
-        else:
-            # TODO FDE: fix this ?
-            # glUniform3f(self.addr, v[0], v[1], v[2])
+        if isinstance(v, list):
             glUniform3fv(self.addr, 1, v)
+        elif v.my_class(isVector3):
+            glUniform3f(self.addr, v.x, v.y, v.z)
+        else:
+            glUniform3f(self.addr, v.r, v.g, v.b)
 
     def setValue4fv(self, v, renderer=None):
         if hasattr(v, 'x') is None:
@@ -242,20 +240,16 @@ class SingleUniform:
         glUniformMatrix2fv(self.addr, 1, GL_FALSE, v.elements or v)
 
     def setValue3fm(self, v, renderer=None):
-        if v.elements is None:
+        try:
+            glUniformMatrix3fv(self.addr, 1, GL_FALSE, v.elements)
+        except:
             glUniformMatrix3fv(self.addr, GL_FALSE, v)
-        else:
-            mat3array = np.array(v.elements, 'f')
-            glUniformMatrix3fv(self.addr, 1, GL_FALSE, mat3array)
 
     def setValue4fm(self, v, renderer=None):
-        if v.elements is None:
+        try:
+            glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
+        except:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
-        else:
-            # TODO reuse the mat4array numpy
-            # mat4array.set(v.elements)
-            mat4array = np.array(v.elements, 'f')
-            glUniformMatrix4fv(self.addr, 1, GL_FALSE, mat4array)
 
     # // Single texture (2D / Cube)
 
@@ -281,6 +275,7 @@ class SingleUniform:
         glUniform4iv(self.addr, v)
 
     # // self.path = activeInfo.name; # // DEBUG
+
 
 class PureArrayUniform():
     def __init__(self, id, activeInfo, addr ):
@@ -484,19 +479,17 @@ class pyOpenGLUniforms( UniformContainer ):
 # // Static interface
 
     def upload(gl, seq, values, renderer ):
-        for i in range(len(seq)):
-            u = seq[ i ]
+        for u in seq:
             v = values[ u.id ]
 
-            if not v.needsUpdate == False:
+            if v.needsUpdate is not False:
                 # // note: always updating when .needsUpdate is undefined
                 u.setValue( v.value, renderer )
 
     def seqWithValue(seq, values):
         r = []
 
-        for i in range(len(seq)):
-            u = seq[ i ]
+        for u in seq:
             if u.id in values:
                 r.append( u )
 

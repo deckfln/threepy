@@ -24,6 +24,9 @@ class Texture(pyOpenGLObject):
         self.id = _textureId
         _textureId += 1
 
+        super().__init__()
+        self.set_class(isTexture)
+
         self.uuid = _Math.generateUUID()
 
         self.name = ''

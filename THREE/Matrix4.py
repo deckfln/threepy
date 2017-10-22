@@ -17,16 +17,22 @@ from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
 
+
 class Matrix4(pyOpenGLObject):
     isMatrix4 = True
 
     def __init__(self):
+        super().__init__()
+        self.set_class(isMatrix4)
+
         self.elements = np.array([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
-            ], 'f')
+            ], dtype=np.float64)
+
+        self.matrix = self.elements.reshape(4, 4)
 
     def set(self, n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44):
         te = self.elements
@@ -59,11 +65,11 @@ class Matrix4(pyOpenGLObject):
         return type(self)().fromArray(self.elements)
 
     def copy(self, m):
-        te = self.elements
-        me = m.elements
-
         np.copyto(self.elements, m.elements)
         """
+        te = self.elements
+        me = m.elements
+        
         te[0] = me[0]; te[1] = me[1]; te[2] = me[2]; te[3] = me[3]
         te[4] = me[4]; te[5] = me[5]; te[6] = me[6]; te[7] = me[7]
         te[8] = me[8]; te[9] = me[9]; te[10] = me[10]; te[11] = me[11]
@@ -329,6 +335,10 @@ class Matrix4(pyOpenGLObject):
         return self.multiplyMatrices(m, self)
 
     def multiplyMatrices(self, a, b):
+        t = np.dot(b.matrix, a.matrix)
+        np.copyto(self.matrix, t)
+
+        """
         ae = a.elements
         be = b.elements
         te = self.elements
@@ -362,6 +372,12 @@ class Matrix4(pyOpenGLObject):
         te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42
         te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44
+
+        t1 = t.reshape(16)
+        for i in range(16):
+            if t1[i] != te[i]:
+                print("not the same")
+        """
 
         return self
 
@@ -517,9 +533,11 @@ class Matrix4(pyOpenGLObject):
 
     def scale(self, v):
         te = self.elements
-        x = v.x; y = v.y; z = v.z
+        x = v.x
+        y = v.y
+        z = v.z
 
-        te *= (x, x, x, 1, y, y, y, 1, z, z, z, 1, 1, 1, 1, 1)
+        te *= np.array([x, x, x, 1, y, y, y, 1, z, z, z, 1, 1, 1, 1, 1])
         """
         te[0] *= x
         te[4] *= y 

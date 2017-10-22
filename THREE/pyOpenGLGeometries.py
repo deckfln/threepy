@@ -51,9 +51,9 @@ class pyOpenGLGeometries:
 
         geometry.onDispose(self.onGeometryDispose)
 
-        if geometry.isBufferGeometry:
+        if geometry.my_class(isBufferGeometry):
             buffergeometry = geometry
-        elif geometry.isGeometry:
+        elif geometry.my_class(isGeometry):
             if geometry._bufferGeometry is None:
                 geometry._bufferGeometry = BufferGeometry().setFromObject(object)
 

@@ -183,7 +183,7 @@ class pyOpenGLSpriteRenderer:
                 glUniform1i( self.uniforms.fogType, 1 )
                 oldFogType = 1
                 sceneFogType = 1
-            elif fog.isFogExp2:
+            elif fog.my_class(isFogExp2):
                 glUniform1f( self.uniforms.fogDensity, fog.density )
 
                 glUniform1i( self.uniforms.fogType, 2 )

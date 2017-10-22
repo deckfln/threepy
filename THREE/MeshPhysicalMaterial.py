@@ -15,6 +15,7 @@ class MeshPhysicalMaterial(MeshStandardMaterial):
     
     def __init__(self, parameters=None ):
         super().__init__()
+        self.set_class(isMeshPhysicalMaterial)
 
         self.defines = { 'PHYSICAL': '' }
 

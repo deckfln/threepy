@@ -26,6 +26,7 @@ class DirectionalLight(Light):
     
     def __init__(self, color=0xffffff, intensity = 1 ):
         super().__init__( color, intensity )
+        self.set_class(isDirectionalLight)
 
         self.type = 'DirectionalLight'
 

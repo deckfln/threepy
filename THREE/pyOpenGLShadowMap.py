@@ -116,7 +116,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         for i in range(len(lights)):
             light = lights[ i ]
             shadow = light.shadow
-            isPointLight = light and light.isPointLight
+            is_PointLight = light and light.my_class(isPointLight)
 
             if shadow is None:
                 print( 'THREE.WebGLShadowMap:', light, 'has no shadow.' )
@@ -127,7 +127,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             self._shadowMapSize.copy( shadow.mapSize )
             self._shadowMapSize.min( self._maxShadowMapSize )
 
-            if isPointLight:
+            if is_PointLight:
                 vpWidth = self._shadowMapSize.x
                 vpHeight = self._shadowMapSize.y
 
@@ -168,7 +168,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
                 shadowCamera.updateProjectionMatrix()
 
-            if shadow.isSpotLightShadow:
+            if shadow.my_class(isSpotLightShadow):
                 shadow.update( light )
 
             shadowMap = shadow.map
@@ -177,7 +177,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             self._lightPositionWorld.setFromMatrixPosition( light.matrixWorld )
             shadowCamera.position.copy( self._lightPositionWorld )
 
-            if isPointLight:
+            if is_PointLight:
                 faceCount = 6
 
                 # // for point lights we set the shadow matrix to be a translation-only matrix
@@ -211,7 +211,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             # // run a single pass if not
 
             for face in range(faceCount):
-                if isPointLight:
+                if is_PointLight:
                     self._lookTarget.copy( shadowCamera.position )
                     self._lookTarget.add( self.cubeDirections[ face ] )
                     shadowCamera.up.copy( self.cubeUps[ face ] )
@@ -228,11 +228,11 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
                 # // set object matrices & frustum culling
 
-                self.renderObject( scene, camera, shadowCamera, isPointLight )
+                self.renderObject( scene, camera, shadowCamera, is_PointLight )
 
         self.needsUpdate = False
 
-    def getDepthMaterial(self, object, material, isPointLight, lightPositionWorld, shadowCameraNear, shadowCameraFar ):
+    def getDepthMaterial(self, object, material, is_PointLight, lightPositionWorld, shadowCameraNear, shadowCameraFar ):
         geometry = object.geometry
 
         result = None
@@ -240,7 +240,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         materialVariants = self._depthMaterials
         customMaterial = object.customDepthMaterial
 
-        if isPointLight:
+        if is_PointLight:
             materialVariants = self._distanceMaterials
             customMaterial = object.customDistanceMaterial
 
@@ -248,16 +248,16 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             useMorphing = False
 
             if material.morphTargets:
-                if geometry and geometry.isBufferGeometry:
+                if geometry and geometry.my_class(isBufferGeometry):
                     useMorphing = geometry.morphAttributes and geometry.morphAttributes.position and geometry.morphAttributes.position.length > 0
 
-                elif geometry and geometry.isGeometry:
+                elif geometry and geometry.my_class(isGeometry):
                     useMorphing = geometry.morphTargets and geometry.morphTargets.length > 0
 
-            if object.isSkinnedMesh and material.skinning == False:
+            if object.is_a('SkinnedMesh') and material.skinning == False:
                 print( 'THREE.WebGLShadowMap: THREE.SkinnedMesh with material.skinning set to False:', object )
 
-            useSkinning = object.isSkinnedMesh and material.skinning
+            useSkinning = object.is_a('SkinnedMesh') and material.skinning
 
             variantIndex = 0
 
@@ -317,22 +317,22 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         result.clipIntersection = material.clipIntersection
 
         result.wireframeLinewidth = material.wireframeLinewidth
-        result.linewidth = material.linewidth
+        result.linewidth = material.linewidth if hasattr(material, 'linewidth') else None
 
-        if isPointLight and result.isMeshDistanceMaterial:
+        if is_PointLight and result.my_class(isMeshDistanceMaterial):
             result.referencePosition.copy( lightPositionWorld )
             result.nearDistance = shadowCameraNear
             result.farDistance = shadowCameraFar
 
         return result
 
-    def renderObject(self, object, camera, shadowCamera, isPointLight ):
+    def renderObject(self, object, camera, shadowCamera, is_PointLight ):
         if object.visible == False:
             return
 
         visible = object.layers.test( camera.layers )
 
-        if visible and ( object.is_a('Mesh') or object.isLine or object.isPoints ):
+        if visible and ( object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints) ):
             if object.castShadow and ( not object.frustumCulled or self._frustum.intersectsObject( object ) ):
                 object.modelViewMatrix.multiplyMatrices( shadowCamera.matrixWorldInverse, object.matrixWorld )
 
@@ -347,14 +347,14 @@ class pyOpenGLShadowMap(pyOpenGLObject):
                         groupMaterial = material[ group.materialIndex ]
 
                         if groupMaterial and groupMaterial.visible:
-                            depthMaterial = self.getDepthMaterial( object, groupMaterial, isPointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
+                            depthMaterial = self.getDepthMaterial( object, groupMaterial, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
                             self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, group )
 
                 elif material.visible:
-                    depthMaterial = self.getDepthMaterial( object, material, isPointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
+                    depthMaterial = self.getDepthMaterial( object, material, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
                     self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, None )
 
         children = object.children
 
         for i in range(len(children)):
-            self.renderObject( children[ i ], camera, shadowCamera, isPointLight )
+            self.renderObject( children[ i ], camera, shadowCamera, is_PointLight )

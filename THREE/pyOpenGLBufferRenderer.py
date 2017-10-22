@@ -34,7 +34,7 @@ class pyOpenGLBufferRenderer:
 
         position = geometry.attributes.position
 
-        if position.isInterleavedBufferAttribute:
+        if position.my_class(isInterleavedBufferAttribute):
             count = position.data.count
             self.extensions.drawArraysInstancedANGLE( self.mode, 0, count, geometry.maxInstancedCount )
         else:

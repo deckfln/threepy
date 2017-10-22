@@ -311,6 +311,7 @@ class LineCurve(Curve):
 
     def __init__(self, v1, v2 ):
         super().__init__()
+        self.set_class(isLineCurve)
 
         self.v1 = v1
         self.v2 = v2

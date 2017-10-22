@@ -83,6 +83,7 @@ from THREE.Fog import *
 from THREE.LineBasicMaterial import *
 from THREE.Line import *
 from THREE.LineSegments import *
+from THREE.LineLoop import *
 from THREE.ArrowHelper import *
 from THREE.BoxHelper import *
 from THREE.CameraHelper import *
@@ -113,6 +114,7 @@ from THREE.pyOpenGLProgram import *
 from THREE.pyOpenGLPrograms import *
 from THREE.pyOpenGLShadowMap import *
 from THREE.pyOpenGLRenderTarget import *
+from THREE.pyOpenGLRenderTargetCube import *
 from THREE.pyOpenGLRenderer import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.LoadingManager import *

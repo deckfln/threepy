@@ -38,6 +38,7 @@ class pyOpenGLFlareRenderer:
 """
 """
 
+
 class _Model:
     def __init__(self, vaoID, vertexCount, object3D):
         self.vaoID = vaoID
@@ -500,50 +501,50 @@ class pyOpenGLRenderer:
 
         if self.state.useProgram(program.program):
             refreshProgram = True
-        refreshMaterial = True
-        refreshLights = True
+            refreshMaterial = True
+            refreshLights = True
 
         if material.id != self._currentMaterialId:
             self._currentMaterialId = material.id
-        refreshMaterial = True
+            refreshMaterial = True
 
         if refreshProgram or camera != self._currentCamera:
             p_uniforms.setValue(None, 'projectionMatrix', camera.projectionMatrix)
 
-        if self.capabilities.logarithmicDepthBuffer:
-            p_uniforms.setValue(None, 'logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
+            if self.capabilities.logarithmicDepthBuffer:
+                p_uniforms.setValue(None, 'logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
 
-        # // Avoid unneeded uniform updates per ArrayCamera's sub-camera
+            # // Avoid unneeded uniform updates per ArrayCamera's sub-camera
 
-        if self._currentCamera != (self._currentArrayCamera or camera):
-            self._currentCamera = (self._currentArrayCamera or camera)
+            if self._currentCamera != (self._currentArrayCamera or camera):
+                self._currentCamera = (self._currentArrayCamera or camera)
 
-            # // lighting uniforms depend on the camera so enforce an update
-            # // now, in case self material supports lights - or later, when
-            # // the next material that does gets activated:
+                # // lighting uniforms depend on the camera so enforce an update
+                # // now, in case self material supports lights - or later, when
+                # // the next material that does gets activated:
 
-            refreshMaterial = True  # // set to True on material change
-            refreshLights = True  # // remains set until update done
+                refreshMaterial = True  # // set to True on material change
+                refreshLights = True  # // remains set until update done
 
-        # // load material specific uniforms
-        # // (shader material also gets them for the sake of genericity)
+            # // load material specific uniforms
+            # // (shader material also gets them for the sake of genericity)
 
-        if material.isShaderMaterial or \
-                material.isMeshPhongMaterial or \
-                material.isMeshStandardMaterial or \
-                material.envMap:
+            if material.my_class(isShaderMaterial) or \
+                    material.my_class(isMeshPhongMaterial) or \
+                    material.my_class(isMeshStandardMaterial) or \
+                    material.envMap is not None:
 
-            if 'cameraPosition' in p_uniforms.map:
-                uCamPos = p_uniforms.map['cameraPosition']
-                uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
+                if 'cameraPosition' in p_uniforms.map:
+                    uCamPos = p_uniforms.map['cameraPosition']
+                    uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
 
-        if material.isMeshPhongMaterial or \
-                material.isMeshLambertMaterial or \
-                material.isMeshBasicMaterial or \
-                material.isMeshStandardMaterial or \
-                material.isShaderMaterial or \
-                material.skinning:
-            p_uniforms.setValue(None, 'viewMatrix', camera.matrixWorldInverse)
+            if material.my_class(isMeshPhongMaterial) or \
+                    material.my_class(isMeshLambertMaterial) or \
+                    material.my_class(isMeshBasicMaterial) or \
+                    material.my_class(isMeshStandardMaterial) or \
+                    material.my_class(isShaderMaterial) or \
+                    material.skinning:
+                p_uniforms.setValue(None, 'viewMatrix', camera.matrixWorldInverse)
 
         # // skinning uniforms must be set even if material didn't change
         # // auto-setting of texture unit for bone texture must go before other textures
@@ -607,53 +608,53 @@ class pyOpenGLRenderer:
             if fog and material.fog:
                 self._refreshUniformsFog(m_uniforms, fog)
 
-            if material.isMeshBasicMaterial:
+            if material.my_class(isMeshBasicMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
 
-            elif material.isMeshLambertMaterial:
+            elif material.my_class(isMeshLambertMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
                 self._refreshUniformsLambert(m_uniforms, material)
 
-            elif material.isMeshPhongMaterial:
+            elif material.my_class(isMeshPhongMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
 
-                if material.isMeshToonMaterial:
+                if material.my_class(isMeshToonMaterial):
                     self._refreshUniformsToon(m_uniforms, material)
                 else:
                     self._refreshUniformsPhong(m_uniforms, material)
 
-            elif material.isMeshStandardMaterial:
+            elif material.my_class(isMeshStandardMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
 
-                if material.isMeshPhysicalMaterial:
+                if material.my_class(isMeshPhysicalMaterial):
                     self._refreshUniformsPhysical(m_uniforms, material)
                 else:
                     self._refreshUniformsStandard(m_uniforms, material)
 
-            elif material.isMeshNormalMaterial:
+            elif material.my_class(isMeshNormalMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
 
-            elif material.isMeshDepthMaterial:
+            elif material.my_class(isMeshDepthMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
                 self._refreshUniformsDepth(m_uniforms, material)
 
-            elif material.isMeshDistanceMaterial:
+            elif material.my_class(isMeshDistanceMaterial):
                 self._refreshUniformsCommon(m_uniforms, material)
                 self._refreshUniformsDistance(m_uniforms, material)
 
-            elif material.isMeshNormalMaterial:
+            elif material.my_class(isMeshNormalMaterial):
                 self._refreshUniformsNormal(m_uniforms, material)
 
-            elif material.isLineBasicMaterial:
+            elif material.my_class(isLineBasicMaterial):
                 self._refreshUniformsLine(m_uniforms, material)
 
-                if material.isLineDashedMaterial:
+                if material.my_class(isLineDashedMaterial):
                     self._refreshUniformsDash(m_uniforms, material)
 
-            elif material.isPointsMaterial:
+            elif material.my_class(isPointsMaterial):
                 self._refreshUniformsPoints(m_uniforms, material)
 
-            elif material.isShadowMaterial:
+            elif material.my_class(isShadowMaterial):
                 m_uniforms.color.value = material.color
                 m_uniforms.opacity.value = material.opacity
 
@@ -684,34 +685,34 @@ class pyOpenGLRenderer:
         if material.color:
             uniforms.diffuse.value = material.color
 
-        if hasattr(material, 'emissive') and material.emissive:
+        if material.emissive:
             uniforms.emissive.value.copy(material.emissive).multiplyScalar(material.emissiveIntensity)
 
-        if material.map:
+        if material.map is not None:
             uniforms.map.value = material.map
 
-        if material.alphaMap:
+        if material.alphaMap is not None:
             uniforms.alphaMap.value = material.alphaMap
 
-        if material.specularMap:
+        if material.specularMap is not None:
             uniforms.specularMap.value = material.specularMap
 
-        if material.envMap:
+        if material.envMap is not None:
             uniforms.envMap.value = material.envMap
 
             # // don't flip CubeTexture envMaps, flip everything else:
             # //  WebGLRenderTargetCube will be flipped for backwards compatibility
             # //  WebGLRenderTargetCube.texture will be flipped because it's a Texture and NOT a CubeTexture
             # // this check must be handled differently, or removed entirely, if WebGLRenderTargetCube uses a CubeTexture in the future
-            uniforms.flipEnvMap.value = 1 if (not (material.envMap and material.envMap.isCubeTexture)) else - 1
+            uniforms.flipEnvMap.value = 1 if (not (material.envMap and material.envMap.my_class(isCubeTexture))) else - 1
             uniforms.reflectivity.value = material.reflectivity
             uniforms.refractionRatio.value = material.refractionRatio
 
-        if material.lightMap:
+        if material.lightMap is not None:
             uniforms.lightMap.value = material.lightMap
             uniforms.lightMapIntensity.value = material.lightMapIntensity
 
-        if material.aoMap:
+        if material.aoMap is not None:
             uniforms.aoMap.value = material.aoMap
             uniforms.aoMapIntensity.value = material.aoMapIntensity
 
@@ -728,24 +729,24 @@ class pyOpenGLRenderer:
             uvScaleMap = material.map
         elif material.specularMap:
             uvScaleMap = material.specularMap
-        elif hasattr(material, 'displacementMap') and material.displacementMap:
+        elif material.displacementMap:
             uvScaleMap = material.displacementMap
-        elif hasattr(material, 'normalMap') and material.normalMap:
+        elif material.normalMap:
             uvScaleMap = material.normalMap
-        elif hasattr(material, 'bumpMap') and material.bumpMap:
+        elif material.bumpMap:
             uvScaleMap = material.bumpMap
-        elif hasattr(material, 'roughnessMap') and material.roughnessMap:
+        elif material.roughnessMap:
             uvScaleMap = material.roughnessMap
-        elif hasattr(material, 'metalnessMap') and material.metalnessMap:
+        elif material.metalnessMap:
             uvScaleMap = material.metalnessMap
-        elif hasattr(material, 'alphaMap') and material.alphaMap:
+        elif material.alphaMap:
             uvScaleMap = material.alphaMap
-        elif hasattr(material, 'emissiveMap') and material.emissiveMap:
+        elif material.emissiveMap:
             uvScaleMap = material.emissiveMap
 
         if uvScaleMap is not None:
             # // backwards compatibility
-            if uvScaleMap.isWebGLRenderTarget:
+            if uvScaleMap.my_class(isWebGLRenderTarget):
                 uvScaleMap = uvScaleMap.texture
 
             offset = uvScaleMap.offset
@@ -782,7 +783,7 @@ class pyOpenGLRenderer:
         if fog.isFog:
             uniforms.fogNear.value = fog.near
             uniforms.fogFar.value = fog.far
-        elif fog.isFogExp2:
+        elif fog.my_class(isFogExp2):
             uniforms.fogDensity.value = fog.density
 
     def _refreshUniformsLambert(self, uniforms, material):
@@ -972,7 +973,7 @@ class pyOpenGLRenderer:
 
         uniforms = materialProperties.shader['uniforms']
 
-        if not material.isShaderMaterial and not material.isRawShaderMaterial or material.clipping:
+        if not material.my_class(isShaderMaterial) and not material.my_class(isRawShaderMaterial) or material.clipping:
             materialProperties.numClippingPlanes = self._clipping.numPlanes
             materialProperties.numIntersection = self._clipping.numIntersection
             uniforms.clippingPlanes = self._clipping.uniform
@@ -1006,7 +1007,7 @@ class pyOpenGLRenderer:
         materialProperties.uniformsList = uniformsList
 
     def _setupVertexAttributes(self, material, program, geometry, startIndex=0):
-        if geometry and geometry.isInstancedBufferGeometry:
+        if geometry and geometry.my_class(isInstancedBufferGeometry):
             if extensions.get('ANGLE_instanced_arrays') is None:
                 raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
 
@@ -1014,7 +1015,7 @@ class pyOpenGLRenderer:
 
         geometryAttributes = geometry.attributes
         programAttributes = program.getAttributes()
-        materialDefaultAttributeValues = material.defaultAttributeValues if hasattr(material, 'defaultAttributeValues') else None
+        materialDefaultAttributeValues = material.defaultAttributeValues
 
         for name in programAttributes:
             programAttribute = programAttributes[ name ]
@@ -1037,7 +1038,7 @@ class pyOpenGLRenderer:
                     type = attribute.type
                     bytesPerElement = attribute.bytesPerElement
 
-                    if geometryAttribute.isInterleavedBufferAttribute:
+                    if geometryAttribute.my_class(isInterleavedBufferAttribute):
                         data = geometryAttribute.data
                         stride = data.stride
                         offset = geometryAttribute.offset
@@ -1053,7 +1054,7 @@ class pyOpenGLRenderer:
                         glBindBuffer( GL_ARRAY_BUFFER, buffer )
                         glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(( startIndex * stride + offset ) * bytesPerElement) )
                     else:
-                        if geometryAttribute.isInstancedBufferAttribute:
+                        if geometryAttribute.my_class(isInstancedBufferAttribute):
                             self.state.enableAttributeAndDivisor( programAttribute, geometryAttribute.meshPerAttribute )
 
                             if geometry.maxInstancedCount is None:
@@ -1088,22 +1089,18 @@ class pyOpenGLRenderer:
         :param overrideMaterial:
         :return:
         """
-        for i in range(len(renderList)):
-            renderItem = renderList[i]
-
+        for renderItem in renderList:
             object = renderItem.object
             geometry = renderItem.geometry
             material = renderItem.material if overrideMaterial is None else overrideMaterial
             group = renderItem.group
 
-            if camera.isArrayCamera:
+            if camera.my_class(isArrayCamera):
                 self._currentArrayCamera = camera
 
                 cameras = camera.cameras
 
-                for j in range(len(cameras)):
-                    camera2 = cameras[j]
-
+                for camera2 in cameras:
                     if object.layers.test(camera2.layers):
                         bounds = camera2.bounds
 
@@ -1137,7 +1134,7 @@ class pyOpenGLRenderer:
         object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
         object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
 
-        if object.isImmediateRenderObject:
+        if object.my_class(isImmediateRenderObject):
             self.state.setMaterial(material)
 
             program = self._setProgram(camera, scene.fog, material, object)
@@ -1197,9 +1194,9 @@ class pyOpenGLRenderer:
         if object.hasNormals:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
 
-            if not material.isMeshPhongMaterial and \
-                    not material.isMeshStandardMaterial and \
-                    not material.isMeshNormalMaterial and \
+            if not material.my_class(isMeshPhongMaterial) and \
+                    not material.my_class(isMeshStandardMaterial) and \
+                    not material.my_class(isMeshNormalMaterial) and \
                     material.flatShading:
 
                 for i in range(0, object.count * 3, 9):
@@ -1264,7 +1261,8 @@ class pyOpenGLRenderer:
 
         program = self._setProgram(camera, fog, material, object)
         self.program = program
-        geometryProgram = "%d_%d_%d" % (geometry.id, program.id, material.wireframe == True)
+        wireframe = material.wireframe
+        geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
 
         updateBuffers = False
 
@@ -1282,7 +1280,7 @@ class pyOpenGLRenderer:
         position = geometry.attributes.position
         rangeFactor = 1
 
-        if material.wireframe:
+        if wireframe:
             index = self.geometries.getWireframeAttribute(geometry)
             rangeFactor = 2
 
@@ -1326,7 +1324,7 @@ class pyOpenGLRenderer:
 
         # //
 
-        if object.is_a('Mesh'):
+        if object.my_class(isMesh):
             if material.wireframe:
                 self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
                 renderer.setMode(GL_LINES)
@@ -1338,7 +1336,7 @@ class pyOpenGLRenderer:
                 elif object.drawMode == TriangleFanDrawMode:
                     renderer.setMode(GL_TRIANGLE_FAN)
 
-        elif object.isLine:
+        elif object.my_class(isLine):
             lineWidth = material.linewidth
 
             if lineWidth is None:
@@ -1346,21 +1344,21 @@ class pyOpenGLRenderer:
 
             self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
 
-            if object.isLineSegments:
+            if object.my_class(isLineSegments):
                 renderer.setMode(GL_LINES)
-            elif object.isLineLoop:
+            elif object.my_class(isLineLoop):
                 renderer.setMode(GL_LINE_LOOP)
             else:
                 renderer.setMode(GL_LINE_STRIP)
 
-        elif object.isPoints:
+        elif object.my_class(isPoints):
             renderer.setMode(GL_POINTS)
             # <OpenGL
             self.state.enable(GL_POINT_SPRITE)
             self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
             # OpenGL>
 
-        if geometry and geometry.isInstancedBufferGeometry:
+        if geometry and geometry.my_class(isInstancedBufferGeometry):
             if geometry.maxInstancedCount > 0:
                 renderer.renderInstances(geometry, drawStart, drawCount)
         else:
@@ -1381,27 +1379,27 @@ class pyOpenGLRenderer:
         visible = object.layers.test( camera.layers )
 
         if visible:
-            if object.isLight:
+            if object.my_class(isLight):
                 self.lightsArray.append( object )
 
                 if object.castShadow:
                     self.shadowsArray.append( object )
 
-            elif object.isSprite:
+            elif object.my_class(isSprite):
                 if not object.frustumCulled or self._frustum.intersectsSprite( object ):
                     self.spritesArray.append( object )
 
-            elif object.isLensFlare:
+            elif object.my_class(isLensFlare):
                 self.flaresArray.append( object )
 
-            elif object.isImmediateRenderObject:
+            elif object.my_class(isImmediateRenderObject):
                 if sortObjects:
                     _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
 
-            elif object.is_a('Mesh') or object.isLine or object.isPoints:
-                if object.isSkinnedMesh:
+            elif object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
+                if object.is_a('SkinnedMesh'):
                     object.skeleton.update()
 
                 if not object.frustumCulled or self._frustum.intersectsObject( object ):
@@ -1436,7 +1434,7 @@ class pyOpenGLRenderer:
         :param forceClear:
         :return:
         """
-        if not (camera and camera.isCamera):
+        if not (camera and camera.my_class(isCamera)):
             raise RuntimeError('THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.')
 
         if self._isContextLost:
@@ -1576,7 +1574,7 @@ class pyOpenGLRenderer:
         if renderTarget:
             frameBuffer = self.properties.get( renderTarget ).frameBuffer
 
-            if renderTarget.isWebGLRenderTargetCube:
+            if renderTarget.my_class(isWebGLRenderTargetCube):
                 _framebuffer = frameBuffer[ renderTarget.activeCubeFace ]
                 isCube = True
             else:
@@ -1617,7 +1615,7 @@ class pyOpenGLRenderer:
 
     def setTexture2D(self,  texture, slot):
         warned = False
-        if texture and texture.isWebGLRenderTarget:
+        if texture and texture.my_class(isWebGLRenderTarget):
             if not warned:
                 print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." )
                 warned = True
@@ -1637,7 +1635,7 @@ class pyOpenGLRenderer:
         warned = False
 
         # // backwards compatibility: peel texture.texture
-        if texture and texture.isWebGLRenderTargetCube:
+        if texture and texture.my_class(isWebGLRenderTargetCube):
             if not warned:
                 print(
                     "THREE.WebGLRenderer.setTextureCube: don't use cube render targets as textures. Use their .texture property instead.")
@@ -1647,7 +1645,7 @@ class pyOpenGLRenderer:
 
         # // currently relying on the fact that WebGLRenderTargetCube.texture is a Texture and NOT a CubeTexture
         # // TODO: unify these code paths
-        if (texture and texture.isCubeTexture) or (isinstance(texture.image, list) and len(texture.image) == 6):
+        if (texture and texture.my_class(isCubeTexture)) or (isinstance(texture.image, list) and len(texture.image) == 6):
             # // CompressedTexture can have Array in image :/
             # // this function alone should take care of cube textures
             self.textures.setTextureCube(texture, slot)

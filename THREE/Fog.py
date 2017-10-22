@@ -12,6 +12,9 @@ class FogExp2(pyOpenGLObject):
     isFogExp2 = True
     
     def __init__(self, color, density ):
+        super().__init__()
+        self.set_class(isFogExp2)
+
         self.name = ''
 
         self.color = Color( color )
@@ -40,6 +43,8 @@ class Fog(pyOpenGLObject):
     isFog = True
     
     def __init__(self, color, near=1, far=1000 ):
+        super().__init__()
+        self.set_class(isFog)
         self.name = ''
 
         self.color = Color( color )

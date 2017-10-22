@@ -11,4 +11,6 @@ class ArrayCamera(PerspectiveCamera):
 
     def __init__(self, array=None ):
         super().__init__()
+        self.set_class(isArrayCamera)
+
         self.cameras = array or []

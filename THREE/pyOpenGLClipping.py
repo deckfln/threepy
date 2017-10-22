@@ -68,7 +68,7 @@ class pyOpenGLClipping:
             self.numPlanes += nGlobal
 
     def resetGlobalState(self):
-        if self.uniform.value != self.globalState:
+        if self.globalState and (self.uniform.value is None or self.uniform.value != self.globalState):
             self.uniform.value = self.globalState
             self.uniform.needsUpdate = self.numGlobalPlanes > 0
 

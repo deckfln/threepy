@@ -31,6 +31,7 @@ class MeshDistanceMaterial(Material):
     
     def __init__(self, parameters=None ):
         super().__init__()
+        self.set_class(isMeshDistanceMaterial)
 
         self.type = 'MeshDistanceMaterial'
 

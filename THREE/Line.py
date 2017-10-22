@@ -18,6 +18,9 @@ class Line(Object3D):
     
     def __init__(self, geometry=None, material=None, mode=0 ):
         super().__init__()
+
+        self.set_class(isLine)
+
         if mode == 1:
             print( 'THREE.Line: parameter THREE.LinePieces no longer supported. Created THREE.LineSegments instead.' )
             return LineSegments( geometry, material )
@@ -58,9 +61,9 @@ class Line(Object3D):
         vEnd = Vector3()
         interSegment = Vector3()
         interRay = Vector3()
-        step = 2 if (self and self.isLineSegments) else 1
+        step = 2 if (self and self.my_class(isLineSegments)) else 1
 
-        if geometry.isBufferGeometry:
+        if geometry.my_class(isBufferGeometry):
             index = geometry.index
             attributes = geometry.attributes
             positions = attributes.position.array
@@ -127,7 +130,7 @@ class Line(Object3D):
                         'object': self
                     } )
 
-        elif geometry.isGeometry:
+        elif geometry.my_class(isGeometry):
             vertices = geometry.vertices
             nbVertices = vertices.length
 

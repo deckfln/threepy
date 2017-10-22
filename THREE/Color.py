@@ -55,6 +55,8 @@ class Color(pyOpenGLObject):
     isColor = True
 
     def __init__(self, r=None, g=None, b=None):
+        super().__init__()
+        self.set_class(isColor)
         self.r = 1
         self.g = 1
         self.b = 1
@@ -72,7 +74,7 @@ class Color(pyOpenGLObject):
             self.setHex( value )
         elif isinstance(value, str):
             self.setStyle( value )
-        elif value and value.isColor:
+        elif value and value.my_class(isColor):
             self.copy( value )
         return self
 

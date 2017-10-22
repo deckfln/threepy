@@ -15,6 +15,7 @@ class MeshToonMaterial(MeshPhongMaterial):
     
     def __init__(self, parameters=None ):
         super().__init__()
+        self.set_class(isMeshToonMaterial)
 
         self.defines = { 'TOON': '' }
 

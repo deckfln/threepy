@@ -20,6 +20,7 @@ class _map:
         self.clippingState = None
         self.imageopenglTextureCube = None
 
+
 class pyOpenGLProperties:
     def __init__(self):
         self.properties = {}

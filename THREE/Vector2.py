@@ -6,6 +6,9 @@ class Vector2(pyOpenGLObject):
     isVector2 = True
 
     def __init__(self, x=0, y=0):
+        super().__init__()
+        self.set_class(isVector2)
+
         self.x = x
         self.y = y
 

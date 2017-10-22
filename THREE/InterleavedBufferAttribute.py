@@ -14,6 +14,9 @@ class InterleavedBufferAttribute(pyOpenGLObject):
     def __init__(self, interleavedBuffer, itemSize, offset, normalized ):
         self.uuid = _Math.generateUUID()
 
+        super().__init__()
+        self.set_class(isInterleavedBufferAttribute)
+
         self.data = interleavedBuffer
         self.itemSize = itemSize
         self.offset = offset

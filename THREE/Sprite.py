@@ -13,6 +13,7 @@ class Sprite(Object3D):
     
     def __init__(self, material=None ):
         super().__init__()
+        self.set_class(isSprite)
 
         self.type = 'Sprite'
 

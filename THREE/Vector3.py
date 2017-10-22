@@ -9,6 +9,8 @@
      */
 """
 import math
+import numpy as np
+
 from THREE.Quaternion import *
 from THREE.Matrix4 import *
 import THREE._Math as _Math
@@ -19,6 +21,8 @@ class Vector3(pyOpenGLObject):
     isVector3 = True
 
     def __init__(self, x=0, y=0, z=0):
+        super().__init__()
+        self.set_class(isVector3)
         self.x = x
         self.y = y
         self.z = z
@@ -39,7 +43,6 @@ class Vector3(pyOpenGLObject):
     def setX(self, x ):
         self.x = x
         return self
-
 
     def setY(self, y ):
         self.y = y
@@ -181,18 +184,35 @@ class Vector3(pyOpenGLObject):
         return self
 
     def applyMatrix4(self, m ):
-        x = self.x; y = self.y; z = self.z
+        x = self.x
+        y = self.y
+        z = self.z
         e = m.elements
 
-        if e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] == 0:
+        a = np.array([x, y, z, 1])
+        c = np.dot(a, m.matrix)
+
+        if c[3] == 0:
             self.z = float("-inf")
             return self
 
-        w = 1 / ( e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] )
+        c *= (1/c[3])
+
+        self.x = c[0]
+        self.y = c[1]
+        self.z = c[2]
+        """
+        det = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ]
+        if det == 0:
+            self.z = float("-inf")
+            return self
+
+        w = 1 / det
 
         self.x = ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ] ) * w
         self.y = ( e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z + e[ 13 ] ) * w
         self.z = ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w
+        """
 
         return self
 

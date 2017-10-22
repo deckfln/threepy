@@ -90,6 +90,8 @@ class Mesh(Object3D):
     def __init__(self, geometry=None, material=None ):
         super().__init__()
 
+        self.set_class(isMesh)
+
         self.type = 'Mesh'
 
         self.geometry = geometry if geometry is not None else BufferGeometry()
@@ -112,7 +114,7 @@ class Mesh(Object3D):
     def updateMorphTargets(self):
         geometry = self.geometry
 
-        if geometry.isBufferGeometry:
+        if geometry.my_class(isBufferGeometry):
             morphAttributes = geometry.morphAttributes
             k = morphAttributes.keys()
 
@@ -193,7 +195,7 @@ class Mesh(Object3D):
             if not ray.intersectsBox( geometry.boundingBox ):
                 return
 
-        if geometry.isBufferGeometry:
+        if geometry.my_class(isBufferGeometry):
             index = geometry.index
             position = geometry.attributes.position
             uv = geometry.attributes.uv
@@ -222,7 +224,7 @@ class Mesh(Object3D):
                     if intersection:
                         intersection.index = a  #// triangle number in positions buffer semantics
                         intersects.push( intersection )
-        elif geometry.isGeometry:
+        elif geometry.my_class(isGeometry):
             isMultiMaterial = isinstance(material, list)
 
             vertices = geometry.vertices

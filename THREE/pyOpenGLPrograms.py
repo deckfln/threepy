@@ -36,7 +36,7 @@ def _allocateBones(object, capabilities):
 def _getTextureEncodingFromMap(map, gammaOverrideLinear):
     if not map:
         encoding = LinearEncoding
-    elif map.isTexture:
+    elif map.my_class(isTexture):
         encoding = map.encoding
     elif hasattr(map, 'isWebGLRenderTarget'):
         print( "THREE.WebGLPrograms.getTextureEncodingFromMap: don't use render targets as textures. Use their .texture property instead." )
@@ -91,7 +91,7 @@ class pyOpenGLPrograms:
         # // heuristics to create shader parameters according to lights in the scene
         # // (not to blow over maxLights budget)
 
-        maxBones = _allocateBones(object, self.capabilities) if object.isSkinnedMesh else 0
+        maxBones = _allocateBones(object, self.capabilities) if object.is_a('SkinnedMesh') else 0
         precision = self.capabilities.precision
 
         if material.precision is not None:
@@ -102,20 +102,20 @@ class pyOpenGLPrograms:
 
         currentRenderTarget = self.renderer.getRenderTarget()
 
-        map = material.map if hasattr(material, 'map') else None
-        envMap = material.envMap if hasattr(material, 'envMap') else None
-        lightMap = material.lightMap if hasattr(material, 'lightMap') else None
-        aoMap = material.aoMap if hasattr(material, 'aoMap') else None
-        emissiveMap = material.emissiveMap if hasattr(material, 'emissiveMap') else None
-        bumpMap = material.bumpMap if hasattr(material, 'bumpMap') else None
-        normalMap = material.normalMap if hasattr(material, 'normalMap') else None
-        displacementMap = material.displacementMap if hasattr(material, 'displacementMap') else None
-        roughnessMap = material.roughnessMap if hasattr(material, 'roughnessMap') else None
-        metalnessMap = material.metalnessMap if hasattr(material, 'metalnessMap') else None
-        specularMap = material.specularMap if hasattr(material, 'specularMap') else None
-        alphaMap = material.alphaMap if hasattr(material, 'alphaMap') else None
-        gradientMap = material.gradientMap if hasattr(material, 'gradientMap') else None
-        combine = material.combine if hasattr(material, 'combine') else None
+        map = material.map
+        envMap = material.envMap
+        lightMap = material.lightMap
+        aoMap = material.aoMap
+        emissiveMap = material.emissiveMap
+        bumpMap = material.bumpMap
+        normalMap = material.normalMap
+        displacementMap = material.displacementMap
+        roughnessMap = material.roughnessMap
+        metalnessMap = material.metalnessMap
+        specularMap = material.specularMap
+        alphaMap = material.alphaMap
+        gradientMap = material.gradientMap
+        combine = material.combine
 
         parameters = {
 
@@ -150,11 +150,11 @@ class pyOpenGLPrograms:
 
             'fog': not not fog,
             'useFog': material.fog,
-            'fogExp': ( fog and fog.isFogExp2 ),
+            'fogExp': ( fog and fog.my_class(isFogExp2) ),
 
             'flatShading': material.flatShading,
 
-            'sizeAttenuation': material.sizeAttenuation if 'sizeAttenuation' in material.__dict__ else None,
+            'sizeAttenuation': material.sizeAttenuation,
             'logarithmicDepthBuffer': self.capabilities.logarithmicDepthBuffer,
 
             'skinning': material.skinning and maxBones > 0,
@@ -189,7 +189,7 @@ class pyOpenGLPrograms:
             'doubleSided': material.side == DoubleSide,
             'flipSided': material.side == BackSide,
 
-            'depthPacking': 'depthPacking' in material.__dict__ and material.depthPacking is not None
+            'depthPacking': 'depthPacking' if material.depthPacking else False
         }
 
         return parameters
@@ -203,7 +203,7 @@ class pyOpenGLPrograms:
             array.append(material['fragmentShader'])
             array.append(material['vertexShader'])
 
-        if 'defines' in material.__dict__:
+        if material.defines:
             for name in material.defines:
                 array.append(name)
                 array.append(str(material.defines[name]))

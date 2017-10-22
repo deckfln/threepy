@@ -28,6 +28,7 @@ class BufferAttribute(pyOpenGLObject):
         if isinstance(array, list):
             print('THREE.BufferAttribute: array should be a Typed Array.')
 
+        super().__init__()
         self.uuid = _Math.generateUUID()
         self.name = ''
 

@@ -10,7 +10,79 @@ from THREE.Color import *
 from THREE.Javascript import *
 
 
-class UniformsCache:
+class _LightUniforms:
+    def __init__(self):
+        self.type="_LightUniforms"
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+
+class _DirectionalLightUniforms(_LightUniforms):
+    def __init__(self):
+        super().__init__()
+        self.direction = Vector3()
+        self.color = Color()
+        self.shadow = False
+        self.shadowBias = 0
+        self.shadowRadius = 1
+        self.shadowMapSize = Vector2()
+
+
+class _SpotLightUniforms(_LightUniforms):
+    def __init__(self):
+        super().__init__()
+        self.position = Vector3()
+        self.direction = Vector3()
+        self.color = Color()
+        self.distance = 0
+        self.coneCos = 0
+        self.penumbraCos = 0
+        self.decay = 0
+        self.shadow = False
+        self.shadowBias = 0
+        self.shadowRadius = 1
+        self.shadowMapSize = Vector2()
+
+
+class _PointLightUniforms(_LightUniforms):
+    def __init__(self):
+        super().__init__()
+        self.position = Vector3()
+        self.color = Color()
+        self.distance = 0
+        self.decay = 0
+
+        self.shadow = False
+        self.shadowBias = 0
+        self.shadowRadius = 1
+        self.shadowMapSize = Vector2()
+        self.shadowCameraNear = 1
+        self.shadowCameraFar = 1000
+
+
+class _HemisphereLightUniforms(_LightUniforms):
+    def __init__(self):
+        super().__init__()
+        self.direction = Vector3()
+        self.skyColor = Color()
+        self.groundColor = Color()
+
+
+class _RectAreaLightUniforms(_LightUniforms):
+    def __init__(self):
+        super().__init__()
+        self.color = Color()
+        self.position = Vector3()
+        self.halfWidth = Vector3()
+        self.halfHeight = Vector3()
+        # // TODO (abelnation): set RectAreaLight shadow uniforms
+
+
+class _UniformsCache:
     def __init__(self):
         self.lights = {}
 
@@ -19,58 +91,15 @@ class UniformsCache:
             return self.lights[ light.id ]
 
         if light.type == 'DirectionalLight':
-                uniforms = javascriptObject({
-                    'direction': Vector3(),
-                    'color': Color(),
-
-                    'shadow': False,
-                    'shadowBias': 0,
-                    'shadowRadius': 1,
-                    'shadowMapSize': Vector2()
-                })
+                uniforms = _DirectionalLightUniforms()
         elif light.type == 'SpotLight':
-                uniforms = javascriptObject({
-                    'position': Vector3(),
-                    'direction': Vector3(),
-                    'color': Color(),
-                    'distance': 0,
-                    'coneCos': 0,
-                    'penumbraCos': 0,
-                    'decay': 0,
-
-                    'shadow': False,
-                    'shadowBias': 0,
-                    'shadowRadius': 1,
-                    'shadowMapSize': Vector2()
-                })
+                uniforms = _SpotLightUniforms()
         elif light.type == 'PointLight':
-                uniforms = javascriptObject({
-                    'position': Vector3(),
-                    'color': Color(),
-                    'distance': 0,
-                    'decay': 0,
-
-                    'shadow': False,
-                    'shadowBias': 0,
-                    'shadowRadius': 1,
-                    'shadowMapSize': Vector2(),
-                    'shadowCameraNear': 1,
-                    'shadowCameraFar': 1000
-                })
+                uniforms = _PointLightUniforms()
         elif light.type == 'HemisphereLight':
-                uniforms = javascriptObject({
-                    'direction': Vector3(),
-                    'skyColor': Color(),
-                    'groundColor': Color()
-                })
+                uniforms = _HemisphereLightUniforms()
         elif light.type == 'RectAreaLight':
-                uniforms = javascriptObject({
-                    'color': Color(),
-                    'position': Vector3(),
-                    'halfWidth': Vector3(),
-                    'halfHeight': Vector3()
-                    # // TODO (abelnation): set RectAreaLight shadow uniforms
-                })
+                uniforms = _RectAreaLightUniforms()
 
         self.lights[ light.id ] = uniforms
         return uniforms
@@ -96,7 +125,7 @@ class _state:
 
 class pyOpenGLLights:
     def __init__(self):
-        self.cache = UniformsCache()
+        self.cache = _UniformsCache()
         self.state = _state()
 
     def setup(self, lights, shadows, camera ):
@@ -122,20 +151,19 @@ class pyOpenGLLights:
         matrix4 = Matrix4()
         matrix42 = Matrix4()
 
-        for i in range(len(lights)):
-            light = lights[ i ]
-
+        for light in lights:
             color = light.color
             intensity = light.intensity
             distance = light.distance
 
             shadowMap = light.shadow.map.texture if (light.shadow and light.shadow.map ) else None
 
-            if light.isAmbientLight:
+            if light.my_class(isAmbientLight):
                 r += color.r * intensity
                 g += color.g * intensity
                 b += color.b * intensity
-            elif light.isDirectionalLight:
+
+            elif light.my_class(isDirectionalLight):
                 uniforms = self.cache.get( light )
 
                 uniforms.color.copy( light.color ).multiplyScalar( light.intensity )
@@ -156,7 +184,8 @@ class pyOpenGLLights:
                 self.state.directionalShadowMap.append(shadowMap)
                 self.state.directionalShadowMatrix.append(light.shadow.matrix)
                 self.state.directional.append(uniforms)
-            elif light.isSpotLight:
+
+            elif light.my_class(isSpotLight):
                 uniforms = self.cache.get( light )
 
                 uniforms.position.setFromMatrixPosition( light.matrixWorld )
@@ -186,7 +215,8 @@ class pyOpenGLLights:
                 self.state.spotShadowMap.append(shadowMap)
                 self.state.spotShadowMatrix.append(light.shadow.matrix)
                 self.state.spot.append(uniforms)
-            elif light.isRectAreaLight:
+
+            elif light.is_a('RectAreaLight'):
                 uniforms = self.cache.get( light )
 
                 # // (a) intensity controls irradiance of entire light
@@ -215,7 +245,7 @@ class pyOpenGLLights:
 
                 self.state.rectArea.append(uniforms)
 
-            elif light.isPointLight:
+            elif light.my_class(isPointLight):
                 uniforms = self.cache.get( light )
 
                 uniforms.position.setFromMatrixPosition( light.matrixWorld )
@@ -239,7 +269,8 @@ class pyOpenGLLights:
                 self.state.pointShadowMap.append(shadowMap)
                 self.state.pointShadowMatrix.append(light.shadow.matrix)
                 self.state.point.append(uniforms)
-            elif light.isHemisphereLight:
+
+            elif light.my_class(isHemisphereLight):
                 uniforms = self.cache.get( light )
 
                 uniforms.direction.setFromMatrixPosition( light.matrixWorld )

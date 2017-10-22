@@ -26,6 +26,9 @@ class Geometry(pyOpenGLObject):
     def __init__(self):
         self.id = GeometryIdCount()
 
+        super().__init__()
+        self.set_class(isGeometry)
+
         self.uuid = _Math.generateUUID()
 
         self.name = ''
@@ -450,7 +453,7 @@ class Geometry(pyOpenGLObject):
         self.boundingSphere.setFromPoints( self.vertices )
 
     def merge(self, geometry, matrix, materialIndexOffset ):
-        if not ( geometry and geometry.isGeometry ):
+        if not ( geometry and geometry.my_class(isGeometry) ):
             raise RuntimeError( 'THREE.Geometry.merge(): geometry not an instance of THREE.Geometry.', geometry )
 
         vertexOffset = len(self.vertices)
@@ -532,7 +535,7 @@ class Geometry(pyOpenGLObject):
             uvs1.append( uvCopy )
 
     def mergeMesh(self, mesh ):
-        if not ( mesh and mesh.is_a('Mesh') ):
+        if not ( mesh and mesh.my_class(isMesh) ):
             raise RuntimeError( 'THREE.Geometry.mergeMesh(): mesh not an instance of THREE.Mesh.', mesh )
             return
 

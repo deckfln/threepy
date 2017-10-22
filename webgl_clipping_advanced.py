@@ -277,6 +277,9 @@ def animate(params):
     currentTime = datetime.now().timestamp()
     time = ( currentTime - startTime ) / 10
 
+    if time > 2:
+        sys.exit()
+
     object.position.y = 1
     object.rotation.x = time * 0.5
     object.rotation.y = time * 0.2

@@ -162,13 +162,13 @@ class Box3:
             v1 = Vector3()
             geometry = node.geometry
             if geometry is not None:
-                if geometry.isGeometry:
+                if geometry.my_class(isGeometry):
                     vertices = geometry.vertices
                     for i in range(len(vertices)):
                         v1.copy(vertices[i])
                         v1.applyMatrix4(node.matrixWorld)
                         scope.expandByPoint(v1)
-                elif geometry.isBufferGeometry:
+                elif geometry.my_class(isBufferGeometry):
                     attribute = geometry.attributes.position
                     if attribute is not None:
                         for i in range(attribute.count):

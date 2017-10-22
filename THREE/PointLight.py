@@ -12,6 +12,7 @@ class PointLight(Light):
     
     def __init__(self, color, intensity=1, distance=0, decay=1 ):
         super().__init__(color, intensity )
+        self.set_class(isPointLight)
 
         self.type = 'PointLight'
 

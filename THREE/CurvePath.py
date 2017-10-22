@@ -127,7 +127,7 @@ class CurvePath(Curve):
         last = None
 
         for curve in self.curves:
-            if curve and curve.isEllipseCurve:
+            if curve and curve.my_class(isEllipseCurve):
                 resolution = divisions * 2
             elif curve and curve.isLineCurve:
                 resolution = 1
@@ -184,6 +184,7 @@ class EllipseCurve(Curve):
     
     def __init__(self, aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation ):
         super().__init__( )
+        self.set_class(isEllipseCurve)
 
         self.aX = aX
         self.aY = aY

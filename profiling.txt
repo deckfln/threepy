@@ -1,2 +1,2 @@
-python -m cProfile -s tottime -o out.prof webgl_clipping_advanceded.py
+python -m cProfile -s tottime -o out.prof webgl_clipping_advanced.py
 snakeviz out.prof

@@ -21,7 +21,13 @@ class Matrix3(pyOpenGLObject):
             1, 0, 0,
             0, 1, 0,
             0, 0, 1
-        ], 'f')
+        ], dtype=np.float64)
+
+        self.matrix = self.elements.reshape(3, 3)
+
+        super().__init__()
+        self.set_class(isMatrix3)
+
 
     def set(self, n11, n12, n13, n21, n22, n23, n31, n32, n33):
         te = self.elements
@@ -44,12 +50,15 @@ class Matrix3(pyOpenGLObject):
         return type(self)().fromArray( self.elements )
 
     def copy(self, m ):
+        np.copyto(self.elements, m.elements)
+        """
         te = self.elements
         me = m.elements
-
+        
         te[ 0 ] = me[ 0 ]; te[ 1 ] = me[ 1 ]; te[ 2 ] = me[ 2 ]
         te[ 3 ] = me[ 3 ]; te[ 4 ] = me[ 4 ]; te[ 5 ] = me[ 5 ]
         te[ 6 ] = me[ 6 ]; te[ 7 ] = me[ 7 ]; te[ 8 ] = me[ 8 ]
+        """
 
         return self
 
@@ -82,6 +91,9 @@ class Matrix3(pyOpenGLObject):
         return self.multiplyMatrices( m, self )
 
     def multiplyMatrices(self, a, b ):
+        t = np.dot(b.matrix, a.matrix)
+        np.copyto(self.matrix, t)
+        """
         ae = a.elements
         be = b.elements
         te = self.elements
@@ -105,7 +117,7 @@ class Matrix3(pyOpenGLObject):
         te[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31
         te[ 5 ] = a31 * b12 + a32 * b22 + a33 * b32
         te[ 8 ] = a31 * b13 + a32 * b23 + a33 * b33
-
+        """
         return self
 
     def multiplyScalar(self, s ):
@@ -127,7 +139,7 @@ class Matrix3(pyOpenGLObject):
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
     def  getInverse(self, matrix, throwOnDegenerate=None ):
-        if matrix and matrix.isMatrix4:
+        if matrix and matrix.my_class(isMatrix4):
             print( "THREE.Matrix3: .getInverse() no longer takes a Matrix4 argument." )
 
         me = matrix.elements

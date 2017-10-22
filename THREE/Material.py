@@ -31,6 +31,10 @@ class Material(pyOpenGLObject):
     
     def __init__(self):
         global _materialId
+
+        super().__init__()
+        self.set_class(isMaterial)
+
         self.id = _materialId
         _materialId += 1
         self.uuid = _Math.generateUUID()
@@ -86,8 +90,9 @@ class Material(pyOpenGLObject):
         self.needsUpdate = True
 
         #FDE addition
+        # python is spending too much time looking for missing attribute
+        # so a speed up is to predefined attributes from all sub-classes
         self.program = None
-        """
         self.defines = None
         self.map = None
         self.envMap = None
@@ -107,7 +112,7 @@ class Material(pyOpenGLObject):
         self.depthPacking = False
         self.index0AttributeName = None
         self.clipping = False
-        # self.emissive = None
+        self.emissive = None
         self.defaultAttributeValues = None
         self.skinning = None
         self.morphTargets = None
@@ -116,8 +121,8 @@ class Material(pyOpenGLObject):
         self.wireframe = False
         self.linewidth = 1
         self.color = None
-        """
-		
+        self.extensions = None
+
     def onBeforeCompile(self, shader):
         return True
 
@@ -160,9 +165,9 @@ class Material(pyOpenGLObject):
                 self[key] = Number(newValue)
             elif key == 'uniforms':
                 self[key] = Uniforms(newValue)
-            elif currentValue and currentValue.isColor:
+            elif currentValue and currentValue.my_class(isColor):
                 currentValue.set( newValue )
-            elif (currentValue and currentValue.isVector3 ) and ( newValue and newValue.isVector3):
+            elif (currentValue and currentValue.my_class(isVector3) ) and ( newValue and newValue.my_class(isVector3)):
                 currentValue.copy( newValue )
             else:
                 self[ key ] = newValue
@@ -191,61 +196,61 @@ class Material(pyOpenGLObject):
         if self.name != '':
             data['name'] = self.name
 
-        if 'color' in self.__dict__ and self.color.isColor:
+        if self.color and self.color.my_class(isColor):
             data['color'] = self.color.getHex()
 
-        if 'roughness' in self.__dict__:
+        if self.roughness:
             data['roughness'] = self.roughness
-        if 'metalness' in self.__dict__:
+        if self.metalness:
             data['metalness'] = self.metalness
 
-        if 'emissive' in self.__dict__ and self.emissive.isColor:
+        if self.emissive and self.emissive.my_class(isColor):
             data['emissive'] = self.emissive.getHex()
-        if 'specular' in self.__dict__ and self.specular.isColor:
+        if self.specular and self.specular.my_class(isColor):
             data['specular'] = self.specular.getHex()
-        if 'shininess' in self.__dict__:
+        if self.shininess:
             data['shininess'] = self.shininess
-        if 'clearCoat' in self.__dict__:
+        if self.clearCoat:
             data['clearCoat'] = self.clearCoat
-        if 'clearCoatRoughness' in self.__dict__:
+        if self.clearCoatRoughness:
             data['clearCoatRoughness'] = self.clearCoatRoughness
 
-        if 'map' in self.__dict__ and self.map and self.map.isTexture:
+        if self.map and self.map.my_class(isTexture):
             data['map'] = self.map.toJSON( meta ).uuid
-        if 'alphaMap' in self.__dict__ and self.alphaMap and self.alphaMap.isTexture:
+        if self.alphaMap and self.alphaMap.my_class(isTexture):
             data['alphaMap'] = self.alphaMap.toJSON( meta ).uuid
-        if 'lightMap' in self.__dict__ and self.lightMap and self.lightMap.isTexture:
+        if self.lightMap and self.lightMap.my_class(isTexture):
             data['lightMap'] = self.lightMap.toJSON( meta ).uuid
-        if 'bumpMap' in self.__dict__ and self.bumpMap.isTexture:
+        if self.bumpMap and self.bumpMap.my_class(isTexture):
             data['bumpMap'] = self.bumpMap.toJSON( meta ).uuid
             data['bumpScale'] = self.bumpScale
-        if 'normalMap' in self.__dict__ and self.normalMap.isTexture:
+        if self.normalMap and self.normalMap.my_class(isTexture):
             data['normalMap'] = self.normalMap.toJSON( meta ).uuid
             data['normalScale'] = self.normalScale.toArray()
-        if 'displacementMap' in self.__dict__ and self.displacementMap.isTexture:
+        if self.displacementMap and self.displacementMap.my_class(isTexture):
             data['displacementMap'] = self.displacementMap.toJSON( meta ).uuid
             data['displacementScale'] = self.displacementScale
             data['displacementBias'] = self.displacementBias
-        if 'roughnessMap' in self.__dict__ and self.roughnessMap.isTexture:
+        if self.roughnessMap and self.roughnessMap.my_class(isTexture):
             data['roughnessMap'] = self.roughnessMap.toJSON( meta ).uuid
-        if 'metalnessMap' in self.__dict__ and self.metalnessMap.isTexture:
+        if self.metalnessMap and self.metalnessMap.my_class(isTexture):
             data['metalnessMap'] = self.metalnessMap.toJSON( meta ).uuid
 
-        if 'emissiveMap' in self.__dict__ and self.emissiveMap.isTexture:
+        if self.emissiveMap and self.emissiveMap.my_class(isTexture):
             data['emissiveMap'] = self.emissiveMap.toJSON( meta ).uuid
-        if 'specularMap' in self.__dict__ and self.specularMap and self.specularMap.isTexture:
+        if self.specularMap and self.specularMap and self.specularMap.my_class(isTexture):
             data['specularMap'] = self.specularMap.toJSON( meta ).uuid
 
-        if 'envMap' in self.__dict__ and self.envMap and self.envMap.isTexture :
+        if self.envMap and self.envMap and self.envMap.my_class(isTexture):
             data['envMap'] = self.envMap.toJSON( meta ).uuid
             data['reflectivity'] = self.reflectivity; # // Scale behind envMap
 
-        if 'gradientMap' in self.__dict__ and self.gradientMap.isTexture:
+        if self.gradientMap and self.gradientMap.my_class(isTexture):
             data['gradientMap'] = self.gradientMap.toJSON( meta ).uuid
 
-        if 'size' in self.__dict__ is not None:
+        if self.size is not None:
             data['size'] = self.size
-        if 'sizeAttenuation' in self.__dict__ is not None:
+        if self.sizeAttenuation is not None:
             data['sizeAttenuation'] = self.sizeAttenuation
 
         if self.blending != NormalBlending:

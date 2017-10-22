@@ -24,7 +24,7 @@ class pyOpenGLObjects:
             self.updateList[buffergeometry.id] = -1
 
         if self.updateList[ buffergeometry.id ] != frame:
-            if geometry.isGeometry:
+            if geometry.my_class(isGeometry):
                 buffergeometry.updateFromObject(object)
 
             self.geometries.update(buffergeometry)

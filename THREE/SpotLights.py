@@ -33,6 +33,7 @@ class SpotLight(Light):
     
     def __init__(self, color, intensity=1, distance=0, angle=math.pi/3, penumbra=0, decay=1 ):
         super().__init__( color, intensity )
+        self.set_class(isSpotLight)
 
         self.type = 'SpotLight'
 
@@ -76,6 +77,7 @@ class SpotLightShadow(LightShadow):
     
     def __init__(self):
         super().__init__(PerspectiveCamera( 50, 1, 0.5, 500 ))
+        self.set_class(isSpotLightShadow)
 
     def update(self, light ):
         camera = self.camera

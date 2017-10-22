@@ -33,6 +33,7 @@ class MeshNormalMaterial(Material):
     
     def __init__(self, parameters=None ):
         super().__init__( )
+        self.set_class(isMeshNormalMaterial)
 
         self.type = 'MeshNormalMaterial'
 

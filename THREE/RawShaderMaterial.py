@@ -11,4 +11,7 @@ class RawShaderMaterial(ShaderMaterial):
 
     def __init__(self,  parameters ):
         super().__init__(parameters )
+
+        self.set_class(isRawShaderMaterial)
+
         self.type = 'RawShaderMaterial'

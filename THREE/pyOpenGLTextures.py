@@ -10,6 +10,7 @@ from THREE.Constants import *
 import PIL
 from PIL import Image
 import numpy
+from THREE.pyOpenGLObject import *
 
 
 def _clampToMaxSize(image, maxSize):
@@ -114,7 +115,7 @@ class pyOpenGLTextures():
         if renderTarget.depthTexture:
             renderTarget.depthTexture.dispose()
 
-        if renderTarget.isWebGLRenderTargetCube:
+        if renderTarget.my_class(isWebGLRenderTargetCube):
             for i in range(6):
                 glDeleteFramebuffers(1, renderTargetProperties.frameBuffer[ i ] )
                 if renderTargetProperties.depthBuffer:
@@ -190,7 +191,7 @@ class pyOpenGLTextures():
 
         mipmaps = texture.mipmaps
 
-        if texture.isDepthTexture:
+        if texture.is_a('DepthTexture'):
             # // populate depth texture with dummy data
 
             internalFormat = GL_DEPTH_COMPONENT
@@ -245,7 +246,7 @@ class pyOpenGLTextures():
             else:
                 self.state.texImage2D( GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, glFormat, glType, image.data )
 
-        elif texture.isCompressedTexture:
+        elif texture.is_a('CompressedTexture'):
             for i in range(len(mipmaps)):
                 mipmap = mipmaps[ i ]
 
@@ -317,13 +318,13 @@ class pyOpenGLTextures():
 
     # // Setup resources for a Depth Texture for a FBO (needs an extension)
     def setupDepthTexture(self, framebuffer, renderTarget ):
-        isCube = ( renderTarget and renderTarget.isWebGLRenderTargetCube )
+        isCube = ( renderTarget and renderTarget.my_class(isWebGLRenderTargetCube))
         if isCube:
             raise RuntimeError( 'Depth Texture with cube render targets is not supported' )
 
         glBindFramebuffer( GL_FRAMEBUFFER, framebuffer )
 
-        if not( renderTarget.depthTexture and renderTarget.depthTexture.isDepthTexture ):
+        if not( renderTarget.depthTexture and renderTarget.depthTexture.is_a('DepthTexture')):
             raise RuntimeError( 'renderTarget.depthTexture must be an instance of THREE.DepthTexture' )
 
         # // upload an empty depth texture with framebuffer size
@@ -351,7 +352,7 @@ class pyOpenGLTextures():
     def setupDepthRenderbuffer(self, renderTarget ):
         renderTargetProperties = self.properties.get( renderTarget )
 
-        isCube = ( renderTarget.isWebGLRenderTargetCube == True )
+        isCube = ( renderTarget.my_class(isWebGLRenderTargetCube) == True )
 
         if renderTarget.depthTexture:
 
@@ -410,8 +411,8 @@ class pyOpenGLTextures():
                 # TODO FDE:is this needed with openGL ?
                 # glPixelStorei( GL_UNPACK_FLIP_Y_WEBGL, texture.flipY )
 
-                isCompressed = ( texture and texture.isCompressedTexture )
-                isDataTexture = ( texture.image[ 0 ] and hasattr(texture.image[ 0 ], 'isDataTexture' ))
+                isCompressed = ( texture and texture.is_a('CompressedTexture'))
+                isDataTexture = ( texture.image[ 0 ] and hasattr(texture.image[ 0 ],'isDataTexture' ))
 
                 cubeImage = [None, None, None, None, None, None]
 
@@ -489,7 +490,7 @@ class pyOpenGLTextures():
 
         self.infoMemory.textures += 1
 
-        isCube = ( renderTarget.isWebGLRenderTargetCube == True )
+        isCube = ( renderTarget.my_class(isWebGLRenderTargetCube) == True )
         isTargetPowerOfTwo = _isPowerOfTwo( renderTarget )
 
         # // Setup framebuffer
@@ -535,7 +536,7 @@ class pyOpenGLTextures():
         isTargetPowerOfTwo = _isPowerOfTwo( renderTarget )
 
         if _textureNeedsGenerateMipmaps( texture, isTargetPowerOfTwo ):
-            target = GL_TEXTURE_CUBE_MAP if renderTarget.isWebGLRenderTargetCube else GL_TEXTURE_2D
+            target = GL_TEXTURE_CUBE_MAP if renderTarget.my_class(isWebGLRenderTargetCube) else GL_TEXTURE_2D
             webglTexture = self.properties.get( texture ).openglTexture
 
             self.state.bindTexture( target, webglTexture )

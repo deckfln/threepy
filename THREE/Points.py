@@ -28,6 +28,7 @@ class PointsMaterial(Material):
 
     def __init__(self, parameters ):
         super().__init__( )
+        self.set_class(isPointsMaterial)
 
         self.type = 'PointsMaterial'
 
@@ -65,7 +66,8 @@ class Points(Object3D):
     isPoints = True
     
     def __init__(self, geometry=None, material=None ):
-        super().__init__(  )
+        super().__init__()
+        self.set_class(isPoints)
 
         self.type = 'Points'
 
@@ -124,7 +126,7 @@ class Points(Object3D):
                     'object': object
                 } )
 
-        if geometry.isBufferGeometry:
+        if geometry.is_('BufferGeometry'):
             index = geometry.index
             attributes = geometry.attributes
             positions = attributes.position.array

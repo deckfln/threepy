@@ -6,6 +6,8 @@
  *
  */
 """
+import numpy
+
 from THREE.Vector3 import *
 from THREE.Constants import *
 
@@ -38,7 +40,7 @@ class QuickHull:
 
     def setFromPoints(self, points ):
 
-        if not isinstance(points, list):
+        if not isinstance(points, list) and not isinstance(points, numpy.ndarray):
             raise RuntimeError( 'THREE.QuickHull: Points parameter is not an array.' )
 
         if len(points) < 4:
@@ -46,8 +48,8 @@ class QuickHull:
 
         self.makeEmpty()
 
-        for i in range(len(points)):
-            self.vertices.append( VertexNode( points[ i ] ) )
+        for point in points:
+            self.vertices.append( VertexNode( point ) )
 
         self.compute()
 
@@ -62,7 +64,7 @@ class QuickHull:
             geometry = node.geometry
 
             if geometry is not None:
-                if geometry.isGeometry:
+                if geometry.my_class(isGeometry):
                     vertices = geometry.vertices
 
                     for i in range(len(vertices)):
@@ -71,7 +73,7 @@ class QuickHull:
 
                         points.append( point )
 
-                elif geometry.isBufferGeometry:
+                elif geometry.my_class(isBufferGeometry):
                     attribute = geometry.attributes.position
                     if attribute is not None:
                         for i in range(attribute.count):
