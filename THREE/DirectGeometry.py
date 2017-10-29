@@ -52,11 +52,9 @@ class DirectGeometry:
 
         group = None
 
-        for i in range(len(faces)):
-            face = faces[ i ]
-
+        i = 0
+        for face in faces:
             # // materials
-
             if face.materialIndex != materialIndex:
                 materialIndex = face.materialIndex
 
@@ -65,6 +63,7 @@ class DirectGeometry:
                     groups.append( group )
 
                 group = _group(i * 3, materialIndex)
+            i += 1
 
         if group is not None:
             group.count = ( i * 3 ) - group.start

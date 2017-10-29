@@ -3,6 +3,7 @@
 """
 from datetime import datetime
 from THREE import *
+from THREE.pyOpenGL.pyOpenGL import *
 import random
 
 
@@ -35,23 +36,23 @@ void main() {
 
 particles = 100000
 
-WIDTH = 640
-HEIGHT = 480
-camera = None
-scene=None
-renderer=None
-mesh = None
-particleSystem = None
-geometry = None
+class Params:
+    def __init__(self):
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.container = None
+        self.mesh = None
+        self.particleSystem = None
+        self.geometry = None
 
 
-def init():
-    global camera, renderer, particleSystem, geometry, scene
+def init(p):
+    p.container = pyOpenGL(p)
+    p.camera = THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 )
+    p.camera.position.z = 300
 
-    camera = THREE.PerspectiveCamera( 40, WIDTH / HEIGHT, 1, 10000 )
-    camera.position.z = 300
-
-    scene = THREE.Scene()
+    p.scene = THREE.Scene()
 
     uniforms = {
         'color':     { 'value': THREE.Color( 0xffffff ) },
@@ -71,7 +72,7 @@ def init():
 
     radius = 200
 
-    geometry = THREE.BufferGeometry()
+    p.geometry = THREE.BufferGeometry()
 
     positions = Float32Array( particles * 3 )
     colors = Float32Array( particles * 3 )
@@ -95,70 +96,47 @@ def init():
 
         i3 += 3
 
-    geometry.addAttribute( 'position', THREE.BufferAttribute( positions, 3 ) )
-    geometry.addAttribute( 'customColor', THREE.BufferAttribute( colors, 3 ) )
-    geometry.addAttribute( 'size', THREE.BufferAttribute( sizes, 1 ) )
+    p.geometry.addAttribute( 'position', THREE.BufferAttribute( positions, 3 ) )
+    p.geometry.addAttribute( 'customColor', THREE.BufferAttribute( colors, 3 ) )
+    p.geometry.addAttribute( 'size', THREE.BufferAttribute( sizes, 1 ) )
 
-    particleSystem = THREE.Points( geometry, shaderMaterial )
+    p.particleSystem = THREE.Points( p.geometry, shaderMaterial )
 
-    scene.add( particleSystem )
+    p.scene.add( p.particleSystem )
 
-    renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
-    renderer.setPixelRatio( 1 )
-    renderer.setSize( WIDTH, HEIGHT )
+    p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
 
-    return renderer
+    p.container.addEventListener('resize', onWindowResize, False)
 
 
-def render():
-    global camera, scene, renderer, particleSystem
+def render(p):
     time = datetime.now().timestamp()
 
-    particleSystem.rotation.z = 0.01 * time
+    p.particleSystem.rotation.z = 0.01 * time
 
-    sizes = geometry.attributes.size.array
+    sizes = p.geometry.attributes.size.array
 
     for i in range(particles):
         sizes[ i ] = 10 * ( 1 + math.sin( 0.1 * i + time ) )
 
-    geometry.attributes.size.needsUpdate = True
+    p.geometry.attributes.size.needsUpdate = True
 
-    renderer.render( scene, camera )
-
-def reshape(width, height):
-    """window reshape callback."""
-    global camera, renderer
-
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-
-    renderer.setSize(width, height)
-
-    glViewport(0, 0, width, height)
+    p.renderer.render( p.scene, p.camera )
 
 
-def animate():
-    render()
+def onWindowResize(event, p):
+    windowHalfX = window.innerWidth / 2
+    windowHalfY = window.innerHeight / 2
+
+    p.camera.aspect = window.innerWidth / window.innerHeight
+    p.camera.updateProjectionMatrix()
+
+    p.renderer.setSize(window.innerWidth, window.innerHeight)
 
 
-def mouse(button, state, x, y):
-    if button == GLUT_LEFT_BUTTON:
-        rotating = (state == GLUT_DOWN)
-    elif button == GLUT_RIGHT_BUTTON:
-        scaling = (state == GLUT_DOWN)
+def animate(p):
+    render(p)
 
-
-def motion(x1, y1):
-    glutPostRedisplay()
-
-
-def keyboard(c, x=0, y=0):
-    """keyboard callback."""
-
-    if c == b'q':
-        sys.exit(0)
-
-    glutPostRedisplay()
 
 
 """
@@ -166,10 +144,12 @@ def keyboard(c, x=0, y=0):
 
 
 def main(argv=None):
-    global renderer, camera, scene
+    global renderer, camera, scene, container
+    params = Params()
 
-    renderer = init()
-    return renderer.loop()
+    init(params)
+    params.container.addEventListener('animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

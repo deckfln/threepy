@@ -33,6 +33,7 @@ class SphereGeometry(Geometry):
 
 # // SphereBufferGeometry
 
+
 class SphereBufferGeometry(BufferGeometry):
     def __init__(self, radius=50, widthSegments=8, heightSegments=6, phiStart=0, phiLength=math.pi*2, thetaStart=0, thetaLength=math.pi ):
         super().__init__( )

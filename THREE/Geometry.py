@@ -606,7 +606,7 @@ class Geometry(pyOpenGLObject):
         return diff
 
     def sortFacesByMaterialIndex(self):
-        faces = len(self)
+        faces = self.faces
         length = len(faces)
 
         # // tag faces
@@ -619,29 +619,33 @@ class Geometry(pyOpenGLObject):
         def materialIndexSort( a ):
             return a.materialIndex
 
-        faces.sort( materialIndexSort )
+        faces.sort( key=materialIndexSort )
 
         # // sort uvs
 
         uvs1 = self.faceVertexUvs[ 0 ]
-        uvs2 = self.faceVertexUvs[ 1 ]
-
         if uvs1 and len(uvs1) == length:
             newUvs1 = []
-        if uvs2 and len(uvs2) == length:
-            newUvs2 = []
 
-        for i in range(length):
-            id = faces[ i ]._id
+        if len(self.faceVertexUvs) > 1:
+            uvs2 = self.faceVertexUvs[ 1 ]
 
-            if newUvs1:
+            if uvs2 and len(uvs2) == length:
+                newUvs2 = []
+        else:
+            newUvs2 = None
+
+        for face in faces:
+            id = face._id
+
+            if newUvs1 is not None:
                 newUvs1.append( uvs1[ id ] )
-            if newUvs2:
+            if newUvs2 is not None:
                 newUvs2.append( uvs2[ id ] )
 
-        if newUvs1:
+        if newUvs1 is not None:
             self.faceVertexUvs[ 0 ] = newUvs1
-        if newUvs2:
+        if newUvs2 is not None:
             self.faceVertexUvs[ 1 ] = newUvs2
 
     def toJSON(self):

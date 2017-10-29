@@ -36,14 +36,14 @@ class BufferAttribute(pyOpenGLObject):
         self.itemSize = itemSize
         self.count = 0
         if array is not None:
-            self.count = len(array) / itemSize
+            self.count = int(len(array) / itemSize)
         self.normalized = (normalized == True)
 
         self.dynamic = False
         self.updateRange = _updateRange(0, - 1)
 
         self.version = 0
-        self.needsUpdate = False
+        # self.needsUpdate = False
 
         self.onUploadCallback = self._onUploadCallback
 

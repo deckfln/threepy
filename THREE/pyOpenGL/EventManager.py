@@ -55,11 +55,11 @@ class EventManager:
                 callback(params)
 
         elif type in self.callbacks:
-            callbacks = self.callbacks[type]
+            callbacks = self.callbacks[type][:] # get a copy of the list
 
             if len(callbacks) > 0:
                 eventObject = Event(event)
-                for callback in callbacks:
-                    callback(eventObject, params)
+                for c in callbacks:
+                    c(eventObject, params)
 
         # print("event %s in %f s" % (event, t1 - t0))

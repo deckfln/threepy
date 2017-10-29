@@ -39,7 +39,7 @@ class Clock:
         if self.running:
             newTime = time.time()
 
-            diff = ( newTime - self.oldTime ) / 1000
+            diff = ( newTime - self.oldTime ) / 1
             self.oldTime = newTime
 
             self.elapsedTime += diff

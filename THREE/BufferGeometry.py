@@ -44,6 +44,10 @@ class _attributesList(object):
     def __delitem__(self, item):
         del self._attr[item]
 
+    def __setstate__(self, state):
+        for a in state.keys():
+            self.__dict__[a] = state[a]
+
     def __getattr__(self, k):
         if isinstance(k, bytes):
             k = k.decode("utf-8")

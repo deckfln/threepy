@@ -15,7 +15,7 @@ class FileLoader:
         self.mimeType = None
         self.requestHeader = None
 
-    def load(self, url, onLoad, onProgress=None, onError=None):
+    def load(self, url, onLoad=None, onProgress=None, onError=None):
         global Cache
 
         if url is None:

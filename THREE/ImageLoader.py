@@ -34,6 +34,9 @@ class ImageLoader:
         except FileNotFoundError:
             if onError:
                 onError("File %s not found" % url)
+                return
+            else:
+                raise RuntimeError('ImageLoader: File %s not found' % url)
 
         # img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
         # width, height = image.size

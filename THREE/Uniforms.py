@@ -72,7 +72,7 @@ class UniformContainer():
 class Uniform:
     def __init__(self, dic):
         if type in dic:
-            self.type = dic['type']
+            self.type = dic[type]
         self.value = dic['value']
         if 'needsUpdate' in dic:
             self.needsUpdate = dic['needsUpdate']

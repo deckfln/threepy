@@ -17,6 +17,7 @@ def _onLoad(url, texture):
     texture.format = RGBFormat if isJPEG else RGBAFormat
     texture.needsUpdate = True
 
+
 class TextureLoader:
     def __init__(self, manager=None ):
         global DefaultLoadingManager
@@ -31,6 +32,7 @@ class TextureLoader:
         texture.unpackAlignment = 1
         loader.setTarget(texture)
         texture.image = loader.load( url, _onLoad, onProgress, onError )
+        texture.format = RGBFormat if texture.image.mode == 'RGB' else RGBAFormat
 
         return texture
 

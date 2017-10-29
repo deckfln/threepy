@@ -49,10 +49,10 @@ class pyOpenGL(EventManager):
                 quit()
 
             elif event.type == py.KEYDOWN:
-                self.dispatchEvent({'type': 'keydown', 'keyCode': event.key})
+                self.dispatchEvent({'type': 'keydown', 'keyCode': event.key}, self.params)
 
             elif event.type == py.KEYUP:
-                self.dispatchEvent({'type': 'keyup', 'keyCode': event.key})
+                self.dispatchEvent({'type': 'keyup', 'keyCode': event.key}, self.params)
 
             elif event.type == VIDEORESIZE:
                 window.innerWidth = self.clientWidth = event.w
