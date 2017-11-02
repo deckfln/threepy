@@ -16,7 +16,7 @@ class pyOpenGLBufferRenderer:
         self.mode = value
 
     def render(self, start, count ):
-        glDrawArrays( self.mode, start, int(count) )
+        glDrawArrays( self.mode, int(start), int(count) )
 
         self.infoRender.calls += 1
         self.infoRender.vertices += count

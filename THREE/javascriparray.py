@@ -7,6 +7,8 @@ import numpy as np
 def Uint8Array(size):
     if isinstance(size, list):
         return np.array(size, 'B')
+    elif isinstance(size, bytes):
+        return np.fromstring(size, np.uint8)
     else:
         return np.zeros(int(size), 'B')
 

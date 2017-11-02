@@ -169,7 +169,7 @@ class BufferAttribute(pyOpenGLObject):
         return self
 
     def set(self, value, offset=0):
-        self.array.set(value, offset)
+        self.array[offset:offset+len(value)] = value
         return self
 
     def getX(self, index):
