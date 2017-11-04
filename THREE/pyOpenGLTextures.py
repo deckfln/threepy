@@ -251,7 +251,7 @@ class pyOpenGLTextures():
                 mipmap = mipmaps[i]
 
                 if texture.format != RGBAFormat and texture.format != RGBFormat:
-                    if self.state.getCompressedTextureFormats().indexOf(glFormat) > - 1:
+                    if self.state.getCompressedTextureFormats().index(glFormat) > - 1:
                         self.state.compressedTexImage2D(GL_TEXTURE_2D, i, glFormat, mipmap.width, mipmap.height, 0, mipmap.data)
                     else:
                         raise RuntimeWarning('THREE.WebGLRenderer: Attempt to load unsupported compressed texture format in .uploadTexture()')

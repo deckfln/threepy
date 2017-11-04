@@ -230,7 +230,7 @@ class MaterialCreator:
         if loader is None:
             loader = THREE.TextureLoader(manager)
 
-        if loader.setCrossOrigin:
+        if hasattr(loader, 'setCrossOrigin'):
             loader.setCrossOrigin(self.crossOrigin)
         texture = loader.load(url, onLoad, onProgress, onError)
 

@@ -44,6 +44,8 @@ def Uint16Array(size):
 def Int32Array(size):
     if isinstance(size, list):
         return np.array(size, 'l')
+    elif isinstance(size, bytes):
+        return np.fromstring(size, np.int32)
     else:
         return np.zeros(int(size), 'l')
 

@@ -20,7 +20,7 @@ class _ColorBuffer:
         self.currentColorClear = Vector4( 0, 0, 0, 0 )
 
     def setMask(self, colorMask ):
-        if  self.currentColorMask != colorMask and not self.locked:
+        if self.currentColorMask != colorMask and not self.locked:
             glColorMask( colorMask, colorMask, colorMask, colorMask )
             self.currentColorMask = colorMask
 
@@ -59,13 +59,13 @@ class _DepthBuffer():
         self.currentDepthClear = None
 
     def setTest(self, depthTest):
-        if  depthTest:
+        if depthTest:
             self.parent.enable(GL_DEPTH_TEST)
         else:
             self.parent.disable(GL_DEPTH_TEST)
 
     def setMask(self, depthMask):
-        if  self.currentDepthMask != depthMask and not self.locked:
+        if self.currentDepthMask != depthMask and not self.locked:
             glDepthMask( depthMask)
             self.currentDepthMask = depthMask
 
@@ -132,12 +132,12 @@ class _StencilBuffer:
             self.parent.disable(GL_STENCIL_TEST)
 
     def setMask(self, stencilMask ):
-        if  self.currentStencilMask != stencilMask and not self.locked:
+        if self.currentStencilMask != stencilMask and not self.locked:
             glStencilMask( stencilMask )
             currentStencilMask = stencilMask
 
     def setFunc(self, stencilFunc, stencilRef, stencilMask ):
-        if  self.currentStencilFunc != stencilFunc or\
+        if self.currentStencilFunc != stencilFunc or\
              self.currentStencilRef != stencilRef     or\
              self.currentStencilFuncMask != stencilMask:
 
@@ -148,7 +148,7 @@ class _StencilBuffer:
             self.currentStencilFuncMask = stencilMask
 
     def setOp(self, stencilFail, stencilZFail, stencilZPass ):
-        if  self.currentStencilFail     != stencilFail     or\
+        if self.currentStencilFail     != stencilFail     or\
              self.currentStencilZFail != stencilZFail or\
              self.currentStencilZPass != stencilZPass:
 
@@ -162,7 +162,7 @@ class _StencilBuffer:
         self.locked = lock
 
     def setClear(self, stencil ):
-        if  self.currentStencilClear != stencil:
+        if self.currentStencilClear != stencil:
             glClearStencil( stencil )
             self.currentStencilClear = stencil
         return self
@@ -271,6 +271,9 @@ class pyOpenGLState:
         self.enable( GL_BLEND )
         self.setBlending( NormalBlending )
 
+        self.extensions = extensions
+        self.utils = utils
+
     def initAttributes(self):
         for i in range(len(self.newAttributes)):
             self.newAttributes[ i ] = 0
@@ -283,7 +286,7 @@ class pyOpenGLState:
             self.enabledAttributes[ attribute ] = 1
 
         if self.attributeDivisors[ attribute ] != 0:
-            extension = extensions.get( 'ANGLE_instanced_arrays' )
+            extension = self.extensions.get( 'ANGLE_instanced_arrays' )
 
             extension.vertexAttribDivisorANGLE( attribute, 0 )
             self.attributeDivisors[ attribute ] = 0
@@ -291,19 +294,19 @@ class pyOpenGLState:
     def enableAttributeAndDivisor(self, attribute, meshPerAttribute ):
         self.newAttributes[ attribute ] = 1
 
-        if  self.enabledAttributes[ attribute ] == 0:
+        if self.enabledAttributes[ attribute ] == 0:
             glEnableVertexAttribArray( attribute )
             self.enabledAttributes[ attribute ] = 1
 
         if self.attributeDivisors[ attribute ] != meshPerAttribute:
-            extension = extensions.get( 'ANGLE_instanced_arrays' )
+            extension = self.extensions.get( 'ANGLE_instanced_arrays' )
 
             extension.vertexAttribDivisorANGLE( attribute, meshPerAttribute )
             self.attributeDivisors[ attribute ] = meshPerAttribute
 
     def disableUnusedAttributes(self):
         for i in range(len(self.enabledAttributes)):
-            if  self.enabledAttributes[ i ] != self.newAttributes[ i ]:
+            if self.enabledAttributes[ i ] != self.newAttributes[ i ]:
                 glDisableVertexAttribArray( i )
                 self.enabledAttributes[ i ] = 0
 
@@ -324,12 +327,15 @@ class pyOpenGLState:
             self.capabilities[id] = False
 
     def getCompressedTextureFormats(self):
-        if  self.compressedTextureFormats is None:
+        if self.compressedTextureFormats is None:
             self.compressedTextureFormats = []
 
-            if  extensions.get( 'WEBGL_compressed_texture_pvrtc' ) or\
-                 extensions.get( 'WEBGL_compressed_texture_s3tc' ) or\
-                 extensions.get( 'WEBGL_compressed_texture_etc1' ):
+            # TODO FDE : what are the other compressed extenstions ?
+            # WEBGL_compressed_texture_pvrtc
+            # WEBGL_compressed_texture_etc1
+            if self.extensions.get( 'GL_EXT_texture_compression_dxt1' ) or\
+                 self.extensions.get( 'GL_EXT_texture_compression_s3tc' ) or\
+                 self.extensions.get( 'GL_EXT_texture_compression_latc' ):
                 formats = glGetIntegerv( GL_COMPRESSED_TEXTURE_FORMATS )
 
                 for i in range(len(formats)):
@@ -346,36 +352,36 @@ class pyOpenGLState:
         return False
 
     def setBlending(self, blending=None, blendEquation=None, blendSrc=None, blendDst=None, blendEquationAlpha=None, blendSrcAlpha=None, blendDstAlpha=None, premultipliedAlpha=None ):
-        if  blending != NoBlending:
+        if blending != NoBlending:
             self.enable( GL_BLEND )
         else:
             self.disable( GL_BLEND )
 
-        if  blending != CustomBlending:
-            if  blending != self.currentBlending or premultipliedAlpha != self.currentPremultipledAlpha:
+        if blending != CustomBlending:
+            if blending != self.currentBlending or premultipliedAlpha != self.currentPremultipledAlpha:
                 if blending == AdditiveBlending:
-                    if  premultipliedAlpha:
+                    if premultipliedAlpha:
                         glBlendEquationSeparate( GL_FUNC_ADD, GL_FUNC_ADD )
                         glBlendFuncSeparate( GL_ONE, gl.ONE, GL_ONE, GL_ONE )
                     else:
                         glBlendEquation( GL_FUNC_ADD )
                         glBlendFunc( GL_SRC_ALPHA, GL_ONE )
                 elif blending == SubtractiveBlending:
-                    if  premultipliedAlpha:
+                    if premultipliedAlpha:
                         glBlendEquationSeparate( GL_FUNC_ADD, GL_FUNC_ADD )
                         glBlendFuncSeparate( GL_ZERO, GL_ZERO, GL_ONE_MINUS_SRC_COLOR, GL_ONE_MINUS_SRC_ALPHA )
                     else:
                         glBlendEquation( GL_FUNC_ADD )
                         glBlendFunc( GL_ZERO, GL_ONE_MINUS_SRC_COLOR )
                 elif blending == MultiplyBlending:
-                    if  premultipliedAlpha:
+                    if premultipliedAlpha:
                         glBlendEquationSeparate( GL_FUNC_ADD, GL_FUNC_ADD )
                         glBlendFuncSeparate( GL_ZERO, GL_SRC_COLOR, GL_ZERO, GLSRC_ALPHA )
                     else:
                         glBlendEquation( GL_FUNC_ADD )
                         glBlendFunc( GL_ZERO, GL_SRC_COLOR )
                 else:
-                    if  premultipliedAlpha:
+                    if premultipliedAlpha:
                         glBlendEquationSeparate( GL_FUNC_ADD, GL_FUNC_ADD )
                         glBlendFuncSeparate( GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA )
                     else:
@@ -394,14 +400,14 @@ class pyOpenGLState:
             blendSrcAlpha = blendSrcAlpha or blendSrc
             blendDstAlpha = blendDstAlpha or blendDst
 
-            if  blendEquation != self.currentBlendEquation or blendEquationAlpha != self.currentBlendEquationAlpha:
-                glBlendEquationSeparate( utils.convert( blendEquation ), utils.convert( blendEquationAlpha ) )
+            if blendEquation != self.currentBlendEquation or blendEquationAlpha != self.currentBlendEquationAlpha:
+                glBlendEquationSeparate( self.utils.convert( blendEquation ), self.utils.convert( blendEquationAlpha ) )
 
                 self.currentBlendEquation = blendEquation
                 self.currentBlendEquationAlpha = blendEquationAlpha
 
-            if  blendSrc != self.currentBlendSrc or blendDst != self.currentBlendDst or blendSrcAlpha != self.currentBlendSrcAlpha or blendDstAlpha != self.currentBlendDstAlpha:
-                glBlendFuncSeparate( utils.convert( blendSrc ), utils.convert( blendDst ), utils.convert( blendSrcAlpha ), utils.convert( blendDstAlpha ) )
+            if blendSrc != self.currentBlendSrc or blendDst != self.currentBlendDst or blendSrcAlpha != self.currentBlendSrcAlpha or blendDstAlpha != self.currentBlendDstAlpha:
+                glBlendFuncSeparate( self.utils.convert( blendSrc ), self.utils.convert( blendDst ), self.utils.convert( blendSrcAlpha ), self.utils.convert( blendDstAlpha ) )
 
                 self.currentBlendSrc = blendSrc
                 self.currentBlendDst = blendDst
@@ -433,7 +439,7 @@ class pyOpenGLState:
 
     def setFlipSided(self, flipSided ):
         if self.currentFlipSided != flipSided:
-            if  flipSided:
+            if flipSided:
                 glFrontFace( GL_CW )
             else:
                 glFrontFace( GL_CCW )
@@ -456,14 +462,14 @@ class pyOpenGLState:
         self.currentCullFace = cullFace
 
     def setLineWidth(self, width ):
-        if  width != self.currentLineWidth:
+        if width != self.currentLineWidth:
             if self.lineWidthAvailable:
                 glLineWidth( width )
 
             self.currentLineWidth = width
 
     def setPolygonOffset(self, polygonOffset, factor=None, units=None):
-        if  polygonOffset:
+        if polygonOffset:
             self.enable( GL_POLYGON_OFFSET_FILL )
             if self.currentPolygonOffsetFactor != factor or self.currentPolygonOffsetUnits != units:
                 glPolygonOffset( factor, units )
@@ -479,7 +485,7 @@ class pyOpenGLState:
     def setScissorTest(self, scissorTest ):
         self.currentScissorTest = scissorTest
 
-        if  scissorTest:
+        if scissorTest:
             self.enable( GL_SCISSOR_TEST )
         else:
             self.disable( GL_SCISSOR_TEST )
@@ -487,10 +493,10 @@ class pyOpenGLState:
     # // texture
 
     def activeTexture(self, webglSlot=None ):
-        if  webglSlot is None:
+        if webglSlot is None:
             webglSlot = GL_TEXTURE0 + self.maxTextures - 1
 
-        if  self.currentTextureSlot != webglSlot:
+        if self.currentTextureSlot != webglSlot:
             glActiveTexture( webglSlot )
             self.currentTextureSlot = webglSlot
 
@@ -510,11 +516,8 @@ class pyOpenGLState:
             boundTexture.type = webglType
             boundTexture.texture = webglTexture
 
-    def compressedTexImage2D(self):
-        try:
-            glCompressedTexImage2D.apply( gl, arguments )
-        except:
-            raise( 'THREE.WebGLState:', error )
+    def compressedTexImage2D(self, target, level, glFormat, width, height, border, data):
+        glCompressedTexImage2D(target, level, glFormat, width, height, border, data.size, data)
 
     def texImage2D(self, target, level, internalFormat, width, height, border, format, type, data):
         glTexImage2D( target, level, internalFormat, width, height, border, format, type, data )
@@ -528,13 +531,13 @@ class pyOpenGLState:
             self.currentScissor.copy( scissor )
 
     def viewport(self, viewport ):
-        if  not self.currentViewport.equals( viewport ):
+        if not self.currentViewport.equals( viewport ):
             glViewport( int(viewport.x), int(viewport.y), int(viewport.z), int(viewport.w) )
             self.currentViewport.copy( viewport )
 
     def reset(self):
         for i in range(len(self.enabledAttributes)):
-            if  self.enabledAttributes[ i ] == 1:
+            if self.enabledAttributes[ i ] == 1:
                 glDisableVertexAttribArray( i )
                 self.enabledAttributes[ i ] = 0
 

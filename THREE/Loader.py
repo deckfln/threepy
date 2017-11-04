@@ -3,13 +3,14 @@
  * @author alteredq / http:# //alteredqualia.com/
  */
 """
+import re
 import THREE._Math as _Math
 from THREE.Color import *
 from THREE.TextureLoader import *
 from THREE.MaterialLoader import *
 
 
-class _Handlers:
+class Handlers:
     def __init__(self):
         self.handlers = []
 
@@ -23,14 +24,14 @@ class _Handlers:
             regex = handlers[i]
             loader = handlers[i + 1]
 
-            if regex.test(file):
+            if re.search(regex, file):
                 return loader
 
         return None
 
 
 class Loader:
-    Handlers = _Handlers()
+    Handlers = Handlers()
 
     def initMaterials(materials, texturePath, crossOrigin ):
         array = [None for i in range(len(materials))]
