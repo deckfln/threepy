@@ -398,7 +398,8 @@ class TrackballControls(EventManager):
                 self.object.position.addVectors( self.target, self._eye.setLength( self.minDistance ) )
                 self._zoomStart.copy( self._zoomEnd )
 
-    def update(self):
+    def update(self, timer=None):
+        # TODO FDE : some examples are calling it with a timer, but the javascrip code has no such variable
         self._eye.subVectors( self.object.position, self.target )
 
         if not self.noRotate:

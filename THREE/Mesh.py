@@ -119,9 +119,8 @@ class Mesh(Object3D):
 
         if geometry.my_class(isBufferGeometry):
             morphAttributes = geometry.morphAttributes
-            k = morphAttributes.keys()
 
-            if len(k) > 0:
+            if len(morphAttributes.position) > 0 or len(morphAttributes.normal) > 0:
                 morphAttribute = morphAttributes[ k[ 0 ] ]
 
                 if morphAttribute is not None:
