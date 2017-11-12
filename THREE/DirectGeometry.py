@@ -14,6 +14,21 @@ class _group:
         self.materialIndex = materialIndex
 
 
+class morphTargets:
+    def __init__(self):
+        self.position = []
+        self.normal = []
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __setitem__(self, item, value):
+        self.__dict__[item] = value
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+
 class DirectGeometry:
     def __init__(self):
         self.indices = []
@@ -25,7 +40,7 @@ class DirectGeometry:
 
         self.groups = []
 
-        self.morphTargets = {}
+        self.morphTargets = morphTargets()
 
         self.skinWeights = []
         self.skinIndices = []
@@ -91,10 +106,7 @@ class DirectGeometry:
         morphTargetsLength =len(morphTargets)
 
         if morphTargetsLength > 0:
-            morphTargetsPosition = []
-
-            for i in range(morphTargetsLength):
-                morphTargetsPosition[ i ] = []
+            morphTargetsPosition = [[] for i in range(morphTargetsLength)]
 
             self.morphTargets.position = morphTargetsPosition
 
@@ -102,10 +114,7 @@ class DirectGeometry:
         morphNormalsLength = len(morphNormals)
 
         if morphNormalsLength > 0:
-            morphTargetsNormal = []
-
-            for i in range(morphNormalsLength):
-                morphTargetsNormal[ i ] = []
+            morphTargetsNormal = [[] for i in range(morphNormalsLength)]
 
             self.morphTargets.normal = morphTargetsNormal
 

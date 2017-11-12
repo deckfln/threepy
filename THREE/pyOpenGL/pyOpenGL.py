@@ -25,12 +25,21 @@ class pyOpenGL(EventManager):
             'keyup'
             ])
 
+        self.flip = True
+
         self.clientWidth = 800
         self.clientHeight = 600
         window.innerWidth = self.clientWidth
         window.innerHeight = self.clientHeight
 
         self.params = params
+
+        py.init()
+        py.display.set_mode((self.clientWidth , self.clientHeight ),  py.OPENGL | py.RESIZABLE | py.HWSURFACE | py.DOUBLEBUF)
+
+        # TODO FDE: implement antialias
+        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
+        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
 
     def loop(self):
         t0 = time.time()
@@ -39,7 +48,11 @@ class pyOpenGL(EventManager):
             t1 = time.time()
             if t1 - t0 > 0.033:
                 self.dispatchEvent({'type': 'animationRequest'}, self.params)
-                py.display.flip()
+
+                if self.flip:
+                    # only flip buffer if some drawing actually happended
+                    py.display.flip()
+
                 t0 = t1
 
             event = py.event.poll()
@@ -96,5 +109,5 @@ class pyOpenGL(EventManager):
                                     'clientY': event.pos[1]}, self.params)
 
             elif event.type != 0:
-                print(event.type)
-
+                pass
+                #print(event.type)

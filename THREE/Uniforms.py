@@ -1,52 +1,52 @@
 """
-    /**
-     * @author tschw
-     *
-     * Uniforms of a program.
-     * Those form a tree structure with a special top-level container for the root,
-     * which you get by calling 'WebGLUniforms( gl, program, renderer )'.
-     *
-     *
-     * Properties of inner nodes including the top-level container:
-     *
-     * .seq - array of nested uniforms
-     * .map - nested uniforms by name
-     *
-     *
-     * Methods of all nodes except the top-level container:
-     *
-     * .setValue( gl, value, [renderer] )
-     *
-     *         uploads a uniform value(s)
-     *      the 'renderer' parameter is needed for sampler uniforms
-     *
-     *
-     * Static methods of the top-level container (renderer factorizations):
-     *
-     * .upload( gl, seq, values, renderer )
-     *
-     *         sets uniforms in 'seq' to 'values[id].value'
-     *
-     * .seqWithValue( seq, values ) : filteredSeq
-     *
-     *         filters 'seq' entries with corresponding entry in values
-     *
-     *
-     * Methods of the top-level container (renderer factorizations):
-     *
-     * .setValue( gl, name, value )
-     *
-     *         sets uniform with  name 'name' to 'value'
-     *
-     * .set( gl, obj, prop )
-     *
-     *         sets uniform from object and property with same name than uniform
-     *
-     * .setOptional( gl, obj, prop )
-     *
-     *         like .set for an optional property of the object
-     *
-     */
+/**
+ * @author tschw
+ *
+ * Uniforms of a program.
+ * Those form a tree structure with a special top-level container for the root,
+ * which you get by calling 'WebGLUniforms( gl, program, renderer )'.
+ *
+ *
+ * Properties of inner nodes including the top-level container:
+ *
+ * .seq - array of nested uniforms
+ * .map - nested uniforms by name
+ *
+ *
+ * Methods of all nodes except the top-level container:
+ *
+ * .setValue( gl, value, [renderer] )
+ *
+ *         uploads a uniform value(s)
+ *      the 'renderer' parameter is needed for sampler uniforms
+ *
+ *
+ * Static methods of the top-level container (renderer factorizations):
+ *
+ * .upload( gl, seq, values, renderer )
+ *
+ *         sets uniforms in 'seq' to 'values[id].value'
+ *
+ * .seqWithValue( seq, values ) : filteredSeq
+ *
+ *         filters 'seq' entries with corresponding entry in values
+ *
+ *
+ * Methods of the top-level container (renderer factorizations):
+ *
+ * .setValue( gl, name, value )
+ *
+ *         sets uniform with  name 'name' to 'value'
+ *
+ * .set( gl, obj, prop )
+ *
+ *         sets uniform from object and property with same name than uniform
+ *
+ * .setOptional( gl, obj, prop )
+ *
+ *         like .set for an optional property of the object
+ *
+ */
 """
 import numpy as np
 from OpenGL.GL import *
@@ -312,19 +312,19 @@ class PureArrayUniform():
     # // Array of scalars
 
     def setValue1fv(self, v, renderer=None):
-        glUniform1fv(self.addr, 1, v)
+        glUniform1fv(self.addr, len(v), v)
 
     def setValue1iv(self, v, renderer=None):
-        glUniform1iv(self.addr, 1, v)
+        glUniform1iv(self.addr, len(v), v)
 
     def setValue2iv(self, v, renderer=None):
-        glUniform2iv(self.addr, 1, v)
+        glUniform2iv(self.addr, len(v), v)
 
     def setValue3iv(self, v, renderer=None):
-        glUniform3iv(self.addr, 1, v)
+        glUniform3iv(self.addr, len(1), v)
 
     def setValue4iv(self, v, renderer=None):
-        glUniform4iv(self.addr, 1, v)
+        glUniform4iv(self.addr, len(1), v)
 
     # // Array of vectors (flat or from THREE classes)
 
@@ -448,12 +448,89 @@ def parseUniform( activeInfo, addr, container ):
 # // Root Container
 
 
+_variable_type = {
+    "float": 0x1406,
+    "vec2": 0x8b50,
+    "vec3": 0x8b51,
+    "vec4": 0x8b52,
+    "mat2": 0x8b5a,
+    "mat3": 0x8b5b,
+    "mat4": 0x8b5c,
+    "int": 0x8b56,
+    "bool": 0x8b56
+}
+
+
+def _parseShaderForUniforms(shader, uniforms):
+    """
+    @author deckfln
+    Parse the shader code to find "struct NAME { variable_type variable_name; }
+    Then complete the uniforms array
+    :param shader:
+    :param uniforms:
+    :return:
+    """
+    if "struct " not in shader:
+        return
+
+    pattern = 'struct ([\w\d_]+) \{([^}]*)\}'
+    for match in re.finditer(pattern, shader):
+        name = match.group(1)
+        block = match.group(2)
+
+        # first find if there is a single uniform or an array of uniform
+        uniform = "uniform "+name
+        if uniform not in shader:
+            continue
+
+        # now, is it a single value or an array
+        isArray = False
+        index = 0
+        patt = 'uniform '+name+' ([\w\d_]+)\[ *(\d)+ *\]'
+        match = re.search (patt, shader)
+        if match:
+            isArray = True
+            index = int(match.group(2))
+            if index == 0:
+                continue
+        else:
+            patt = 'uniform ' + name + ' ([\w\d_]+);'
+            match = re.search(patt, shader)
+
+        var_name = match.group(1)
+
+        b = block.replace("\n", "")
+        b = b.replace("\t", "")
+
+        attributes = b.split(";")
+
+        attr_coded = {}
+        for attr in attributes:
+            if attr == '':
+                continue
+            (attr_type, attr_name) = attr.split(" ")
+            vtype = _variable_type[attr_type]
+            attr_coded[attr_name] = vtype
+
+        if isArray:
+            for i in range(index):
+                for t in attr_coded:
+                    path = "%s[%d].%s" % (var_name, i, t)
+                    uniforms[path] = (path.encode("utf-8"), -1, attr_coded[t])
+        else:
+            for t in attr_coded:
+                path = "%s.%s" % (var_name, t)
+                uniforms[path] = (path.encode("utf-8"), -1, attr_coded[t])
+
+
 class pyOpenGLUniforms( UniformContainer ):
-    def __init__( self, program, renderer ):
+    def __init__( self, program, renderer, vertex, fragment ):
         super().__init__()
 
         self.renderer = renderer
 
+        # unlike webGL, glGetProgramiv doesn't list structured uniform
+        # thus, needs to parse the source shader to find this structures
         n = glGetProgramiv( program, GL_ACTIVE_UNIFORMS )
 
         for i in range(n):
@@ -463,7 +540,16 @@ class pyOpenGLUniforms( UniformContainer ):
 
             parseUniform( info, addr, self )
 
-    def setValue(self, gl, name, value ):
+        uniforms = {}
+        _parseShaderForUniforms(vertex, uniforms)
+        _parseShaderForUniforms(fragment, uniforms)
+
+        for name in uniforms:
+            addr = glGetUniformLocation(program, name)
+            if addr >= 0:
+                parseUniform(uniforms[name], addr, self)
+
+    def setValue(self, name, value ):
         if name in self.map:
             u = self.map[ name ]
 
@@ -474,7 +560,7 @@ class pyOpenGLUniforms( UniformContainer ):
     def setOptional(self, gl, object, name ):
         if name in object:
             v = object[ name ]
-            self.setValue( gl, name, v )
+            self.setValue( name, v )
 
 # // Static interface
 

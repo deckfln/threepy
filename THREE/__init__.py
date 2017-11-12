@@ -94,6 +94,7 @@ from THREE.PolarGridHelper import *
 from THREE.Ray import *
 from THREE.Raycaster import *
 from THREE.Sprite import *
+from THREE.AnimationMixer import *
 from THREE.pyOpenGLCapabilities import *
 from THREE.pyOpenGLAttributes import *
 from THREE.pyOpenGLBackground import *

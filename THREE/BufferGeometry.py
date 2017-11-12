@@ -1,7 +1,7 @@
 """
-	/**
-	 * @author mrdoob / http://mrdoob.com/
-	 */
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
 """
 
 import math
@@ -16,7 +16,7 @@ from THREE.Sphere import *
 from THREE.Object3D import *
 from THREE.BufferAttribute import *
 from THREE.DirectGeometry import *
-
+from THREE.DirectGeometry import *
 
 _gIdcount = 0
 
@@ -96,7 +96,7 @@ class BufferGeometry(pyOpenGLObject):
         self.type = 'BufferGeometry'
         self.index = None
         self.attributes = _attributesList()
-        self.morphAttributes = {}
+        self.morphAttributes = morphTargets()
         self.groups = []
         self.boundingBox = None    
         self.boundingSphere = None

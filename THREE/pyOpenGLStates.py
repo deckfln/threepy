@@ -275,8 +275,9 @@ class pyOpenGLState:
         self.utils = utils
 
     def initAttributes(self):
-        for i in range(len(self.newAttributes)):
-            self.newAttributes[ i ] = 0
+        self.newAttributes.fill(0)
+        # for i in range(len(self.newAttributes)):
+        #     self.newAttributes[ i ] = 0
 
     def enableAttribute(self, attribute ):
         self.newAttributes[ attribute ] = 1

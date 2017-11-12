@@ -189,9 +189,9 @@ class Color(pyOpenGLObject):
 
                 return self
 
-        if style and style.length > 0:
+        if style and len(style) > 0:
             # // color keywords
-            hex = self.ColorKeywords[ style ]
+            hex = _ColorKeywords[ style ]
             if hex is not None:
                 # // red
                 self.setHex( hex )

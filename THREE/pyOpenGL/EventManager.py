@@ -51,8 +51,7 @@ class EventManager:
 
         if type == 'animationRequest':
             callbacks = self.callbacks[type]
-            for callback in callbacks:
-                callback(params)
+            callbacks[0](params)
 
         elif type in self.callbacks:
             callbacks = self.callbacks[type][:] # get a copy of the list

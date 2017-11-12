@@ -166,8 +166,9 @@ def parseIncludes(string):
 
 
 def unrollLoops(string):
-    pattern = 'for \(int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}'
+    pattern = 'for \( *int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}'
 
+    unrolled_string = string
     for match in re.finditer(pattern, string):
         start = int(match.groups(0)[0])
         end= int(match.groups(0)[1])
@@ -177,9 +178,10 @@ def unrollLoops(string):
             vi = re.sub('\[ i \]', '[' + str(i) + ']', snipset)
             unroll += vi
 
-        string.sub(match.group(0), unroll, string)
+        src = match.group()
+        unrolled_string = unrolled_string.replace(src, unroll)
 
-    return string
+    return unrolled_string
 
 
 def _glGetActiveAttrib(program, index):
@@ -219,8 +221,12 @@ class _AttributeLocations:
         return iter(self._attributes)
 
     def __getitem__(self, item):
-        if item in self._attributes:
-            return self._attributes[item]
+        if isinstance(item, str):
+            bytes = item.encode("utf-8")
+        else:
+            bytes = item
+        if bytes in self._attributes:
+            return self._attributes[bytes]
 
         #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
         return None
@@ -236,8 +242,8 @@ class pyOpenGLProgram:
 
         defines = material.defines
 
-        vertexShader = shader['vertexShader']
-        fragmentShader = shader['fragmentShader']
+        vertexShader = shader.vertexShader
+        fragmentShader = shader.fragmentShader
 
         shadowMapTypeDefine = 'SHADOWMAP_TYPE_BASIC'
 
@@ -304,7 +310,7 @@ class pyOpenGLProgram:
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
-                '#define SHADER_NAME ' + shader['name'],
+                '#define SHADER_NAME ' + shader.name,
 
                 customDefines,
 
@@ -411,7 +417,7 @@ class pyOpenGLProgram:
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
-                '#define SHADER_NAME ' + shader['name'],
+                '#define SHADER_NAME ' + shader.name,
 
                 customDefines,
 
@@ -493,8 +499,8 @@ class pyOpenGLProgram:
         vertexGlsl = prefixVertex + vertexShader
         fragmentGlsl = prefixFragment + fragmentShader
 
-        # // console.log('*VERTEX*', vertexGlsl)
-        # // console.log('*FRAGMENT*', fragmentGlsl)
+        # print('*VERTEX*', vertexGlsl)
+        # print('*FRAGMENT*', fragmentGlsl)
         
         glVertexShader = pyOpenGLShader(GL_VERTEX_SHADER, vertexGlsl)
         glFragmentShader = pyOpenGLShader(GL_FRAGMENT_SHADER, fragmentGlsl)
@@ -526,9 +532,12 @@ class pyOpenGLProgram:
         if not glGetProgramiv(program, GL_LINK_STATUS):
             runnable = False
 
-            raise('THREE.pyOpenGLProgram: shader error: ', glGetError(), 'gl.VALIDATE_STATUS', glGetProgramiv(program, GL_VALIDATE_STATUS), 'gl.getProgramInfoLog', programLog, vertexLog, fragmentLog)
-        elif programLog != '':
-            raise('THREE.WebGLProgram: gl.getProgramInfoLog()', programLog)
+            error = glGetError()
+            valid = glGetProgramiv(program, GL_VALIDATE_STATUS)
+
+            raise RuntimeError('THREE.pyOpenGLProgram: shader error: %d GL_VALIDATE_STATUS %d gl.getProgramInfoLog %s %s %s' % (error, valid , programLog, vertexLog, fragmentLog))
+        elif programLog != b'' and programLog != '':
+            raise RuntimeError('THREE.WebGLProgram: gl.getProgramInfoLog()', programLog)
 
         elif vertexLog == '' or fragmentLog == '':
             haveDiagnostics = False
@@ -558,7 +567,7 @@ class pyOpenGLProgram:
 
         # // set up caching for uniform locations
 
-        self.cachedUniforms = pyOpenGLUniforms(program, renderer)
+        self.cachedUniforms = pyOpenGLUniforms(program, renderer, vertexGlsl, fragmentGlsl)
         self.cachedAttributes = _AttributeLocations(program)
 
         self.program = program

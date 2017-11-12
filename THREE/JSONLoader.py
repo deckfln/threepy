@@ -13,6 +13,8 @@ from THREE.Vector3 import *
 from THREE.Vector4 import *
 from THREE.Face3 import *
 from THREE.Geometry import *
+from THREE.MorphTarget import *
+from THREE.AnimationClip import *
 
 
 class JSONLoader:
@@ -223,9 +225,9 @@ class JSONLoader:
 
                     if hasFaceVertexUv:
                         for i in range(nUvLayers):
-                            uvLayer = json.uvs[ i ]
+                            uvLayer = json['uvs'][ i ]
 
-                            geometry.faceVertexUvs[ i ][ fi ] = []
+                            geometry.faceVertexUvs[ i ].append([])
 
                             for j in range(3):
                                 uvIndex = faces[ offset ]
@@ -313,12 +315,12 @@ class JSONLoader:
             if 'morphTargets' in json:
                 morphTargets = json['morphTargets']
                 for i in range(len(morphTargets)):
-                    geometry.morphTargets[ i ] = {}
-                    geometry.morphTargets[ i ].name = morphTargets[ i ].name
+                    geometry.morphTargets.append(MorphTarget())
+                    geometry.morphTargets[ i ].name = morphTargets[ i ]['name']
                     geometry.morphTargets[ i ].vertices = []
 
                     dstVertices = geometry.morphTargets[ i ].vertices
-                    srcVertices = morphTargets[ i ].vertices
+                    srcVertices = morphTargets[ i ]['vertices']
 
                     for v in range(0, len(srcVertices), 3 ):
                         vertex = Vector3()
@@ -362,7 +364,7 @@ class JSONLoader:
             if geometry.morphTargets:
                 # // TODO: Figure out what an appropraite FPS is for morph target animations -- defaulting to 10, but really it is completely arbitrary.
                 morphAnimationClips = AnimationClip.CreateClipsFromMorphTargetSequences( geometry.morphTargets, 10 )
-                outputAnimations = outputAnimations.concat( morphAnimationClips )
+                outputAnimations += morphAnimationClips
 
             if len(outputAnimations) > 0:
                 geometry.animations = outputAnimations

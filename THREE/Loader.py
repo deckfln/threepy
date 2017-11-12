@@ -138,7 +138,20 @@ class Loader:
                 if value.lower() == 'standard':
                     json['type'] = 'MeshStandardMaterial'
             elif name == 'mapDiffuse':
-                json['map'] = loadTexture( value, m['mapDiffuseRepeat'], m['mapDiffuseOffset'], m['mapDiffuseWrap'], m['mapDiffuseAnisotropy'] )
+                w = None
+                r = None
+                o = None
+                a = None
+
+                if 'mapDiffuseRepeat' in m:
+                    r = m['mapDiffuseRepeat']
+                if 'mapDiffuseOffset' in m:
+                    o = m['mapDiffuseOffset']
+                if 'mapDiffuseWrap' in m:
+                    w = m['mapDiffuseWrap']
+                if 'mapDiffuseAnisotropy' in m:
+                    a = m['mapDiffuseAnisotropy']
+                json['map'] = loadTexture( value, r, o, w, a)
             elif name == 'mapDiffuseRepeat' or \
                 name == 'mapDiffuseOffset' or \
                 name == 'mapDiffuseWrap' or \

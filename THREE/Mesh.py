@@ -101,6 +101,9 @@ class Mesh(Object3D):
 
         self.updateMorphTargets()
 
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
     def setDrawMode(self, value ):
         self.drawMode = value
 

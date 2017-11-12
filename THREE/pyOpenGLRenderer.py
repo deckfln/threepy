@@ -21,6 +21,7 @@ from THREE.ShaderLib import *
 from THREE.Javascript import *
 from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
+from THREE.pyOpenGLMorphtargets import *
 
 
 """
@@ -34,141 +35,9 @@ class pyOpenGLFlareRenderer:
     def render(self, flares, scene, camera, viewport):
         return True
 
-
-"""
-"""
-
-
-class _Model:
-    def __init__(self, vaoID, vertexCount, object3D):
-        self.vaoID = vaoID
-        self.vertexCount = vertexCount
-        self.textureID = 0
-        self.vbo_positions = 0
-        self.vbo_uvs = 2
-        self.vbo_normals = 3
-        self.vbo_colors = 1
-        self.object3D = object3D
-
-
-class _Loader:
-    def __init__(self):
-        self.vaoList = []
-        self.vboList = []
-        self.texturesList = []
-
-    def loadModel(self, object3D, program):
-        bufferGeometry = object3D.geometry
-
-        indexes = bufferGeometry.index
-
-        positions = bufferGeometry.attributes.position
-        uvs = bufferGeometry.attributes.uv
-        normals = bufferGeometry.attributes.normal
-        colors = bufferGeometry.attributes.color
-
-        vaoID = self.createVAO()
-        model = _Model(vaoID, len(indexes.array), object3D)
-
-        self.bindIndexBuffer(indexes)
-
-        programAttributes = program.getAttributes()
-
-        if programAttributes.has('position'):
-            self.createVBO(programAttributes.position, positions, 3)
-        if programAttributes.has('color'):
-            self.createVBO(programAttributes.color, colors, 3)
-        if programAttributes.has('tex_coord'):
-            self.createVBO(programAttributes.tex_coord, uvs, 2)
-        if programAttributes.has('normal'):
-            self.createVBO(programAttributes.normal, normals, 3)
-
-        self.unbindVAO()
-        return model
-
-    def loadTexture(self, file=None):
-        textureID = init_texture()
-        self.texturesList.append(textureID)
-        return textureID
-
-    def createVAO(self):
-        vaoID = glGenVertexArrays(1)
-        glBindVertexArray(vaoID)
-        self.vaoList.append(vaoID)
-        return vaoID
-
-    def createVBO(self, attribute, data, itemSize):
-        vboID = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER, vboID)
-        # k = [ f for f in data.array ]
-        # buffer = (c_float * len(k))(*k)
-        glBufferData(GL_ARRAY_BUFFER, data.array, GL_STATIC_DRAW)
-        glVertexAttribPointer(attribute, itemSize, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        self.vboList.append(vboID)
-
-    def unbindVAO(self):
-        glBindVertexArray(0)
-
-    def bindIndexBuffer(self, indexes):
-        vboID = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboID)
-        # buffer = UInt16(indexes)
-        # k = [ f for f in indexes.array ]
-        # buffer = (c_uint*len(k))(*k)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.array, GL_STATIC_DRAW)
-        self.vboList.append(vboID)
-
-    def cleanUp(self):
-        for vaoID in self.vaoList:
-            glDeleteVertexArrays(vaoID)
-
-        for vboID in self.vboList:
-            glDeleteBuffers(vboID)
-
-        for textureID in self.texturesList:
-            glDeleteTextures(textureID)
-
-
 """
 ***************************************************
 """
-
-
-def _glGetActiveAttrib(program, index):
-    bufSize = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH)
-    length = GLsizei()
-    size = GLint()
-    type_ = GLenum()
-    name = (GLchar * bufSize)()
-
-    glGetActiveAttrib(program, index, bufSize, length, size, type_, name)
-    return name.value, size.value, type_.value
-
-
-class _AttributeLocations:
-    def __init__(self, program, identifiers=None ):
-        self._attributes = {}
-
-        n = glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES )
-
-        for i in range(n):
-            info = _glGetActiveAttrib( program, i )
-            name = info[0]
-
-            self._attributes[ name ] = glGetAttribLocation( program, name )
-
-    def __getattr__(self, item):
-        bytes = item.encode("utf-8")
-        if bytes in self._attributes:
-            return self._attributes[bytes]
-
-        #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
-        return None
-
-    def has(self, item):
-        bytes = item.encode("utf-8")
-        return bytes in self._attributes
 
 
 class _infoMemory:
@@ -204,6 +73,19 @@ class _vr:
         return True
 
 
+class _shader:
+    def __init__(self, name, uniforms, vertexShader, fragmentShader):
+        self.name = name
+        self.uniforms = UniformsUtils.clone(uniforms)
+        self.vertexShader = vertexShader
+        self.fragmentShader = fragmentShader
+
+
+"""
+*
+*
+*
+"""
 class pyOpenGLRenderer:
     """
 
@@ -241,7 +123,8 @@ class pyOpenGLRenderer:
         self.onKeyDown = None
         self.animationFrame = None
 
-        self._init_pygame()
+        # FDE TODO: as all OpenGL tutorial create VAO, so create one, just if really needed
+        self.vaoID = glGenVertexArrays(1)
 
         self.extensions = pyOpenGLExtensions()
         self.extensions.get('WEBGL_depth_texture')
@@ -346,6 +229,7 @@ class pyOpenGLRenderer:
         self.attributes = pyOpenGLAttributes()
         self.geometries = pyOpenGLGeometries(self.attributes, self._infoMemory)
         self.objects = pyOpenGLObjects(self.geometries, self._infoRender)
+        self.morphtargets = pyOpenGLMorphtargets()
         self.programCache = pyOpenGLPrograms(self, self.extensions, self.capabilities)
         self.lights = pyOpenGLLights()
         self.renderLists = pyOpenGLRenderLists()
@@ -433,9 +317,12 @@ class pyOpenGLRenderer:
 
     def clear(self, color=True, depth=True, stencil=True ):
         bits = 0
-        bits |= GL_COLOR_BUFFER_BIT
-        bits |= GL_DEPTH_BUFFER_BIT
-        bits |= GL_STENCIL_BUFFER_BIT
+        if color:
+            bits |= GL_COLOR_BUFFER_BIT
+        if depth:
+            bits |= GL_DEPTH_BUFFER_BIT
+        if stencil:
+            bits |= GL_STENCIL_BUFFER_BIT
 
         glClear( bits )
 
@@ -460,6 +347,14 @@ class pyOpenGLRenderer:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def _setProgram(self, camera, fog, material, object):
+        """
+
+        :param camera:
+        :param fog:
+        :param material:
+        :param object:
+        :return:
+        """
         self._usedTextureUnits = 0
 
         materialProperties = self.properties.get(material)
@@ -497,7 +392,7 @@ class pyOpenGLRenderer:
 
         program = materialProperties.program
         p_uniforms = program.getUniforms()
-        m_uniforms = materialProperties.shader['uniforms']
+        m_uniforms = materialProperties.shader.uniforms
 
         if self.state.useProgram(program.program):
             refreshProgram = True
@@ -509,10 +404,10 @@ class pyOpenGLRenderer:
             refreshMaterial = True
 
         if refreshProgram or camera != self._currentCamera:
-            p_uniforms.setValue(None, 'projectionMatrix', camera.projectionMatrix)
+            p_uniforms.setValue('projectionMatrix', camera.projectionMatrix)
 
             if self.capabilities.logarithmicDepthBuffer:
-                p_uniforms.setValue(None, 'logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
+                p_uniforms.setValue('logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
 
             # // Avoid unneeded uniform updates per ArrayCamera's sub-camera
 
@@ -544,15 +439,15 @@ class pyOpenGLRenderer:
                     material.my_class(isMeshStandardMaterial) or \
                     material.my_class(isShaderMaterial) or \
                     material.skinning:
-                p_uniforms.setValue(None, 'viewMatrix', camera.matrixWorldInverse)
+                p_uniforms.setValue('viewMatrix', camera.matrixWorldInverse)
 
         # // skinning uniforms must be set even if material didn't change
         # // auto-setting of texture unit for bone texture must go before other textures
         # // not sure why, but otherwise weird things happen
 
         if material.skinning:
-            p_uniforms.setOptional(None, object, 'bindMatrix')
-            p_uniforms.setOptional(None, object, 'bindMatrixInverse')
+            p_uniforms.setOptional(object, 'bindMatrix')
+            p_uniforms.setOptional(object, 'bindMatrixInverse')
 
             skeleton = object.skeleton
 
@@ -582,14 +477,14 @@ class pyOpenGLRenderer:
                     skeleton.boneTexture = boneTexture
                     skeleton.boneTextureSize = size
 
-                p_uniforms.setValue(None, 'boneTexture', skeleton.boneTexture)
-                p_uniforms.setValue(None, 'boneTextureSize', skeleton.boneTextureSize)
+                p_uniforms.setValue('boneTexture', skeleton.boneTexture)
+                p_uniforms.setValue('boneTextureSize', skeleton.boneTextureSize)
             else:
-                p_uniforms.setOptional(None, skeleton, 'boneMatrices')
+                p_uniforms.setOptional(skeleton, 'boneMatrices')
 
         if refreshMaterial:
-            p_uniforms.setValue(None, 'toneMappingExposure', self.toneMappingExposure)
-            p_uniforms.setValue(None, 'toneMappingWhitePoint', self.toneMappingWhitePoint)
+            p_uniforms.setValue('toneMappingExposure', self.toneMappingExposure)
+            p_uniforms.setValue('toneMappingWhitePoint', self.toneMappingWhitePoint)
 
             if material.lights:
                 # // the current material requires lighting info
@@ -670,9 +565,9 @@ class pyOpenGLRenderer:
 
         # // common matrices
 
-        p_uniforms.setValue(None, 'modelViewMatrix', object.modelViewMatrix)
-        p_uniforms.setValue(None, 'normalMatrix', object.normalMatrix)
-        p_uniforms.setValue(None, 'modelMatrix', object.matrixWorld)
+        p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
+        p_uniforms.setValue('normalMatrix', object.normalMatrix)
+        p_uniforms.setValue('modelMatrix', object.matrixWorld)
 
         return program
 
@@ -780,7 +675,7 @@ class pyOpenGLRenderer:
     def _refreshUniformsFog(self, uniforms, fog):
         uniforms.fogColor.value = fog.color
 
-        if fog.isFog:
+        if fog.my_class(isFog):
             uniforms.fogNear.value = fog.near
             uniforms.fogFar.value = fog.far
         elif fog.my_class(isFogExp2):
@@ -906,7 +801,7 @@ class pyOpenGLRenderer:
         self.properties.remove(material)
 
     def _onMaterialDispose(self, material):
-        self.deallocateMaterial(material)
+        self._deallocateMaterial(material)
 
     def _initMaterial(self, material, fog, object):
         global ShaderLib
@@ -936,19 +831,15 @@ class pyOpenGLRenderer:
             if parameters['shaderID']:
                 shader = ShaderLib[parameters['shaderID']]
 
-                materialProperties.shader = javascriptObject({
-                    'name': material.type,
-                    'uniforms': UniformsUtils.clone(shader.uniforms),
-                    'vertexShader': shader.vertexShader,
-                    'fragmentShader': shader.fragmentShader
-                })
+                materialProperties.shader = _shader(material.type,
+                                                    UniformsUtils.clone(shader.uniforms),
+                                                    shader.vertexShader,
+                                                    shader.fragmentShader)
             else:
-                materialProperties.shader = javascriptObject({
-                    'name': material.type,
-                    'uniforms': material.uniforms,
-                    'vertexShader': material.vertexShader,
-                    'fragmentShader': material.fragmentShader
-                })
+                materialProperties.shader = _shader(material.type,
+                                                    material.uniform,
+                                                    material.vertexShader,
+                                                    material.fragmentShader)
 
             material.onBeforeCompile(materialProperties.shader)
 
@@ -962,16 +853,18 @@ class pyOpenGLRenderer:
         if material.morphTargets:
             material.numSupportedMorphTargets = 0
             for i in range(self.maxMorphTargets):
-                if programAttributes['morphTarget%d' % i] >= 0:
+                k = 'morphTarget%d' % i
+                if k in programAttributes and programAttributes[k] >= 0:
                     material.numSupportedMorphTargets += 1
 
         if material.morphNormals:
             material.numSupportedMorphNormals = 0
             for i in range(self.maxMorphNormals):
-                if programAttributes['morphNormal%d' % i] >= 0:
+                k = 'morphNormal%d' % i
+                if k in programAttributes and programAttributes[k] >= 0:
                     material.numSupportedMorphNormals += 1
 
-        uniforms = materialProperties.shader['uniforms']
+        uniforms = materialProperties.shader.uniforms
 
         if not material.my_class(isShaderMaterial) and not material.my_class(isRawShaderMaterial) or material.clipping:
             materialProperties.numClippingPlanes = self._clipping.numPlanes
@@ -1066,9 +959,9 @@ class pyOpenGLRenderer:
                         glVertexAttribPointer( programAttribute, size, type, normalized, 0, c_void_p(startIndex * size * bytesPerElement) )
 
                 elif materialDefaultAttributeValues is not None:
-                    value = materialDefaultAttributeValues[ name ]
+                    if name in materialDefaultAttributeValues:
+                        value = materialDefaultAttributeValues[name]
 
-                    if value is not None:
                         if value.length == 2:
                             glVertexAttrib2fv( programAttribute, value )
                         elif value.length == 3:
@@ -1446,6 +1339,9 @@ class pyOpenGLRenderer:
         self._currentMaterialId = - 1
         self._currentCamera = None
 
+        # TODO FDE: bind the VAO is really needed in opengl
+        glBindVertexArray(self.vaoID)
+
         # // update scene graph
 
         if scene.autoUpdate:
@@ -1652,17 +1548,3 @@ class pyOpenGLRenderer:
         else:
             # // assumed: texture property of THREE.WebGLRenderTargetCube
             self.textures.setTextureCubeDynamic(texture, slot)
-
-    def _build(self, camera, object):
-        # self._initMaterial(object.material, None, object)
-        loader = _Loader()
-        self.vao = loader.createVAO()
-        # self.objects.update(object)
-
-    def _init_pygame(self, width=800, height=600):
-        pygame.init()
-        pygame.display.set_mode((self._width, self._height), DOUBLEBUF | OPENGL | RESIZABLE)
-
-        # TODO FDE: implement antialias
-        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
-        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
