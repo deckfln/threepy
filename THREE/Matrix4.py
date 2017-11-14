@@ -318,9 +318,9 @@ class Matrix4(pyOpenGLObject):
         x.normalize()
         y.crossVectors(z, x)
 
-        te[0] = x.x; te[4] = y.x; te[8] = z.x
-        te[1] = x.y; te[5] = y.y; te[9] = z.y
-        te[2] = x.z; te[6] = y.z; te[10] = z.z
+        te[0] = x.np[0]; te[4] = y.np[0]; te[8] = z.np[0]
+        te[1] = x.np[1]; te[5] = y.np[1]; te[9] = z.np[1]
+        te[2] = x.np[2]; te[6] = y.np[2]; te[10] = z.np[2]
 
         return self
 
@@ -480,9 +480,9 @@ class Matrix4(pyOpenGLObject):
     def setPosition(self, v):
         te = self.elements
 
-        te[12] = v.x
-        te[13] = v.y
-        te[14] = v.z
+        te[12] = v.np[0]
+        te[13] = v.np[1]
+        te[14] = v.np[2]
 
         return self
 
@@ -533,9 +533,9 @@ class Matrix4(pyOpenGLObject):
 
     def scale(self, v):
         te = self.elements
-        x = v.x
-        y = v.y
-        z = v.z
+        x = v.np[0]
+        y = v.np[1]
+        z = v.np[2]
 
         te *= np.array([x, x, x, 1, y, y, y, 1, z, z, z, 1, 1, 1, 1, 1])
         """

@@ -1292,7 +1292,7 @@ class pyOpenGLRenderer:
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
 
             elif object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
-                if hasattr(object, 'isSkinnedMesh'):
+                if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 
                 if not object.frustumCulled or self._frustum.intersectsObject( object ):

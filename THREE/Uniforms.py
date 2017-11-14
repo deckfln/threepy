@@ -224,7 +224,7 @@ class SingleUniform:
         if isinstance(v, list):
             glUniform3fv(self.addr, 1, v)
         elif v.my_class(isVector3):
-            glUniform3f(self.addr, v.x, v.y, v.z)
+            glUniform3fv(self.addr, 1, v.np)
         else:
             glUniform3f(self.addr, v.r, v.g, v.b)
 

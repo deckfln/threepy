@@ -145,9 +145,9 @@ class BufferAttribute(pyOpenGLObject):
             if vector is None:
                 print('THREE.BufferAttribute.copyVector3sArray(): vector is undefined')
                 vector = Vector3()
-            array[offset] = vector.x
-            array[offset + 1] = vector.y
-            array[offset + 2] = vector.z
+            array[offset] = vector.np[0]
+            array[offset + 1] = vector.np[1]
+            array[offset + 2] = vector.np[2]
             offset += 3
         return self
 

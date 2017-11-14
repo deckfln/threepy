@@ -396,9 +396,9 @@ class BufferGeometry(pyOpenGLObject):
 
             maxRadiusSq = 0
             for i in range(int(position.count)):
-                vector.x = position.getX( i )
-                vector.y = position.getY( i )
-                vector.z = position.getZ( i )
+                vector.np[0] = position.getX( i )
+                vector.np[1] = position.getY( i )
+                vector.np[2] = position.getZ( i )
                 maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( vector ) )
 
             self.boundingSphere.radius = math.sqrt( maxRadiusSq )

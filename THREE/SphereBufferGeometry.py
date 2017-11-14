@@ -80,16 +80,16 @@ class SphereBufferGeometry(BufferGeometry):
 
                 # // vertex
 
-                vertex.x = - radius * math.cos( phiStart + u * phiLength ) * math.sin( thetaStart + v * thetaLength )
-                vertex.y = radius * math.cos( thetaStart + v * thetaLength )
-                vertex.z = radius * math.sin( phiStart + u * phiLength ) * math.sin( thetaStart + v * thetaLength )
+                vertex.np[0] = - radius * math.cos( phiStart + u * phiLength ) * math.sin( thetaStart + v * thetaLength )
+                vertex.np[1] = radius * math.cos( thetaStart + v * thetaLength )
+                vertex.np[2] = radius * math.sin( phiStart + u * phiLength ) * math.sin( thetaStart + v * thetaLength )
 
-                vertices.extend([ vertex.x, vertex.y, vertex.z ])
+                vertices.extend([ vertex.np[0], vertex.np[1], vertex.np[2] ])
 
                 # // normal
 
-                normal.set( vertex.x, vertex.y, vertex.z ).normalize()
-                normals.extend([ normal.x, normal.y, normal.z ])
+                normal.set( vertex.np[0], vertex.np[1], vertex.np[2] ).normalize()
+                normals.extend([ normal.np[0], normal.np[1], normal.np[2] ])
 
                 # // uv
 

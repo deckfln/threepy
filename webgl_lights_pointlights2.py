@@ -24,7 +24,7 @@ class Params:
         self.light4 = None
         self.light5 = None
         self.light6 = None
-
+        self.counter= 0
 
 def init(p):
     p.container = pyOpenGL(p)
@@ -92,9 +92,9 @@ def init(p):
     for i in range((5000)):
         mesh = THREE.Mesh( objectGeometry, objectMaterial )
 
-        mesh.position.x = 400 * ( 0.5 - random.random() )
-        mesh.position.y = 50 * ( 0.5 - random.random() ) + 25
-        mesh.position.z = 200 * ( 0.5 - random.random() )
+        mesh.position.np[0] = 400 * ( 0.5 - random.random() )
+        mesh.position.np[1] = 50 * ( 0.5 - random.random() ) + 25
+        mesh.position.np[2] = 200 * ( 0.5 - random.random() )
 
         mesh.rotation.y = 3.14 * ( 0.5 - random.random() )
         mesh.rotation.x = 3.14 * ( 0.5 - random.random() )
@@ -164,27 +164,31 @@ def animate(p):
 
 
 def render(p):
+    p.counter += 1
+    if p.counter > 10:
+        sys.exit(0)
+
     timer = datetime.now().timestamp() * 0.5
     z = 20
     d = 150
 
-    p.light1.position.x = math.sin( timer * 0.7 ) * d
-    p.light1.position.z = math.cos( timer * 0.3 ) * d
+    p.light1.position.np[0] = math.sin( timer * 0.7 ) * d
+    p.light1.position.np[2] = math.cos( timer * 0.3 ) * d
 
-    p.light2.position.x = math.cos( timer * 0.3 ) * d
-    p.light2.position.z = math.sin( timer * 0.7 ) * d
+    p.light2.position.np[0] = math.cos( timer * 0.3 ) * d
+    p.light2.position.np[2] = math.sin( timer * 0.7 ) * d
 
-    p.light3.position.x = math.sin( timer * 0.7 ) * d
-    p.light3.position.z = math.sin( timer * 0.5 ) * d
+    p.light3.position.np[0] = math.sin( timer * 0.7 ) * d
+    p.light3.position.np[2] = math.sin( timer * 0.5 ) * d
 
-    p.light4.position.x = math.sin( timer * 0.3 ) * d
-    p.light4.position.z = math.sin( timer * 0.5 ) * d
+    p.light4.position.np[0] = math.sin( timer * 0.3 ) * d
+    p.light4.position.np[2] = math.sin( timer * 0.5 ) * d
 
-    p.light5.position.x = math.cos( timer * 0.3 ) * d
-    p.light5.position.z = math.sin( timer * 0.5 ) * d
+    p.light5.position.np[0] = math.cos( timer * 0.3 ) * d
+    p.light5.position.np[2] = math.sin( timer * 0.5 ) * d
 
-    p.light6.position.x = math.cos( timer * 0.7 ) * d
-    p.light6.position.z = math.cos( timer * 0.5 ) * d
+    p.light6.position.np[0] = math.cos( timer * 0.7 ) * d
+    p.light6.position.np[2] = math.cos( timer * 0.5 ) * d
 
     p.controls.update( p.clock.getDelta() )
 

@@ -71,19 +71,19 @@ class TorusBufferGeometry(BufferGeometry):
 
                 # // vertex
 
-                vertex.x = ( radius + tube * math.cos( v ) ) * math.cos( u )
-                vertex.y = ( radius + tube * math.cos( v ) ) * math.sin( u )
-                vertex.z = tube * math.sin( v )
+                vertex.np[0] = ( radius + tube * math.cos( v ) ) * math.cos( u )
+                vertex.np[1] = ( radius + tube * math.cos( v ) ) * math.sin( u )
+                vertex.np[2] = tube * math.sin( v )
 
-                vertices.extend([ vertex.x, vertex.y, vertex.z ])
+                vertices.extend([ vertex.np[0], vertex.np[1], vertex.np[2] ])
 
                 # // normal
 
-                center.x = radius * math.cos( u )
-                center.y = radius * math.sin( u )
+                center.np[0] = radius * math.cos( u )
+                center.np[1] = radius * math.sin( u )
                 normal.subVectors( vertex, center ).normalize()
 
-                normals.extend([ normal.x, normal.y, normal.z ])
+                normals.extend([ normal.np[0], normal.np[1], normal.np[2] ])
 
                 # // uv
 

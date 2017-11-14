@@ -561,7 +561,7 @@ class Geometry(pyOpenGLObject):
 
         for i in range(len(self.vertices)):
             v = self.vertices[ i ]
-            key = "%d_%d_%d" % (round( v.x * precision ), round( v.y * precision ), round( v.z * precision ))
+            key = "%d_%d_%d" % (round( v.np[0] * precision ), round( v.np[1] * precision ), round( v.np[2] * precision ))
 
             if key not in verticesMap:
                 verticesMap[ key ] = i

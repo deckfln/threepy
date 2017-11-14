@@ -23,14 +23,18 @@ class Vector3(pyOpenGLObject):
     def __init__(self, x=0, y=0, z=0):
         super().__init__()
         self.set_class(isVector3)
+        self.np = np.array([x, y, z], np.float64)
+        """
         self.x = x
         self.y = y
         self.z = z
+        """
+        self.array = np.array([0, 0, 0, 1], np.float64)
 
     def set(self, x, y, z ):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.np[0] = x
+        self.np[1] = y
+        self.np[2] = z
 
         return self
 
@@ -41,30 +45,43 @@ class Vector3(pyOpenGLObject):
         return self
 
     def setX(self, x ):
-        self.x = x
+        self.np[0] = x
         return self
 
     def setY(self, y ):
-        self.y = y
+        self.np[1] = y
         return self
 
     def setZ(self, z ):
-        self.z = z
+        self.np[2] = z
         return self
+
+    def getX(self):
+        return self.np[0]
+
+    def getY(self):
+        return self.np[1]
+
+    def getZ(self):
+        return self.np[2]
+
+    x = property(getX, setX)
+    y = property(getY, setY)
+    z = property(getZ, setZ)
 
     def setComponent(self, index, value ):
         if index == 0:
-            self.x = value
+            self.np[0] = value
         elif index == 1:
-            self.y = value
+            self.np[1] = value
         elif index == 2:
-            self.z = value
+            self.np[2] = value
         elif index == 'x':
-            self.x = value
+            self.np[0] = value
         elif index == 'y':
-            self.y = value
+            self.np[1] = value
         elif index == 'z':
-            self.z = value
+            self.np[2] = value
         else:
             print( 'index is out of range: ' + index )
 
@@ -72,21 +89,19 @@ class Vector3(pyOpenGLObject):
 
     def getComponent(self, index ):
         if index == 0:
-            return self.x
+            return self.np[0]
         elif index == 1:
-            return self.y
+            return self.np[1]
         elif index == 2:
-            return self.z
+            return self.np[2]
         else:
             print( 'index is out of range: ' + index )
 
     def clone(self):
-        return type(self)( self.x, self.y, self.z )
+        return type(self)( self.np[0], self.np[1], self.np[2] )
 
     def copy(self, v ):
-        self.x = v.x
-        self.y = v.y
-        self.z = v.z
+        np.copyto(self.np, v.np)
         return self
 
     def add(self, v, w=None ):
@@ -94,28 +109,20 @@ class Vector3(pyOpenGLObject):
             print( 'THREE.Vector3: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' )
             return self.addVectors( v, w )
 
-        self.x += v.x
-        self.y += v.y
-        self.z += v.z
+        self.np += v.np
 
         return self
 
     def addScalar(self, s ):
-        self.x += s
-        self.y += s
-        self.z += s
+        self.np += s
         return self
 
     def addVectors(self, a, b ):
-        self.x = a.x + b.x
-        self.y = a.y + b.y
-        self.z = a.z + b.z
+        self.np = a.np + b.np
         return self
 
     def addScaledVector(self, v, s ):
-        self.x += v.x * s
-        self.y += v.y * s
-        self.z += v.z * s
+        self.np += v.np * s
         return self
 
     def sub(self, v, w=None ):
@@ -123,21 +130,15 @@ class Vector3(pyOpenGLObject):
             print( 'THREE.Vector3: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' )
             return self.subVectors( v, w )
 
-        self.x -= v.x
-        self.y -= v.y
-        self.z -= v.z
+        self.np -= v.np
         return self
 
     def subScalar(self, s ):
-        self.x -= s
-        self.y -= s
-        self.z -= s
+        self.np -= s
         return self
 
     def subVectors(self, a, b ):
-        self.x = a.x - b.x
-        self.y = a.y - b.y
-        self.z = a.z - b.z
+        self.np = a.np - b.np
         return self
 
     def multiply(self, v, w=None ):
@@ -145,21 +146,15 @@ class Vector3(pyOpenGLObject):
             print( 'THREE.Vector3: .multiply() now only accepts one argument. Use .multiplyVectors( a, b ) instead.' )
             return self.multiplyVectors( v, w )
 
-        self.x *= v.x
-        self.y *= v.y
-        self.z *= v.z
+        self.np *= v.np
         return self
 
     def multiplyScalar(self, scalar ):
-        self.x *= scalar
-        self.y *= scalar
-        self.z *= scalar
+        self.np *= scalar
         return self
 
     def multiplyVectors(self, a, b ):
-        self.x = a.x * b.x
-        self.y = a.y * b.y
-        self.z = a.z * b.z
+        self.np = a.np * b.np
         return self
 
     def applyEuler(self, euler):
@@ -174,23 +169,26 @@ class Vector3(pyOpenGLObject):
         return self.applyQuaternion( quaternion.setFromAxisAngle( axis, angle ) )
 
     def applyMatrix3(self, m ):
-        x = self.x; y = self.y; z = self.z
+        x = self.np[0]; y = self.np[1]; z = self.np[2]
         e = m.elements
 
-        self.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
-        self.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
-        self.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
+        x1 = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
+        y1 = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
+        z1 = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
+
+        self.np.cross(m.matrix)
+
+        if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
+            raise RuntimeError("vector3:applyMatrix3 not good")
 
         return self
 
     def applyMatrix4(self, m ):
-        x = self.x
-        y = self.y
-        z = self.z
-        e = m.elements
+        self.array[0] = self.np[0]
+        self.array[1] = self.np[1]
+        self.array[2] = self.np[2]
 
-        a = np.array([x, y, z, 1])
-        c = np.dot(a, m.matrix)
+        c = np.dot(self.array, m.matrix)
 
         if c[3] == 0:
             self.z = float("-inf")
@@ -198,9 +196,9 @@ class Vector3(pyOpenGLObject):
 
         c *= (1/c[3])
 
-        self.x = c[0]
-        self.y = c[1]
-        self.z = c[2]
+        self.np[0] = c[0]
+        self.np[1] = c[1]
+        self.np[2] = c[2]
         """
         det = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ]
         if det == 0:
@@ -249,12 +247,12 @@ class Vector3(pyOpenGLObject):
         # // input: THREE.Matrix4 affine matrix
         # // vector interpreted as a direction
 
-        x = self.x; y = self.y; z = self.z
+        x = self.np[0]; y = self.np[1]; z = self.np[2]
         e = m.elements
 
-        self.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z
-        self.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z
-        self.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z
+        self.np[0] = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z
+        self.np[1] = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z
+        self.np[2] = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z
 
         return self.normalize()
 
@@ -269,15 +267,16 @@ class Vector3(pyOpenGLObject):
         return self.multiplyScalar( 1 / scalar )
 
     def min(self, v ):
-        self.x = min( self.x, v.x )
-        self.y = min( self.y, v.y )
-        self.z = min( self.z, v.z )
+        self.np[0] = min( self.np[0], v.np[0] )
+        self.np[1] = min( self.np[1], v.np[1] )
+        self.np[2] = min( self.np[2], v.np[2] )
+
         return self
 
     def max(self, v ):
-        self.x = max( self.x, v.x )
-        self.y = max( self.y, v.y )
-        self.z = max( self.z, v.z )
+        self.np[0] = max( self.np[0], v.np[0] )
+        self.np[1] = max( self.np[1], v.np[1] )
+        self.np[2] = max( self.np[2], v.np[2] )
         return self
 
     def clamp(self, min, max ):
@@ -341,14 +340,15 @@ class Vector3(pyOpenGLObject):
         return self
 
     def dot(self, v ):
-        return self.x * v.x + self.y * v.y + self.z * v.z
+        return self.np.dot(v.np)
 
     # // TODO lengthSquared?
     def lengthSq(self):
-        return self.x * self.x + self.y * self.y + self.z * self.z
+        s1 = np.dot(self.np, self.np)
+        return s1
 
     def length(self):
-        return math.sqrt( self.x * self.x + self.y * self.y + self.z * self.z )
+        return np.sqrt( self.lengthSq() )
 
     def lengthManhattan(self):
         return abs( self.x ) + abs( self.y ) + abs( self.z )
@@ -374,21 +374,31 @@ class Vector3(pyOpenGLObject):
                 print( 'THREE.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' )
                 return self.crossVectors( v, w )
 
-            x = self.x; y = self.y; z = self.z
+            x = self.np[0]; y = self.np[1]; z = self.np[2]
 
-            self.x = y * v.z - z * v.y
-            self.y = z * v.x - x * v.z
-            self.z = x * v.y - y * v.x
+            x1 = y * v.np[2] - z * v.np[1]
+            y1 = z * v.np[0] - x * v.np[2]
+            z1 = x * v.np[1] - y * v.np[0]
+
+            self.np = np.cross(self.np, v.np)
+
+            if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
+                raise RuntimeError("vector3:applyMatrix3 not good")
 
             return self
 
     def crossVectors(self, a, b ):
-        ax = a.x; ay = a.y; az = a.z
-        bx = b.x; by = b.y; bz = b.z
+        ax = a.np[0]; ay = a.np[1]; az = a.np[2]
+        bx = b.np[0]; by = b.np[1]; bz = b.np[2]
 
-        self.x = ay * bz - az * by
-        self.y = az * bx - ax * bz
-        self.z = ax * by - ay * bx
+        x1 = ay * bz - az * by
+        y1 = az * bx - ax * bz
+        z1 = ax * by - ay * bx
+
+        self.np = np.cross(a.np, b.np)
+
+        if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
+            raise RuntimeError("vector2:crossVector not good")
 
         return self
 
@@ -419,8 +429,9 @@ class Vector3(pyOpenGLObject):
         return math.sqrt( self.distanceToSquared( v ) )
 
     def distanceToSquared(self, v ):
-        dx = self.x - v.x; dy = self.y - v.y; dz = self.z - v.z
-        return dx * dx + dy * dy + dz * dz
+        dm = np.subtract(self.np, v.np)
+        d = np.dot(dm, dm)
+        return d
 
     def distanceToManhattan(self, v ):
         return abs( self.x - v.x ) + abs( self.y - v.y ) + abs( self.z - v.z )
@@ -442,9 +453,9 @@ class Vector3(pyOpenGLObject):
     def setFromMatrixPosition(self, m ):
         e = m.elements
 
-        self.x = e[ 12 ]
-        self.y = e[ 13 ]
-        self.z = e[ 14 ]
+        self.np[0] = e[ 12 ]
+        self.np[1] = e[ 13 ]
+        self.np[2] = e[ 14 ]
 
         return self
 

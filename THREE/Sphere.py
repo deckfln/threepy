@@ -11,9 +11,11 @@ from THREE.Box3 import *
 
 class Sphere:
     def __init__(self, center=None, radius=0 ):
-        self.center = center
         if center is None:
             self.center = Vector3()
+        else:
+            self.center = center
+
         self.radius = radius    
 
     def set(self, center, radius ):

@@ -19,6 +19,7 @@ class Frustum:
             p4 if p4 else Plane(),
             p5 if p5 else Plane(),
         ]
+        self.sphere = Sphere()
 
     def set(self, p0, p1, p2, p3, p4, p5 ):
         planes = self.planes
@@ -61,15 +62,18 @@ class Frustum:
         return self
 
     def intersectsObject(self, object):
-        sphere = Sphere()
         geometry = object.geometry
 
         if geometry.boundingSphere is None:
             geometry.computeBoundingSphere()
 
-        sphere.copy( geometry.boundingSphere ).applyMatrix4( object.matrixWorld )
-
-        return self.intersectsSphere( sphere )
+        """
+        self.sphere.copy( geometry.boundingSphere )
+        self.sphere.applyMatrix4( object.matrixWorld )
+        
+        return self.intersectsSphere( self.sphere )
+        """
+        return self.intersectsSphere( object.boundingSphere)
 
 
     def intersectsSprite(self, sprite):
