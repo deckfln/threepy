@@ -169,48 +169,21 @@ class Vector3(pyOpenGLObject):
         return self.applyQuaternion( quaternion.setFromAxisAngle( axis, angle ) )
 
     def applyMatrix3(self, m ):
-        x = self.np[0]; y = self.np[1]; z = self.np[2]
-        e = m.elements
-
-        x1 = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
-        y1 = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
-        z1 = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
-
-        self.np.cross(m.matrix)
-
-        if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
-            raise RuntimeError("vector3:applyMatrix3 not good")
+        self.np.dot(m.matrix)
 
         return self
 
     def applyMatrix4(self, m ):
-        self.array[0] = self.np[0]
-        self.array[1] = self.np[1]
-        self.array[2] = self.np[2]
-
+        np.put(self.array, (0,1,2), self.np)
         c = np.dot(self.array, m.matrix)
 
         if c[3] == 0:
             self.z = float("-inf")
             return self
 
-        c *= (1/c[3])
+        c /= c[3]
 
-        self.np[0] = c[0]
-        self.np[1] = c[1]
-        self.np[2] = c[2]
-        """
-        det = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ]
-        if det == 0:
-            self.z = float("-inf")
-            return self
-
-        w = 1 / det
-
-        self.x = ( e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z + e[ 12 ] ) * w
-        self.y = ( e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z + e[ 13 ] ) * w
-        self.z = ( e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] ) * w
-        """
+        np.put(self.np, (0,1,2), c)
 
         return self
 
@@ -267,16 +240,11 @@ class Vector3(pyOpenGLObject):
         return self.multiplyScalar( 1 / scalar )
 
     def min(self, v ):
-        self.np[0] = min( self.np[0], v.np[0] )
-        self.np[1] = min( self.np[1], v.np[1] )
-        self.np[2] = min( self.np[2], v.np[2] )
-
+        self.np = np.fmin(self.np, v.np)
         return self
 
     def max(self, v ):
-        self.np[0] = max( self.np[0], v.np[0] )
-        self.np[1] = max( self.np[1], v.np[1] )
-        self.np[2] = max( self.np[2], v.np[2] )
+        self.np = np.fmax(self.np, v.np)
         return self
 
     def clamp(self, min, max ):
@@ -374,31 +342,12 @@ class Vector3(pyOpenGLObject):
                 print( 'THREE.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' )
                 return self.crossVectors( v, w )
 
-            x = self.np[0]; y = self.np[1]; z = self.np[2]
-
-            x1 = y * v.np[2] - z * v.np[1]
-            y1 = z * v.np[0] - x * v.np[2]
-            z1 = x * v.np[1] - y * v.np[0]
-
             self.np = np.cross(self.np, v.np)
-
-            if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
-                raise RuntimeError("vector3:applyMatrix3 not good")
 
             return self
 
     def crossVectors(self, a, b ):
-        ax = a.np[0]; ay = a.np[1]; az = a.np[2]
-        bx = b.np[0]; by = b.np[1]; bz = b.np[2]
-
-        x1 = ay * bz - az * by
-        y1 = az * bx - ax * bz
-        z1 = ax * by - ay * bx
-
         self.np = np.cross(a.np, b.np)
-
-        if self.np[0] != x1 or self.np[1] != y1 or self.np[2] != z1:
-            raise RuntimeError("vector2:crossVector not good")
 
         return self
 
@@ -450,13 +399,10 @@ class Vector3(pyOpenGLObject):
 
         return self
 
-    def setFromMatrixPosition(self, m ):
-        e = m.elements
-
-        self.np[0] = e[ 12 ]
-        self.np[1] = e[ 13 ]
-        self.np[2] = e[ 14 ]
-
+    def setFromMatrixPosition(self, m):
+        self.np[0] = m.elements[12]
+        self.np[1] = m.elements[13]
+        self.np[2] = m.elements[14]
         return self
 
     def setFromMatrixScale(self, m ):

@@ -90,6 +90,12 @@ class pyOpenGLRenderer:
     """
 
     """
+    drawMode = {
+        TrianglesDrawMode: GL_TRIANGLES,
+        TriangleStripDrawMode: GL_TRIANGLE_STRIP,
+        TriangleFanDrawMode:GL_TRIANGLE_FAN
+    }
+
     def __init__(self, parameters=None):
         """
         pyOpenGL
@@ -404,7 +410,8 @@ class pyOpenGLRenderer:
             refreshMaterial = True
 
         if refreshProgram or camera != self._currentCamera:
-            p_uniforms.setValue('projectionMatrix', camera.projectionMatrix)
+            if camera.projectionMatrix.updated or not p_uniforms.map['projectionMatrix'].uploaded:
+                p_uniforms.setValue('projectionMatrix', camera.projectionMatrix)
 
             if self.capabilities.logarithmicDepthBuffer:
                 p_uniforms.setValue('logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
@@ -565,9 +572,14 @@ class pyOpenGLRenderer:
 
         # // common matrices
 
+        #if object.modelViewMatrix.updated:
         p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
-        p_uniforms.setValue('normalMatrix', object.normalMatrix)
-        p_uniforms.setValue('modelMatrix', object.matrixWorld)
+
+        if object.normalMatrix.updated:
+            p_uniforms.setValue('normalMatrix', object.normalMatrix)
+
+        if object.matrixWorld.updated:
+            p_uniforms.setValue('modelMatrix', object.matrixWorld)
 
         return program
 
@@ -1024,8 +1036,12 @@ class pyOpenGLRenderer:
         """
         object.onBeforeRender(self, scene, camera, geometry, material, group)
 
-        object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-        object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+        object.modelViewMatrix.updated = object.normalMatrix.updated = False
+
+        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+            object.modelViewMatrix.updated = object.normalMatrix.updated = True
 
         if object.my_class(isImmediateRenderObject):
             self.state.setMaterial(material)
@@ -1218,16 +1234,11 @@ class pyOpenGLRenderer:
         # //
 
         if object.my_class(isMesh):
-            if material.wireframe:
+            if not material.wireframe:
+                renderer.setMode(self.drawMode[object.drawMode])
+            else:
                 self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
                 renderer.setMode(GL_LINES)
-            else:
-                if object.drawMode == TrianglesDrawMode:
-                    renderer.setMode(GL_TRIANGLES)
-                elif object.drawMode == TriangleStripDrawMode:
-                    renderer.setMode(GL_TRIANGLE_STRIP)
-                elif object.drawMode == TriangleFanDrawMode:
-                    renderer.setMode(GL_TRIANGLE_FAN)
 
         elif object.my_class(isLine):
             lineWidth = material.linewidth
@@ -1272,26 +1283,7 @@ class pyOpenGLRenderer:
         visible = object.layers.test( camera.layers )
 
         if visible:
-            if object.my_class(isLight):
-                self.lightsArray.append( object )
-
-                if object.castShadow:
-                    self.shadowsArray.append( object )
-
-            elif object.my_class(isSprite):
-                if not object.frustumCulled or self._frustum.intersectsSprite( object ):
-                    self.spritesArray.append( object )
-
-            elif object.my_class(isLensFlare):
-                self.flaresArray.append( object )
-
-            elif object.my_class(isImmediateRenderObject):
-                if sortObjects:
-                    _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
-
-                self.currentRenderList.push(object, None, object.material, _vector3.z, None)
-
-            elif object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
+            if object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 
@@ -1313,7 +1305,27 @@ class pyOpenGLRenderer:
                                 self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
 
                     elif material.visible:
-                        self.currentRenderList.push(object, geometry, material, _vector3.z, None)
+                        self.currentRenderList.push(object, geometry, material, _vector3.np[2], None)
+
+            elif object.my_class(isLight):
+                self.lightsArray.append( object )
+
+                if object.castShadow:
+                    self.shadowsArray.append( object )
+
+            elif object.my_class(isSprite):
+                if not object.frustumCulled or self._frustum.intersectsSprite( object ):
+                    self.spritesArray.append( object )
+
+            elif object.my_class(isLensFlare):
+                self.flaresArray.append( object )
+
+            elif object.my_class(isImmediateRenderObject):
+                if sortObjects:
+                    _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
+
+                self.currentRenderList.push(object, None, object.material, _vector3.z, None)
+
 
         children = object.children
         for i in children:

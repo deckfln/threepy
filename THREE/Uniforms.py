@@ -176,6 +176,7 @@ class SingleUniform:
     def __init__(self, id, activeInfo, addr ):
         self.id = id
         self.addr = addr
+        self.uploaded = False
 
         _types = {
             0x1406: self.setValue1f,  # // FLOAT
@@ -224,7 +225,7 @@ class SingleUniform:
         if isinstance(v, list):
             glUniform3fv(self.addr, 1, v)
         elif v.my_class(isVector3):
-            glUniform3fv(self.addr, 1, v.np)
+            glUniform3f(self.addr, v.x, v.y, v.z)
         else:
             glUniform3f(self.addr, v.r, v.g, v.b)
 
@@ -556,6 +557,7 @@ class pyOpenGLUniforms( UniformContainer ):
             # TODO, what is self.renderer used for ?
             # u.setValue( value, self.renderer )
             u.setValue(value)
+            u.uploaded = True
 
     def setOptional(self, gl, object, name ):
         if name in object:

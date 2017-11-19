@@ -18,7 +18,6 @@ from THREE.Euler import *
 from THREE.Quaternion import *
 from THREE.Layers import *
 from THREE.Constants import *
-from THREE.Sphere import *
 
 
 _object3DId = 0
@@ -78,7 +77,6 @@ class Object3D(pyOpenGLObject):
         self._onBeforeRender = None
         self._onBeforeRenderParent = None
         self.customDepthMaterial = None
-        self.boundingSphere = Sphere()
 
     def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
         if self._onBeforeRender:
@@ -328,12 +326,14 @@ class Object3D(pyOpenGLObject):
     def updateMatrix(self):
         self.matrix.compose(self.position, self._quaternion, self.scale)
 
-        self.matrixWorldNeedsUpdate = True
+        if self.matrix.is_updated():
+            self.matrixWorldNeedsUpdate = True
 
     def updateMatrixWorld(self, force=False):
         if self.matrixAutoUpdate:
             self.updateMatrix()
 
+        self.matrixWorld.updated = False
         if self.matrixWorldNeedsUpdate or force:
             if self.parent is None:
                 self.matrixWorld.copy(self.matrix)
@@ -341,16 +341,7 @@ class Object3D(pyOpenGLObject):
                 self.matrixWorld.multiplyMatrices(self.parent.matrixWorld, self.matrix)
 
             self.matrixWorldNeedsUpdate = False
-
-            # <FDE: keep a translated version of the bounding box
-            if self.geometry is not None:
-                if self.geometry.boundingSphere is None:
-                    self.geometry.computeBoundingSphere()
-
-                self.boundingSphere.copy(self.geometry.boundingSphere)
-
-                self.boundingSphere.applyMatrix4(self.matrixWorld)
-            # FDE >
+            self.matrixWorld.updated = True
 
             force = True
 

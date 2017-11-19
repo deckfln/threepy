@@ -24,7 +24,9 @@ class Params:
         self.light4 = None
         self.light5 = None
         self.light6 = None
-        self.counter= 0
+        self.counter = 0
+        self.s = datetime.now().timestamp()
+
 
 def init(p):
     p.container = pyOpenGL(p)
@@ -165,7 +167,9 @@ def animate(p):
 
 def render(p):
     p.counter += 1
-    if p.counter > 10:
+    if p.counter > 100:
+        e = datetime.now().timestamp()
+        print(e - p.s)
         sys.exit(0)
 
     timer = datetime.now().timestamp() * 0.5

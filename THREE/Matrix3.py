@@ -11,6 +11,7 @@ import math
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
+from numpy.linalg import inv
 
 
 class Matrix3(pyOpenGLObject):
@@ -27,7 +28,6 @@ class Matrix3(pyOpenGLObject):
 
         super().__init__()
         self.set_class(isMatrix3)
-
 
     def set(self, n11, n12, n13, n21, n22, n23, n31, n32, n33):
         te = self.elements
@@ -93,31 +93,6 @@ class Matrix3(pyOpenGLObject):
     def multiplyMatrices(self, a, b ):
         t = np.dot(b.matrix, a.matrix)
         np.copyto(self.matrix, t)
-        """
-        ae = a.elements
-        be = b.elements
-        te = self.elements
-
-        a11 = ae[ 0 ]; a12 = ae[ 3 ]; a13 = ae[ 6 ]
-        a21 = ae[ 1 ]; a22 = ae[ 4 ]; a23 = ae[ 7 ]
-        a31 = ae[ 2 ]; a32 = ae[ 5 ]; a33 = ae[ 8 ]
-
-        b11 = be[ 0 ]; b12 = be[ 3 ]; b13 = be[ 6 ]
-        b21 = be[ 1 ]; b22 = be[ 4 ]; b23 = be[ 7 ]
-        b31 = be[ 2 ]; b32 = be[ 5 ]; b33 = be[ 8 ]
-
-        te[ 0 ] = a11 * b11 + a12 * b21 + a13 * b31
-        te[ 3 ] = a11 * b12 + a12 * b22 + a13 * b32
-        te[ 6 ] = a11 * b13 + a12 * b23 + a13 * b33
-
-        te[ 1 ] = a21 * b11 + a22 * b21 + a23 * b31
-        te[ 4 ] = a21 * b12 + a22 * b22 + a23 * b32
-        te[ 7 ] = a21 * b13 + a22 * b23 + a23 * b33
-
-        te[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31
-        te[ 5 ] = a31 * b12 + a32 * b22 + a33 * b32
-        te[ 8 ] = a31 * b13 + a32 * b23 + a33 * b33
-        """
         return self
 
     def multiplyScalar(self, s ):
@@ -138,7 +113,7 @@ class Matrix3(pyOpenGLObject):
 
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
-    def  getInverse(self, matrix, throwOnDegenerate=None ):
+    def getInverse(self, matrix, throwOnDegenerate=None ):
         if matrix and matrix.my_class(isMatrix4):
             print( "THREE.Matrix3: .getInverse() no longer takes a Matrix4 argument." )
 
@@ -159,20 +134,22 @@ class Matrix3(pyOpenGLObject):
             raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
             return self.identity()
 
-        detInv = 1 / det
+        te[ 0 ] = t11
+        te[ 1 ] = ( n31 * n23 - n33 * n21 )
+        te[ 2 ] = ( n32 * n21 - n31 * n22 )
 
-        te[ 0 ] = t11 * detInv
-        te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv
-        te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv
+        te[ 3 ] = t12
+        te[ 4 ] = ( n33 * n11 - n31 * n13 )
+        te[ 5 ] = ( n31 * n12 - n32 * n11 )
 
-        te[ 3 ] = t12 * detInv
-        te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv
-        te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv
+        te[ 6 ] = t13
+        te[ 7 ] = ( n21 * n13 - n23 * n11 )
+        te[ 8 ] = ( n22 * n11 - n21 * n12 )
 
-        te[ 6 ] = t13 * detInv
-        te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
-        te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
+        if det != 1.0:
+            self.elements /= det
 
+        # a = inv(matrix.matrix).reshape(9)
         return self
 
     def transpose(self):

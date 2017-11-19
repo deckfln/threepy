@@ -19,7 +19,10 @@ class Frustum:
             p4 if p4 else Plane(),
             p5 if p5 else Plane(),
         ]
-        self.sphere = Sphere()
+        self._sphere = Sphere()
+        self.updated = False        # was the frustum updated since the last frame
+        self._cache = {}            # if the frusturm was not updated and the object were not updated,
+                                    # pick the intersection from the cache
 
     def set(self, p0, p1, p2, p3, p4, p5 ):
         planes = self.planes
@@ -46,35 +49,43 @@ class Frustum:
 
     def setFromMatrix(self, m ):
         planes = self.planes
-        me = m.elements
-        me0 = me[ 0 ]; me1 = me[ 1 ]; me2 = me[ 2 ]; me3 = me[ 3 ]
-        me4 = me[ 4 ]; me5 = me[ 5 ]; me6 = me[ 6 ]; me7 = me[ 7 ]
-        me8 = me[ 8 ]; me9 = me[ 9 ]; me10 = me[ 10 ]; me11 = me[ 11 ]
-        me12 = me[ 12 ]; me13 = me[ 13 ]; me14 = me[ 14 ]; me15 = me[ 15 ]
+        self.updated = False
 
-        planes[ 0 ].setComponents( me3 - me0, me7 - me4, me11 - me8, me15 - me12 ).normalize()
-        planes[ 1 ].setComponents( me3 + me0, me7 + me4, me11 + me8, me15 + me12 ).normalize()
-        planes[ 2 ].setComponents( me3 + me1, me7 + me5, me11 + me9, me15 + me13 ).normalize()
-        planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize()
-        planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize()
-        planes[ 5 ].setComponents( me3 + me2, me7 + me6, me11 + me10, me15 + me14 ).normalize()
+        # only update the frustum if the camera moved since last frame
+        if m.is_updated():
+            me = m.elements
+            me0 = me[ 0 ]; me1 = me[ 1 ]; me2 = me[ 2 ]; me3 = me[ 3 ]
+            me4 = me[ 4 ]; me5 = me[ 5 ]; me6 = me[ 6 ]; me7 = me[ 7 ]
+            me8 = me[ 8 ]; me9 = me[ 9 ]; me10 = me[ 10 ]; me11 = me[ 11 ]
+            me12 = me[ 12 ]; me13 = me[ 13 ]; me14 = me[ 14 ]; me15 = me[ 15 ]
+
+            planes[ 0 ].setComponents( me3 - me0, me7 - me4, me11 - me8, me15 - me12 ).normalize()
+            planes[ 1 ].setComponents( me3 + me0, me7 + me4, me11 + me8, me15 + me12 ).normalize()
+            planes[ 2 ].setComponents( me3 + me1, me7 + me5, me11 + me9, me15 + me13 ).normalize()
+            planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize()
+            planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize()
+            planes[ 5 ].setComponents( me3 + me2, me7 + me6, me11 + me10, me15 + me14 ).normalize()
+            self.updated = True
 
         return self
 
     def intersectsObject(self, object):
         geometry = object.geometry
 
-        if geometry.boundingSphere is None:
-            geometry.computeBoundingSphere()
+        # only compute the intersection if
+        #   the camera moved
+        #   or the object moved
+        #   or the object is not yet in the cache
+        if self.updated or object.matrixWorld.updated or object.id not in self._cache:
+            if geometry.boundingSphere is None:
+                geometry.computeBoundingSphere()
 
-        """
-        self.sphere.copy( geometry.boundingSphere )
-        self.sphere.applyMatrix4( object.matrixWorld )
-        
-        return self.intersectsSphere( self.sphere )
-        """
-        return self.intersectsSphere( object.boundingSphere)
+            self._sphere.copy( geometry.boundingSphere )
+            self._sphere.applyMatrix4( object.matrixWorld )
 
+            self._cache[object.id] = self.intersectsSphere( self._sphere)
+
+        return self._cache[object.id]
 
     def intersectsSprite(self, sprite):
         sphere = Sphere()
@@ -84,7 +95,6 @@ class Frustum:
         sphere.applyMatrix4( sprite.matrixWorld )
 
         return self.intersectsSphere( sphere )
-
 
     def intersectsSphere(self, sphere ):
         planes = self.planes

@@ -112,8 +112,8 @@ class Box3:
         return self
 
     def makeEmpty(self):
-        self.min.x = self.min.y = self.min.z = float('+inf')
-        self.max.x = self.max.y = self.max.z = float('-inf')
+        self.min.np[0] = self.min.np[1] = self.min.np[2] = float('+inf')
+        self.max.np[0] = self.max.np[1] = self.max.np[2] = float('-inf')
 
         return self
 

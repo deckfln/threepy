@@ -100,6 +100,7 @@ class BufferGeometry(pyOpenGLObject):
         self.groups = []
         self.boundingBox = None    
         self.boundingSphere = None
+        self.matrixWorldBoundingSphere = None           # cached bounding sphere with matrix world updated
         self.drawRange = _drawRange(0, float('+inf'))
         self.callback = None
 

@@ -41,7 +41,11 @@ class Camera(Object3D):
 
     def updateMatrixWorld(self, force=False):
         super().updateMatrixWorld(force)
-        self.matrixWorldInverse.getInverse(self.matrixWorld)
+
+        self.matrixWorldInverse.updated = False
+        if self.matrixWorld.updated:
+            self.matrixWorldInverse.getInverse(self.matrixWorld)
+            self.matrixWorldInverse.updated = True
 
     def clone(self, recursive=True):
         return super().copy(recursive)
@@ -134,6 +138,8 @@ class OrthographicCamera(Camera):
             bottom = top - scaleH * (self.view.height / zoomH)
 
         self.projectionMatrix.makeOrthographic(left, right, top, bottom, self.near, self.far)
+
+        return self.projectionMatrix.is_updated()
 
     def toJSON(self, meta):
         data = super().toJSON(meta)
@@ -313,6 +319,8 @@ class PerspectiveCamera(Camera):
             left += near * skew / self.getFilmWidth()
 
         self.projectionMatrix.makePerspective(left, left + width, top, top - height, near, self.far)
+
+        return self.projectionMatrix.is_updated()
 
     def toJSON(self, meta):
         data = super().toJSON(meta)
