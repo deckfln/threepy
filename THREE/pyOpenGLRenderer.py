@@ -573,6 +573,7 @@ class pyOpenGLRenderer:
         # // common matrices
 
         #if object.modelViewMatrix.updated:
+        #TODO FDE: why is there no object if we use the update flag
         p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
 
         if object.normalMatrix.updated:
