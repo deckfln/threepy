@@ -58,6 +58,7 @@ class ColladaLoader:
         scale = THREE.Vector3()
         quaternion = THREE.Quaternion()
         vector = THREE.Vector3()
+        kinematics = {}
 
         def _parseFloats(string):
             lines = re.split(r"[\n \t]+", string)
@@ -69,7 +70,6 @@ class ColladaLoader:
 
         def getElementsByTagName(xml, name):
             # Non recursive xml.getElementsByTagName() ...
-
             array = []
             childNodes = xml.childNodes
 
@@ -78,6 +78,22 @@ class ColladaLoader:
                     array.append(child)
 
             return array
+
+        def getElementsBySelector(xml, name, value):
+            if xml._attrs is None:
+                return None
+
+            if name in xml._attrs and xml._attrs[name].nodeValue == value:
+                return xml
+
+            childNodes = xml.childNodes
+            for child in childNodes:
+                if child.nodeType != 3:
+                    ret = getElementsBySelector(child, name, value)
+                    if ret is not None:
+                        return ret
+
+            return None
 
         def parseStrings(text):
             if len(text) == 0:
@@ -124,7 +140,8 @@ class ColladaLoader:
             })
 
         def parseAssetUnit(xml):
-            return float(xml.getAttribute('meter')) if xml is not None else 1
+            meter = xml.getAttribute('meter')
+            return float(meter) if meter != '' else 1
 
         def parseAssetUpAxis(xml):
             return xml.firstChild.data if xml is not None else 'Y_UP'
@@ -1415,7 +1432,7 @@ class ColladaLoader:
 
             return data
 
-        def parseKinematicsJointParameter(xml, data):
+        def parseKinematicsJointParameter(xml, data=None):
             data = javascriptObject({
                 'sid':  xml.getAttribute('sid'),
                 'name': xml.getAttribute('name') or '',
@@ -1554,6 +1571,8 @@ class ColladaLoader:
             return getBuild(library.kinematicsScenes[id], buildKinematicsScene)
 
         def setupKinematics():
+            nonlocal kinematics
+
             kinematicsModelId = library.kinematicsModels.__dict__.keys()
             kinematicsSceneId = library.kinematicsScenes.__dict__.keys()
             visualSceneId = library.visualScenes.__dict__.keys()
@@ -1561,9 +1580,9 @@ class ColladaLoader:
             if len(kinematicsModelId) == 0 or len(kinematicsSceneId) == 0:
                 return
 
-            kinematicsModelId = kinematicsModelId[0]
-            kinematicsSceneId = kinematicsSceneId[0]
-            visualSceneId = visualSceneId[0]
+            kinematicsModelId = list(kinematicsModelId)[0]
+            kinematicsSceneId = list(kinematicsSceneId)[0]
+            visualSceneId = list(visualSceneId)[0]
 
             kinematicsModel = getKinematicsModel(kinematicsModelId)
             kinematicsScene = getKinematicsScene(kinematicsSceneId)
@@ -1577,7 +1596,7 @@ class ColladaLoader:
                 visualElementName = visualElement.getAttribute('name')
                 joint = kinematicsModel.joints[jointIndex]
 
-                def _traverse(object):
+                def _traverse(object, scope=None):
                     if object.name == visualElementName:
                         jointMap[jointIndex] = javascriptObject({
                             'object': object,
@@ -1591,11 +1610,11 @@ class ColladaLoader:
             for axis in bindJointAxis:
                 # the result of the following query is an element of type 'translate', 'rotate','scale' or 'matrix'
 
-                targetElement = collada.querySelector('[sid="' + axis.target + '"]')
+                targetElement = getElementsBySelector(collada, 'sid', axis.target)
 
-                if targetElement:
+                if targetElement is not None:
                     # get the parent of the transfrom element
-                    parentVisualElement = targetElement.parentElement
+                    parentVisualElement = targetElement.parentNode
 
                     # connect the joint of the kinematics model with the element in the visual scene
                     connect(axis.jointIndex, parentVisualElement)
@@ -1618,10 +1637,10 @@ class ColladaLoader:
                     joint = jointData.joint
 
                     if value > joint.limits.max or value < joint.limits.min:
-                        print('THREE.ColladaLoader: Joint ' + jointIndex + ' value ' + value + ' outside of limits (min: ' + joint.limits.min + ', max: ' + joint.limits.max + ').')
+                        print('THREE.ColladaLoader: Joint %d value %d outside of limits (min:%d  max:%d)' % (jointIndex, value,  joint.limits.min, joint.limits.max))
 
                     elif joint.static:
-                        print('THREE.ColladaLoader: Joint ' + jointIndex + ' is static.')
+                        print('THREE.ColladaLoader: Joint %d is static.' % jointIndex )
 
                     else:
                         object = jointData.object
@@ -1634,7 +1653,7 @@ class ColladaLoader:
 
                         for transform in transforms:
                             # if there is a connection of the transform node with a joint, apply the joint value
-                            if transform.sid and transform.sid.indexOf('joint' + jointIndex) != -1:
+                            if transform.sid and transform.sid.index('joint%d' % jointIndex) != -1:
                                 if joint.type == 'revolute':
                                     matrix.multiply(m0.makeRotationAxis(axis, _Math.degToRad(value)))
 
@@ -1674,7 +1693,7 @@ class ColladaLoader:
         def buildTransformList(node):
             transforms = []
 
-            xml = collada.querySelector('[id="' + node.id + '"]')
+            xml = getElementsBySelector(collada, 'id', node.attributes['id'].nodeValue)
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1934,8 +1953,8 @@ class ColladaLoader:
             else:
                 object = Bone() if (type == 'JOINT') else THREE.Group()
 
-                for object in objects:
-                    object.add(object)
+                for obj in objects:
+                    object.add(obj)
 
             object.name = data.sid if (type == 'JOINT') else data.name
             object.matrix.copy(matrix)
@@ -2081,7 +2100,6 @@ class ColladaLoader:
 
         #
         animations = []
-        kinematics = {}
 
         #
 

@@ -9,10 +9,11 @@ from THREE.Light import *
 class HemisphereLight(Light):
     isHemisphereLight = True
     
-    def __init__(self, skyColor, groundColor, intensity ):
+    def __init__(self, skyColor, groundColor, intensity=1 ):
             super().__init__(skyColor, intensity )
 
             self.type = 'HemisphereLight'
+            self.set_class(isHemisphereLight)
 
             self.castShadow = None
 
