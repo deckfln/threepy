@@ -8,8 +8,9 @@
 """
 
 import math
+import THREE
 from THREE.Vector3 import *
-import  THREE.Constants
+from THREE.Constants import *
 
 
 class Quaternion:

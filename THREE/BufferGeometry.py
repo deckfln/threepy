@@ -103,6 +103,7 @@ class BufferGeometry(pyOpenGLObject):
         self.matrixWorldBoundingSphere = None           # cached bounding sphere with matrix world updated
         self.drawRange = _drawRange(0, float('+inf'))
         self.callback = None
+        self.bones = None
 
     def getIndex(self):
         return self.index

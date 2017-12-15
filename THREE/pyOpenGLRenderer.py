@@ -22,6 +22,7 @@ from THREE.Javascript import *
 from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLMorphtargets import *
+from THREE.DataTexture import *
 
 
 """
@@ -470,13 +471,12 @@ class pyOpenGLRenderer:
                     # //       32x32 pixel texture max  256 bones * 4 pixels = (32 * 32)
                     # //       64x64 pixel texture max 1024 bones * 4 pixels = (64 * 64)
 
-
-                    size = math.sqrt(bones.length * 4)  # // 4 pixels needed for 1 matrix
+                    size = math.sqrt(len(bones) * 4)  # // 4 pixels needed for 1 matrix
                     size = _Math.nextPowerOfTwo(math.ceil(size))
                     size = max(size, 4)
 
                     boneMatrices = np.zeros(size * size * 4, 'f')  # // 4 floats per RGBA pixel
-                    boneMatrices.set(skeleton.boneMatrices)  # // copy current values
+                    boneMatrices[0:len(skeleton.boneMatrices)] = skeleton.boneMatrices[:]  # // copy current values
 
                     boneTexture = DataTexture(boneMatrices, size, size, RGBAFormat, FloatType)
 
@@ -1326,7 +1326,6 @@ class pyOpenGLRenderer:
                     _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
-
 
         children = object.children
         for i in children:

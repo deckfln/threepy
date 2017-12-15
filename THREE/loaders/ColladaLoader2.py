@@ -8,6 +8,7 @@ from lxml import etree
 from xml.dom import minidom
 import re
 
+import THREE
 from THREE.Vector3 import *
 from THREE.Quaternion import *
 from THREE.Matrix4 import *
@@ -15,8 +16,53 @@ from THREE.Javascript import *
 from THREE.Skeleton import *
 from THREE.SkinnedMesh import *
 from THREE.Loader import *
-
+from THREE.LoadingManager import *
 import THREE._Math as _Math
+
+
+class _keyframes:
+    def __init__(self, time, value):
+        self.time = time
+        self.value = value
+
+
+class _skinVertex:
+    def __init__(self, index, weight):
+        self.index = index
+        self.weight = weight
+
+
+class _skinJoint:
+    def __init__(self, name, boneInverse):
+        self.name = name
+        self.boneInverse = boneInverse
+
+
+class _skinArray:
+    def __init__(self, stride):
+        self.array = []
+        self.stride = stride
+
+
+class _skin:
+    def __init__(self, stride):
+        self.joints = []  # self must be an array to preserve the joint order
+        self.indices = _skinArray(stride)
+        self.weights = _skinArray(stride)
+
+
+class _controler:
+    def __init__(self, id, skin):
+        self.id = id
+        self.skin = skin
+
+
+class _geometry:
+    def __init__(self, name):
+        self.name = name
+        self.sources = {}
+        self.vertices = {}
+        self.primitives = []
 
 
 class Collada:
@@ -99,11 +145,8 @@ class ColladaLoader:
             if len(text) == 0:
                 return []
 
-            parts = text.trim().split("\s+")
-            array = Array(len(parts))
-
-            for i in range(len(parts)):
-                array[i] = parts[i]
+            parts = re.split(r"\s+", text.strip())
+            array = [ parts[i] for i in range(len(parts)) ]
 
             return array
 
@@ -224,26 +267,26 @@ class ColladaLoader:
 
             parts = target.split('/')
 
-            id = parts.shift()
-            sid = parts.shift()
+            id = parts.pop(0)
+            sid = parts.pop(0)
 
             # check selection syntax
 
-            arraySyntax = (sid.indexOf('(') != - 1)
-            memberSyntax = (sid.indexOf('.') != - 1)
+            arraySyntax = '(' in sid
+            memberSyntax = '.' in sid
 
             if memberSyntax:
                 #  member selection access
 
                 parts = sid.split('.')
-                sid = parts.shift()
-                data.member = parts.shift()
+                sid = parts.pop(0)
+                data.member = parts.pop(0)
 
             elif arraySyntax:
                 # array-access syntax. can be used to express fields in one-dimensional vectors or two-dimensional matrices.
 
                 indices = sid.split('(')
-                sid = indices.shift()
+                sid = indices.pop(0)
 
                 for i in range(len(indices)):
                     indices[i] = int(indices[i].replace(')', ''))
@@ -268,21 +311,20 @@ class ColladaLoader:
             sources = data.sources
 
             for target in channels:
-                if channels.hasOwnProperty(target):
-                    channel = channels[target]
-                    sampler = samplers[channel.sampler]
+                channel = channels[target]
+                sampler = samplers[channel.sampler]
 
-                    inputId = sampler.inputs.INPUT
-                    outputId = sampler.inputs.OUTPUT
-                    interpolationId = sampler.inputs.INTERPOLATION
+                inputId = sampler.inputs.INPUT
+                outputId = sampler.inputs.OUTPUT
+                interpolationId = sampler.inputs.INTERPOLATION
 
-                    inputSource = sources[inputId]
-                    outputSource = sources[outputId]
-                    interpolationSource = sources[interpolationId]
+                inputSource = sources[inputId]
+                outputSource = sources[outputId]
+                interpolationSource = sources[interpolationId]
 
-                    animation = buildAnimationChannel(channel, inputSource, outputSource, interpolationSource)
+                animation = buildAnimationChannel(channel, inputSource, outputSource, interpolationSource)
 
-                    createKeyframeTracks(animation, tracks)
+                createKeyframeTracks(animation, tracks)
 
             return tracks
 
@@ -306,18 +348,15 @@ class ColladaLoader:
                     time = inputSource.array[i]
                     stride = i * outputSource.stride
 
-                    if data[time] is None:
-                        data[time] = {}
-
                     if channel.arraySyntax is True:
                         value = outputSource.array[stride]
                         index = channel.indices[0] + 4 * channel.indices[1]
 
+                        # TODO FDE: fix it to handle the array
                         data[time][index] = value
 
                     else:
-                        for j in range(outputSource.stride):
-                            data[time][j] = outputSource.array[stride + j]
+                        data[time] = [outputSource.array[stride + j] for j in range(outputSource.stride)]
 
             elif transform == 'translate':
                 print('THREE.ColladaLoader: Animation transform type "%s" not yet implemented.', transform)
@@ -343,15 +382,15 @@ class ColladaLoader:
             # transfer data into a sortable array
 
             for time in data:
-                keyframes.append(javascriptObject({ 'time': float(time), 'value': data[time] }))
+                keyframes.append(_keyframes(time, data[time]))
 
             # ensure keyframes are sorted by time
 
             # array sort def
-            def ascending(a, b):
-                return a.time - b.time
+            def _ascending(a):
+                return a.time
                 
-            keyframes.sort(ascending)
+            keyframes.sort(key = _ascending)
 
             # now we clean up all animation data, so we can use them for keyframe tracks
 
@@ -394,11 +433,12 @@ class ColladaLoader:
             empty = True
 
             # check, if values of a property are missing in our keyframes
+            # TODO FDE: improve handling missing properties
             for keyframe in keyframes:
-                if keyframe.value[property] is None:
-                    keyframe.value[property] = None    # mark as missing
-
-                else:
+                if keyframe.value[property] is not None:
+                    #keyframe.value[property] = None    # mark as missing
+                    #
+                    #                else:
                     empty = False
 
             if empty is True:
@@ -413,7 +453,7 @@ class ColladaLoader:
         def createMissingKeyframes(keyframes, property):
             for i in range(len(keyframes)):
                 keyframe = keyframes[i]
-                if keyframe.value[property] is None:
+                if property not in keyframe.value:
                     prev = getPrev(keyframes, i, property)
                     next = getNext(keyframes, i, property)
 
@@ -560,7 +600,7 @@ class ColladaLoader:
                     semantic = child.getAttribute('semantic')
                     id = parseId(child.getAttribute('source'))
                     offset = int(child.getAttribute('offset'))
-                    data.inputs[semantic] = { id: id, offset: offset }
+                    data.inputs[semantic] = javascriptObject({ 'id': id, 'offset': offset })
 
                 elif child.nodeName == 'vcount':
                     data.vcount = parseInts(child.firstChild.data)
@@ -571,37 +611,27 @@ class ColladaLoader:
             return data
 
         def buildController(data):
-            build = javascriptObject({})
-
-            build.id = data.id
-            build.skin = buildSkin(data.skin)
+            build = _controler(
+                data.id,
+                buildSkin(data.skin)
+            )
 
             # we enhance the 'sources' property of the corresponding geometry with our skin data
 
             geometry = library.geometries[build.id]
-            geometry.sources.skinIndices = build.skin.indices
-            geometry.sources.skinWeights = build.skin.weights
+            geometry.sources['skinIndices'] = build.skin.indices
+            geometry.sources['skinWeights'] = build.skin.weights
 
             return build
 
         def buildSkin(data):
             BONE_LIMIT = 4
 
-            build = javascriptObject({
-                'joints': [],   # self must be an array to preserve the joint order
-                'indices': {
-                    'array': [],
-                    'stride': BONE_LIMIT
-                },
-                'weights': {
-                    'array': [],
-                    'stride': BONE_LIMIT
-                }
-            })
+            build = _skin(BONE_LIMIT)
 
             # array sort def
-            def descending(a, b):
-                return b.weight - a.weight
+            def _descending(a):
+                return a.weight
 
             sources = data.sources
             vertexWeights = data.vertexWeights
@@ -628,28 +658,30 @@ class ColladaLoader:
                     weightId = v[stride + weightOffset]
                     skinWeight = weights[weightId]
 
-                    vertexSkinData.append(javascriptObject({ 'index': skinIndex, 'weight': skinWeight }))
+                    vertexSkinData.append(_skinVertex(skinIndex, skinWeight ))
 
                     stride += 2
 
                 # we sort the joints in descending order based on the weights.
                 # self ensures, we only procced the most important joints of the vertex
 
-                vertexSkinData.sort(descending)
+                vertexSkinData.sort(key=_descending, reverse=True)
 
                 # now we provide for each vertex a set of four index and weight values.
                 # the order of the skin data matches the order of vertices
 
                 for j in range(BONE_LIMIT):
-                    d = vertexSkinData[j]
-
-                    if d is not None:
-                        build.indices.array.append(d.index)
-                        build.weights.array.append(d.weight)
-
-                    else:
+                    if j >= len(vertexSkinData):
                         build.indices.array.append(0)
                         build.weights.array.append(0)
+                    else:
+                        d = vertexSkinData[j]
+                        if d is not None:
+                            build.indices.array.append(d.index)
+                            build.weights.array.append(d.weight)
+                        else:
+                            build.indices.array.append(0)
+                            build.weights.array.append(0)
 
             # setup bind matrix
 
@@ -661,7 +693,7 @@ class ColladaLoader:
                 name = jointSource.array[i]
                 boneInverse = THREE.Matrix4().fromArray(inverseSource.array, i * inverseSource.stride).transpose()
 
-                build.joints.append({ name: name, boneInverse: boneInverse })
+                build.joints.append(_skinJoint(name, boneInverse ))
 
             return build
 
@@ -1097,12 +1129,7 @@ class ColladaLoader:
         # geometry
 
         def parseGeometry(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name'),
-                'sources': {},
-                'vertices': {},
-                'primitives': []
-            })
+            data = _geometry(xml.getAttribute('name'))
 
             mesh = getElementsByTagName(xml, 'mesh')[0]
 
@@ -1228,13 +1255,13 @@ class ColladaLoader:
         def buildGeometryType(primitives, sources, vertices):
             build = javascriptObject({})
 
-            position = javascriptObject({ 'array': [], 'stride': 0 })
-            normal = javascriptObject({ 'array': [], 'stride': 0 })
-            uv = javascriptObject({ 'array': [], 'stride': 0 })
-            color = javascriptObject({ 'array': [], 'stride': 0 })
+            position = _skinArray(0)
+            normal = _skinArray(0)
+            uv = _skinArray(0)
+            color = _skinArray(0)
 
-            skinIndex = javascriptObject({ 'array': [], 'stride': 4 })
-            skinWeight = javascriptObject({ 'array': [], 'stride': 4 })
+            skinIndex = _skinArray( 4 )
+            skinWeight = _skinArray( 4 )
 
             geometry = THREE.BufferGeometry()
 
@@ -1278,9 +1305,9 @@ class ColladaLoader:
                                 buildGeometryData(primitive, sources[id], input.offset, position.array)
                                 position.stride = sources[id].stride
 
-                                if sources.skinWeights and sources.skinIndices:
-                                    buildGeometryData(primitive, sources.skinIndices, input.offset, skinIndex.array)
-                                    buildGeometryData(primitive, sources.skinWeights, input.offset, skinWeight.array)
+                                if 'skinWeights' in sources and 'skinIndices' in sources:
+                                    buildGeometryData(primitive, sources['skinIndices'], input.offset, skinIndex.array)
+                                    buildGeometryData(primitive, sources['skinWeights'], input.offset, skinWeight.array)
 
                             elif key == 'NORMAL':
                                 buildGeometryData(primitive, sources[id], input.offset, normal.array)
@@ -1830,7 +1857,7 @@ class ColladaLoader:
 
         def buildSkeleton(skeletons, joints):
             boneData = []
-            sortedBoneData = []
+            sortedBoneData = [None for i in range(len(joints)) ]
 
             # a skeleton can have multiple root bones. collada expresses self
             # situtation with multiple "skeleton" tags per controller instance
@@ -1869,11 +1896,12 @@ class ColladaLoader:
 
         def buildBoneHierarchy(root, joints, boneData):
             # setup bone data from visual scene
-            def _traverse(object):
-                if object.isBone is True:
+            def _traverse(obj, scope=None):
+                if obj.isBone is True:
                     # retrieve the boneInverse from the controller data
+                    boneInverse = None
                     for joint in joints:
-                        if joint.name == object.name:
+                        if joint.name == obj.name:
                             boneInverse = joint.boneInverse
                             break
 
@@ -1886,7 +1914,7 @@ class ColladaLoader:
 
                          boneInverse = THREE.Matrix4()
 
-                    boneData.append(javascriptObject({ 'bone': object, 'boneInverse': boneInverse, 'processed': False }))
+                    boneData.append(javascriptObject({ 'bone': obj, 'boneInverse': boneInverse, 'processed': False }))
 
             root.traverse(_traverse)
 

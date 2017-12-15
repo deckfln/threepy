@@ -235,8 +235,7 @@ class PropertyBinding:
         if nodeProperty is None:
             nodeName = parsedPath['nodeName']
 
-            raise RuntimeError( 'THREE.PropertyBinding: Trying to update property for track: ' + nodeName +
-                '.' + propertyName + ' but it wasn\'t found.', targetObject )
+            raise RuntimeError( 'THREE.PropertyBinding: Trying to update property for track: %s.%s but it wasn\'t found' % (nodeName,propertyName))
 
         # determine versioning scheme
         versioning = self.Versioning['None']

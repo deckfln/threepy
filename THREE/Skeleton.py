@@ -9,12 +9,12 @@ from THREE.Matrix4 import *
 
 
 class Skeleton:
-    def __init__(self, bones, boneInverses ):
+    def __init__(self, bones, boneInverses=None ):
         # copy the bone array
         bones = bones or []
 
-        self.bones = bones.slice( 0 )
-        self.boneMatrices = Float32Array( self.bones.length * 16 )
+        self.bones = bones[:]
+        self.boneMatrices = Float32Array( len(self.bones) * 16 )
         self.boneTexture = None
 
         # use the supplied bone inverses or calculate the inverses
@@ -23,7 +23,7 @@ class Skeleton:
 
         else:
             if len(self.bones) == len(boneInverses):
-                self.boneInverses = boneInverses.slice( 0 )
+                self.boneInverses = boneInverses[:]
 
             else:
                 print( 'THREE.Skeleton boneInverses is the wrong length.' )

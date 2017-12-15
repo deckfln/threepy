@@ -556,11 +556,11 @@ class pyOpenGLUniforms( UniformContainer ):
 
             # TODO, what is self.renderer used for ?
             # u.setValue( value, self.renderer )
-            u.setValue(value)
+            u.setValue(value, self.renderer)
             u.uploaded = True
 
-    def setOptional(self, gl, object, name ):
-        if name in object:
+    def setOptional(self, object, name ):
+        if hasattr(object, name):
             v = object[ name ]
             self.setValue( name, v )
 

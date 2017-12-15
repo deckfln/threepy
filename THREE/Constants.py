@@ -135,6 +135,7 @@ UnsignedInt248Type = 1020
 AlphaFormat = 1021
 RGBFormat = 1022
 RGBAFormat = 1023
+RGBA32Format = 4023
 LuminanceFormat = 1024
 LuminanceAlphaFormat = 1025
 RGBEFormat = RGBAFormat

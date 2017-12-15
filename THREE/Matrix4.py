@@ -13,6 +13,7 @@
      */
 """
 import math
+import THREE
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
@@ -756,35 +757,34 @@ class Matrix4(pyOpenGLObject):
         return True
 
     def fromArray(self, array, offset=0):
-        for i in range(16):
-            self.elements[i] = array[i + offset]
-
+        self.elements[0:16] = array[offset:offset+16]
         return self
 
     def toArray(self, array=None, offset=0):
         if array is None:
-            array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0]
+            array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        te = self.elements
+        array[offset:offset+16] = self.elements[:]
+        # te = self.elements
 
-        array[offset] = float(te[0])
-        array[offset + 1] = float(te[1])
-        array[offset + 2] = float(te[2])
-        array[offset + 3] = float(te[3])
+        # array[offset] = float(te[0])
+        # array[offset + 1] = float(te[1])
+        # array[offset + 2] = float(te[2])
+        # array[offset + 3] = float(te[3])
 
-        array[offset + 4] = float(te[4])
-        array[offset + 5] = float(te[5])
-        array[offset + 6] = float(te[6])
-        array[offset + 7] = float(te[7])
+        # array[offset + 4] = float(te[4])
+        # array[offset + 5] = float(te[5])
+        # array[offset + 6] = float(te[6])
+        # array[offset + 7] = float(te[7])
 
-        array[offset + 8] = float(te[8])
-        array[offset + 9] = float(te[9])
-        array[offset + 10] = float(te[10])
-        array[offset + 11] = float(te[11])
+        # array[offset + 8] = float(te[8])
+        # array[offset + 9] = float(te[9])
+        # array[offset + 10] = float(te[10])
+        # array[offset + 11] = float(te[11])
 
-        array[offset + 12] = float(te[12])
-        array[offset + 13] = float(te[13])
-        array[offset + 14] = float(te[14])
-        array[offset + 15] = float(te[15])
+        # array[offset + 12] = float(te[12])
+        # array[offset + 13] = float(te[13])
+        # array[offset + 14] = float(te[14])
+        # array[offset + 15] = float(te[15])
 
         return array

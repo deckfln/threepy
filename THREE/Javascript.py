@@ -21,6 +21,9 @@ class javascriptObject:
             else:
                 value = v
 
+            if isinstance(k, int):
+                k = str(k)
+
             self.__setattr__(k, value)
 
     def __getattr__(self, item):
@@ -44,6 +47,10 @@ class javascriptObject:
                 value = javascriptObject(v)
             else:
                 value = v
+
+            if isinstance(item, int):
+                item = str(item)
+
             self.__setattr__(item, value)
         else:
             self.__dict__[item] = v

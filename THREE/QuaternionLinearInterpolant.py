@@ -4,6 +4,7 @@
  * @author tschw
 """
 from THREE.Interpolant import *
+from THREE.Quaternion import *
 
 
 class QuaternionLinearInterpolant(Interpolant):
@@ -11,15 +12,15 @@ class QuaternionLinearInterpolant(Interpolant):
         super().__init__(parameterPositions, sampleValues, sampleSize, resultBuffer )
 
     def interpolate_(self, i1, t0, t, t1 ):
-        result = this.resultBuffer
-        values = this.sampleValues
-        stride = this.valueSize
+        result = self.resultBuffer
+        values = self.sampleValues
+        stride = self.valueSize
 
         offset = i1 * stride
 
         alpha = ( t - t0 ) / ( t1 - t0 )
 
         for offset in range(i1 * stride, offset + stride, 4 ):
-            Quaternion.slerpFlat( result, 0,values, offset - stride, values, offset, alpha )
+            Quaternion.slerpFlat(None, result, 0, values, offset - stride, values, offset, alpha )
 
         return result

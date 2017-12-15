@@ -236,7 +236,7 @@ class pyOpenGLTextures():
             # // if there are no manual mipmaps
             # // set 0 level mipmap and then use GL to generate other mipmap levels
 
-            if mipmaps.length > 0 and isPowerOfTwoImage:
+            if len(mipmaps) > 0 and isPowerOfTwoImage:
                 for i in range(len(mipmaps)):
                     mipmap = mipmaps[i]
                     self.state.texImage2D(GL_TEXTURE_2D, i, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data)
@@ -244,7 +244,7 @@ class pyOpenGLTextures():
                 texture.generateMipmaps = False
 
             else:
-                self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, glFormat, glType, image.data)
+                self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
 
         elif hasattr(texture, 'isCompressedTexture'):
             for i in range(len(mipmaps)):

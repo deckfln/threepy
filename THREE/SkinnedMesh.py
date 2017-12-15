@@ -13,6 +13,7 @@ class SkinnedMesh(Mesh):
 
     def __init__(self, geometry, material ):
         super().__init__( geometry, material )
+        self.set_class(isSkinnedMesh)
 
         self.type = 'SkinnedMesh'
 
@@ -82,7 +83,7 @@ class SkinnedMesh(Mesh):
         self.skeleton.pose()
 
     def normalizeSkinWeights(self):
-        if self.geometry and self.geometry.isGeometry:
+        if self.geometry and self.geometry.my_class(isGeometry):
             for sw in self.geometry.skinWeights:
                 scale = 1.0 / sw.lengthManhattan()
 
@@ -92,7 +93,7 @@ class SkinnedMesh(Mesh):
                 else:
                     sw.set( 1, 0, 0, 0 )     # do something reasonable
 
-        elif self.geometry and self.geometry.isBufferGeometry:
+        elif self.geometry and self.geometry.my_class(isBufferGeometry):
             vec = Vector4()
 
             skinWeight = self.geometry.attributes.skinWeight

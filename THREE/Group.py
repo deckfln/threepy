@@ -10,3 +10,4 @@ class Group(Object3D):
     def __init__(self):
         super().__init__()
         self.type = 'Group'
+        self.skeleton = None

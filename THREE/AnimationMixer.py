@@ -101,7 +101,6 @@ class AnimationMixer(EventManager):
 
             interpolants[ i ].resultBuffer = binding.buffer
 
-
     def _activateAction(self, action ):
         if not self._isActiveAction( action ):
             if action._cacheIndex is None:
@@ -400,7 +399,7 @@ class AnimationMixer(EventManager):
     # return an action for a clip optionally using a custom root target
     # object (this method allocates a lot of dynamic memory in case a
     # previously unknown clip/root combination is specified)
-    def clipAction(self, clip, optionalRoot ):
+    def clipAction(self, clip, optionalRoot=None ):
         root = optionalRoot or self._root
         rootUuid = root.uuid
 
