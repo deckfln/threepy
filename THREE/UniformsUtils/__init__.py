@@ -5,6 +5,7 @@
 """
 from THREE.Javascript import *
 from THREE.pyOpenGLObject import *
+from THREE.Uniforms import *
 
 
 def merge( uniforms ):
@@ -26,7 +27,7 @@ def clone( uniforms_src ):
             uniforms_dst = type(uniforms_src)()
 
         for u in uniforms_src:
-            uniforms_dst[ u ] = {}
+            uniforms_dst[ u ] = Uniform()
 
             for p in uniforms_src[ u ]:
                 parameter_src = uniforms_src[ u ][ p ]
@@ -39,6 +40,8 @@ def clone( uniforms_src ):
                     uniforms_dst[u][p] = parameter_src[:]
                 elif isinstance(parameter_src, javascriptObject):
                     uniforms_dst[ u ][ p ] = parameter_src
+                elif isinstance(parameter_src, str):
+                    uniforms_dst[u][p] = parameter_src
                 elif parameter_src is not None and (
                         parameter_src.my_class(isColor) or
                         parameter_src.my_class(isMatrix3) or parameter_src.my_class(isMatrix4) or

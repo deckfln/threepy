@@ -253,7 +253,7 @@ class Loader:
         if json['type'] != 'MeshPhongMaterial':
             del json['specular']
 
-        if json['opacity'] < 1:
+        if 'opacity' in json and json['opacity'] < 1:
             json['transparent'] = True
 
         materialLoader.setTextures( textures )

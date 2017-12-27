@@ -5,7 +5,7 @@ Simulate a javascript object behaviour
 
 class javascriptObject:
     def __init__(self, source=None):
-        if not source:
+        if source is None:
             return
 
         for k in source.keys():

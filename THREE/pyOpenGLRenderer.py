@@ -77,7 +77,7 @@ class _vr:
 class _shader:
     def __init__(self, name, uniforms, vertexShader, fragmentShader):
         self.name = name
-        self.uniforms = UniformsUtils.clone(uniforms)
+        self.uniforms = uniforms
         self.vertexShader = vertexShader
         self.fragmentShader = fragmentShader
 
@@ -850,7 +850,7 @@ class pyOpenGLRenderer:
                                                     shader.fragmentShader)
             else:
                 materialProperties.shader = _shader(material.type,
-                                                    material.uniform,
+                                                    material.uniforms,
                                                     material.vertexShader,
                                                     material.fragmentShader)
 

@@ -50,7 +50,7 @@ class AnimationClip:
 
         return json
 
-    def CreateFromMorphTargetSequence( name, morphTargetSequence, fps, noLoop ):
+    def CreateFromMorphTargetSequence( name, morphTargetSequence, fps, noLoop=False ):
         numMorphTargets = len(morphTargetSequence)
         tracks = []
 

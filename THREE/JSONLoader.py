@@ -334,7 +334,7 @@ class JSONLoader:
                 print( 'THREE.JSONLoader: "morphColors" no longer supported. Using them as face colors.' )
 
                 faces = geometry.faces
-                morphColors = json['morphColors'][ 0 ].colors
+                morphColors = json['morphColors'][ 0 ]['colors']
 
                 for i in range(len(faces)):
                     faces[ i ].color.fromArray( morphColors, i * 3 )

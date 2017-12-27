@@ -70,19 +70,36 @@ class UniformContainer():
 
 
 class Uniform:
-    def __init__(self, dic):
+    def __init__(self, dic=None):
+        self.type = None
+        self.value = None
+        self.needsUpdate = True
+
+        if dic is None:
+            return
+
         if type in dic:
             self.type = dic[type]
         self.value = dic['value']
         if 'needsUpdate' in dic:
             self.needsUpdate = dic['needsUpdate']
-        else:
-            self.needsUpdate = True
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
 
 
 class Uniforms:
-    def __init__(self, lst):
+    def __init__(self, lst=None):
         super().__setattr__('Uniforms', {})
+        if lst is None:
+            return
+
         for uniform in lst:
             source_uniform = lst[uniform]
             if isinstance(source_uniform, Uniform):
@@ -110,6 +127,8 @@ class Uniforms:
     def __getitem__(self, item):
         return self.Uniforms[item]
 
+    def __setitem__(self, item, value):
+        self.Uniforms[item] = value
 
 # // Array Caches (provide typed arrays for temporary by size)
 

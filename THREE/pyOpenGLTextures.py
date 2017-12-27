@@ -132,6 +132,7 @@ class pyOpenGLTextures():
         if isPowerOfTwoImage:
             glTexParameteri(textureType, GL_TEXTURE_WRAP_S, self.utils.convert(texture.wrapS))
             glTexParameteri(textureType, GL_TEXTURE_WRAP_T, self.utils.convert(texture.wrapT))
+            glTexParameteri(textureType, GL_TEXTURE_WRAP_R, self.utils.convert(texture.wrapT))
 
             glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, self.utils.convert(texture.magFilter))
             glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, self.utils.convert(texture.minFilter))
@@ -444,7 +445,7 @@ class pyOpenGLTextures():
                             # top-left corner of the image, with following values going left-to-right and lines going top-to-bottom.
                             # So, we need to flip the vertical coordinate (y).
 
-                            im = cubeImage[i].transpose(Image.FLIP_TOP_BOTTOM);
+                            im = cubeImage[i].transpose(Image.FLIP_TOP_BOTTOM)
 
                             img_data = numpy.fromstring(im.tobytes(), numpy.uint8)
                             ix, iy = cubeImage[i].size

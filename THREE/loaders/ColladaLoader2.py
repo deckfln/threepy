@@ -107,10 +107,18 @@ class ColladaLoader:
         kinematics = {}
 
         def _parseFloats(string):
-            lines = re.split(r"[\n \t]+", string)
+            if len(text) == 0:
+                return []
+
+            t = re.sub("^\s*", "", string)
+            t = re.sub("\s*$", "", t)
+            lines = re.split(r'\s+', t)
             array = np.zeros(len(lines), np.float64)
             for i in range(len(lines)):
-                array[i] = float(lines[i])
+                if lines[i] != "":
+                    array[i] = float(lines[i])
+                else:
+                    array[i] = 0
 
             return array
 
@@ -172,7 +180,7 @@ class ColladaLoader:
             return text[1:]
 
         def isEmpty(object):
-            return  len(object.__dict__) == 0
+            return len(object.__dict__) == 0
 
         # asset
 
@@ -869,10 +877,10 @@ class ColladaLoader:
 
                 elif child.nodeName == 'wrapU' or child.nodeName == 'wrapV':
                     # some files have values for wrapU/wrapV which become NaN via parseInt
-                    if child.firstChild.data.toUpperCase() == 'TRUE':
+                    if child.firstChild.data.upper() == 'TRUE':
                         data.technique[child.nodeName] = 1
 
-                    elif child.firstChild.data.toUpperCase() == 'FALSE':
+                    elif child.firstChild.data.upper() == 'FALSE':
                         data.technique[child.nodeName] = 0
 
                     else:
@@ -1177,7 +1185,11 @@ class ColladaLoader:
                     accessor = getElementsByTagName(child, 'accessor')[0]
 
                     if accessor is not None:
-                        data.stride = int(accessor.getAttribute('stride'))
+                        v = accessor.getAttribute('stride')
+                        if v != "":
+                            data.stride = int(v)
+                        else:
+                            data.stride = 0
 
             return data
 
