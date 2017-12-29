@@ -499,8 +499,8 @@ class pyOpenGLProgram:
         vertexGlsl = prefixVertex + vertexShader
         fragmentGlsl = prefixFragment + fragmentShader
 
-        print('*VERTEX*', vertexGlsl)
-        print('*FRAGMENT*', fragmentGlsl)
+        # print('*VERTEX*', vertexGlsl)
+        # print('*FRAGMENT*', fragmentGlsl)
         
         glVertexShader = pyOpenGLShader(GL_VERTEX_SHADER, vertexGlsl)
         glFragmentShader = pyOpenGLShader(GL_FRAGMENT_SHADER, fragmentGlsl)

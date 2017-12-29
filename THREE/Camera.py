@@ -48,7 +48,7 @@ class Camera(Object3D):
             self.matrixWorldInverse.updated = True
 
     def clone(self, recursive=True):
-        return super().copy(recursive)
+        return type(self)().copy(self, recursive)
 
 
 """

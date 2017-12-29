@@ -26,7 +26,7 @@ class Light(Object3D):
         self.distance = None
         self.shadow = None
 
-    def copy(self, source ):
+    def copy(self, source, recursive=True ):
         super().copy( source )
 
         self.color.copy( source.color )
@@ -69,7 +69,7 @@ class Light(Object3D):
 
 
 class LightShadow(pyOpenGLObject):
-    def __init__(self, camera):
+    def __init__(self, camera=None):
         super().__init__()
         self.camera = camera
 
@@ -81,7 +81,7 @@ class LightShadow(pyOpenGLObject):
         self.map = None
         self.matrix = Matrix4()
 
-    def copy(self, source ):
+    def copy(self, source, recursive=True ):
         self.camera = source.camera.clone()
 
         self.bias = source.bias

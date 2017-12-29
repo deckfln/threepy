@@ -31,7 +31,7 @@ class _power:
 class SpotLight(Light):
     isSpotLight = True
     
-    def __init__(self, color, intensity=1, distance=0, angle=math.pi/3, penumbra=0, decay=1 ):
+    def __init__(self, color=0xffffff, intensity=1, distance=0, angle=math.pi/3, penumbra=0, decay=1 ):
         super().__init__( color, intensity )
         self.set_class(isSpotLight)
 

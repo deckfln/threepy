@@ -530,7 +530,8 @@ class ColladaLoader:
             duration = (data.end - data.start) or - 1
             animations = data.animations
 
-            for animationTracks in animations:
+            for animation in animations:
+                animationTracks = getAnimation(animation)
                 for j in range(len(animationTracks)):
                     tracks.append(animationTracks[j])
 
@@ -1028,8 +1029,9 @@ class ColladaLoader:
 
         def buildCamera(data):
             if data.optics.technique == 'perspective':
+                fov = data.optics.parameters.yfov if data.optics.parameters.yfov else 50
                 camera = THREE.PerspectiveCamera(
-                    data.optics.parameters.yfov,
+                    fov,
                     data.optics.parameters.aspect_ratio,
                     data.optics.parameters.znear,
                     data.optics.parameters.zfar

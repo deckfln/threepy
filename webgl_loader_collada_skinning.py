@@ -50,10 +50,10 @@ def init(p):
         animations = collada.animations
         avatar = collada.scene
 
-        p.mixer = THREE.AnimationMixer( avatar )
-        action = p.mixer.clipAction( animations[ 0 ] ).play()
-
         p.scene.add( avatar )
+        p.mixer = THREE.AnimationMixer( avatar )
+
+        action = p.mixer.clipAction(animations[0]).play()
 
     loader.load( './models/collada/stormtrooper/stormtrooper.dae', _onload )
 

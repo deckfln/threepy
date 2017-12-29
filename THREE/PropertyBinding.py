@@ -230,12 +230,14 @@ class PropertyBinding:
                 targetObject = targetObject[ objectIndex ]
 
         # resolve property
-        nodeProperty = targetObject[ propertyName ]
+        if propertyName == "quaternion":
+            propertyName = "_quaternion"
 
-        if nodeProperty is None:
+        if propertyName not in targetObject:
             nodeName = parsedPath['nodeName']
-
             raise RuntimeError( 'THREE.PropertyBinding: Trying to update property for track: %s.%s but it wasn\'t found' % (nodeName,propertyName))
+
+        nodeProperty = targetObject[ propertyName ]
 
         # determine versioning scheme
         versioning = self.Versioning['None']

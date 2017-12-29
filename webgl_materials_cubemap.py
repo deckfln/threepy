@@ -77,7 +77,6 @@ def init(p):
     p.scene.background = reflectionCube
 
     # // LIGHTS
-
     ambient = THREE.AmbientLight(0xffffff)
     p.scene.add(ambient)
 
@@ -108,8 +107,6 @@ def init(p):
     loader = BinaryLoader()
 
     loader.load("obj/walt/WaltHead_bin.js", _create)
-
-    # //
 
     p.container.addEventListener('resize', onWindowResize, False)
 
