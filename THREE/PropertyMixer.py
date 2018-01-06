@@ -134,8 +134,8 @@ class PropertyMixer:
             for i in range(stride):
                 buffer[ dstOffset + i ] = buffer[ srcOffset + i ]
 
-    def _slerp(self, buffer, dstOffset, srcOffset, t ):
-        Quaternion.slerpFlat( buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t )
+    def _slerp(self, buffer, dstOffset, srcOffset, t, stride=None ):
+        Quaternion.slerpFlat( None, buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t )
 
     def _lerp(self, buffer, dstOffset, srcOffset, t, stride ):
         s = 1 - t

@@ -28,6 +28,7 @@ class Matrix3(pyOpenGLObject):
 
         super().__init__()
         self.set_class(isMatrix3)
+        self.updated = True
 
     def set(self, n11, n12, n13, n21, n22, n23, n31, n32, n33):
         te = self.elements

@@ -36,7 +36,7 @@ class Matrix4(pyOpenGLObject):
         self.matrix = self.elements.reshape(4, 4)
 
         self.old = np.zeros(16, dtype=np.float64)
-        self.updated = False
+        self.updated = True
 
     def is_updated(self):
         """

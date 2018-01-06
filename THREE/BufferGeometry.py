@@ -108,7 +108,7 @@ class BufferGeometry(pyOpenGLObject):
     def getIndex(self):
         return self.index
         
-    def setIndex(self, index ):
+    def setIndex(self, index):
         if isinstance(index, list):
             if arrayMax(index) > 65535:
                 self.index = Uint32BufferAttribute( index, 1 )

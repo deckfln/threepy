@@ -228,9 +228,8 @@ class Object3D(pyOpenGLObject):
                 self.remove(i)
             return self
 
-        index = self.children.index(object)
-
-        if index != - 1:
+        if object in self.children:
+            index = self.children.index(object)
             object.parent = None
             del self.children[index]
 
@@ -335,22 +334,24 @@ class Object3D(pyOpenGLObject):
     def updateMatrix(self):
         self.matrix.compose(self.position, self._quaternion, self.scale)
 
-        if self.matrix.is_updated():
-            self.matrixWorldNeedsUpdate = True
+        self.matrixWorldNeedsUpdate = True
 
     def updateMatrixWorld(self, force=False):
         if self.matrixAutoUpdate:
             self.updateMatrix()
 
+        self.matrix.is_updated()
+
         self.matrixWorld.updated = False
         if self.matrixWorldNeedsUpdate or force:
             if self.parent is None:
                 self.matrixWorld.copy(self.matrix)
-            else:
+                self.matrixWorld.updated = True
+            elif self.parent.matrixWorld.updated or self.matrix.updated:
                 self.matrixWorld.multiplyMatrices(self.parent.matrixWorld, self.matrix)
+                self.matrixWorld.updated = True
 
             self.matrixWorldNeedsUpdate = False
-            self.matrixWorld.updated = True
 
             force = True
 

@@ -41,6 +41,12 @@ class _stat:
             return self.parent._nActiveControlInterpolants
 
 
+class _actionsForClip:
+    def __init__(self, action):
+            self.knownActions = [action]
+            self.actionByRoot = {}
+
+
 class AnimationMixer(EventManager):
     def __init__(self, root ):
         super().__init__()
@@ -182,10 +188,7 @@ class AnimationMixer(EventManager):
         actionsByClip = self._actionsByClip
 
         if clipUuid not in actionsByClip:
-            actionsForClip = {
-                'knownActions': [ action ],
-                'actionByRoot': {}
-            }
+            actionsForClip = _actionsForClip(action)
 
             action._byClipCacheIndex = 0
 
@@ -201,7 +204,7 @@ class AnimationMixer(EventManager):
         action._cacheIndex = len(actions)
         actions.append( action )
 
-        actionsForClip['actionByRoot'][ rootUuid ] = action
+        actionsForClip.actionByRoot[ rootUuid ] = action
 
     def _removeInactiveAction(self, action ):
         actions = self._actions
@@ -353,7 +356,8 @@ class AnimationMixer(EventManager):
         bindings = self._bindings
         prevIndex = binding._cacheIndex
 
-        firstInactiveIndex = -- self._nActiveBindings
+        self._nActiveBindings -= 1
+        firstInactiveIndex = self._nActiveBindings
 
         lastActiveBinding = bindings[ firstInactiveIndex ]
 
@@ -369,15 +373,15 @@ class AnimationMixer(EventManager):
         interpolants = self._controlInterpolants
         self._nActiveControlInterpolants += 1
         lastActiveIndex = self._nActiveControlInterpolants
-        interpolant = interpolants[ lastActiveIndex ]
-
-        if interpolant is None:
+        if len(interpolants) <= lastActiveIndex:
             interpolant = LinearInterpolant(
                 Float32Array( 2 ), Float32Array( 2 ),
                 1, self._controlInterpolantsResultBuffer )
 
             interpolant.__cacheIndex = lastActiveIndex
-            interpolants[ lastActiveIndex ] = interpolant
+            interpolants.append(interpolant)
+        else:
+            interpolant = interpolants[lastActiveIndex]
 
         return interpolant
 
@@ -394,7 +398,10 @@ class AnimationMixer(EventManager):
         interpolants[ firstInactiveIndex ] = interpolant
 
         lastActiveInterpolant.__cacheIndex = prevIndex
-        interpolants[ prevIndex ] = lastActiveInterpolant
+        if len(interpolants) <= prevIndex:
+            interpolants.append(lastActiveInterpolant)
+        else:
+            interpolants[ prevIndex ] = lastActiveInterpolant
 
     # return an action for a clip optionally using a custom root target
     # object (this method allocates a lot of dynamic memory in case a
@@ -412,7 +419,7 @@ class AnimationMixer(EventManager):
         if clipUuid in self._actionsByClip:
             actionsForClip = self._actionsByClip[clipUuid]
 
-            if rootUuid in actionsForClip['actionByRoot']:
+            if rootUuid in actionsForClip.actionByRoot:
                 return actionsForClip.actionByRoot[rootUuid]
 
             # we know the clip, so we don't have to parse all
@@ -493,7 +500,8 @@ class AnimationMixer(EventManager):
 
         # run active actions
 
-        for action in actions:
+        for i in range(nActions):
+            action = actions[i]
             action._update( time, deltaTime, timeDirection, accuIndex )
 
         # update scene graph

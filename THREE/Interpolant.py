@@ -31,7 +31,7 @@ class Interpolant:
         self.parameterPositions = parameterPositions
         self._cachedIndex = 0
 
-        self.resultBuffer = resultBuffer if resultBuffer is None else sampleValues.constructor( sampleSize )
+        self.resultBuffer = resultBuffer if resultBuffer is None else type(sampleValues)( sampleSize )
         self.sampleValues = sampleValues
         self.valueSize = sampleSize
         #( 0, t, t0 ), returns self.resultBuffer

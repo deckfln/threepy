@@ -5,7 +5,7 @@ from THREE.TextureLoader import *
 from THREE.CubeTextureLoader import *
 
 
-def loadTexture( url, mapping, onLoad, onError ):
+def loadTexture( url, mapping=None, onLoad=None, onError=None ):
     print( 'THREE.ImageUtils.loadTexture has been deprecated. Use THREE.TextureLoader() instead.' )
 
     loader = TextureLoader()
@@ -18,7 +18,7 @@ def loadTexture( url, mapping, onLoad, onError ):
     return texture
 
 
-def loadTextureCube( urls, mapping, onLoad, onError ):
+def loadTextureCube( urls, mapping=None, onLoad=None, onError=None ):
     print( 'THREE.ImageUtils.loadTextureCube has been deprecated. Use THREE.CubeTextureLoader() instead.' )
 
     loader = CubeTextureLoader()

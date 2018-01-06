@@ -17,6 +17,8 @@ from THREE.Skeleton import *
 from THREE.SkinnedMesh import *
 from THREE.Loader import *
 from THREE.LoadingManager import *
+from THREE.pyOpenGL.pyCache import *
+
 import THREE._Math as _Math
 
 
@@ -80,9 +82,12 @@ class ColladaLoader:
         self.manager = manager if manager is not None else THREE.DefaultLoadingManager
 
     def load(self, url, onLoad=None, onProgress=None, onError=None):
-        path = THREE.Loader.extractUrlBase(url)
-
-        collada = self.parse(url, path)
+        cached = pyCache(url)
+        collada = cached.load()
+        if not collada:
+            path = THREE.Loader.extractUrlBase(url)
+            collada = self.parse(url, path)
+            cached.save(collada)
 
         if onLoad is not None:
             onLoad(collada)
@@ -1964,7 +1969,7 @@ class ColladaLoader:
                 skeleton = buildSkeleton(skeletons, joints)
 
                 for object in newObjects:
-                    if object.isSkinnedMesh:
+                    if object.my_class(isSkinnedMesh):
                         object.bind(skeleton, controller.skin.bindMatrix)
                         object.normalizeSkinWeights()
 

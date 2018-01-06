@@ -127,7 +127,7 @@ class AnimationAction:
     def fadeOut(self, duration ):
         return self._scheduleFading( duration, 1, 0 )
 
-    def crossFadeFrom(self, fadeOutAction, duration, warp ):
+    def crossFadeFrom(self, fadeOutAction, duration, warp=False ):
         fadeOutAction.fadeOut( duration )
         self.fadeIn( duration )
 
@@ -143,8 +143,8 @@ class AnimationAction:
 
         return self
 
-    def crossFadeTo(self, fadeInAction, duration, warp ):
-        return fadeInAction.crossFadeFrom( self, duration, warp )
+    def crossFadeTo(self, fadeInAction, duration, warp=False ):
+        return fadeInAction.crossFadeFrom( self, duration, warp)
 
     def stopFading(self):
         weightInterpolant = self._weightInterpolant

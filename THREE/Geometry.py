@@ -452,7 +452,7 @@ class Geometry(pyOpenGLObject):
 
         self.boundingSphere.setFromPoints( self.vertices )
 
-    def merge(self, geometry, matrix, materialIndexOffset ):
+    def merge(self, geometry, matrix=None, materialIndexOffset=None ):
         if not ( geometry and geometry.my_class(isGeometry) ):
             raise RuntimeError( 'THREE.Geometry.merge(): geometry not an instance of THREE.Geometry.', geometry )
 
@@ -466,11 +466,7 @@ class Geometry(pyOpenGLObject):
         colors1 = self.colors
         colors2 = geometry.colors
 
-        if materialIndexOffset == None:
-            materialIndexOffset = 0
-
-        if matrix != None:
-            normalMatrix = Matrix3().getNormalMatrix( matrix )
+        normalMatrix = Matrix3().getNormalMatrix( matrix ) if matrix is not None else None
 
         # // vertices
 
@@ -479,7 +475,7 @@ class Geometry(pyOpenGLObject):
 
             vertexCopy = vertex.clone()
 
-            if matrix != None:
+            if matrix is not None:
                 vertexCopy.applyMatrix4( matrix )
 
             vertices1.append( vertexCopy )
@@ -499,13 +495,13 @@ class Geometry(pyOpenGLObject):
             faceCopy = Face3( face.a + vertexOffset, face.b + vertexOffset, face.c + vertexOffset )
             faceCopy.normal.copy( face.normal )
 
-            if normalMatrix != None:
+            if normalMatrix is not None:
                 faceCopy.normal.applyMatrix3( normalMatrix ).normalize()
 
             for j in range(len(faceVertexNormals)):
                 normal = faceVertexNormals[ j ].clone()
 
-                if normalMatrix != None:
+                if normalMatrix is not None:
                     normal.applyMatrix3( normalMatrix ).normalize()
 
                 faceCopy.vertexNormals.append( normal )
@@ -516,7 +512,12 @@ class Geometry(pyOpenGLObject):
                 color = faceVertexColors[ j ]
                 faceCopy.vertexColors.append( color.clone() )
 
-            faceCopy.materialIndex = face.materialIndex + materialIndexOffset
+            if face.materialIndex is not None and materialIndexOffset is not None:
+                faceCopy.materialIndex = face.materialIndex + materialIndexOffset
+            elif face.materialIndex is not None:
+                faceCopy.materialIndex = face.materialIndex
+            elif materialIndexOffset is not None:
+                faceCopy.materialIndex = materialIndexOffset
 
             faces1.append( faceCopy )
 
@@ -526,7 +527,7 @@ class Geometry(pyOpenGLObject):
             uv = uvs2[ i ]
             uvCopy = []
 
-            if uv == None:
+            if uv is None:
                 continue
 
             for j in range(len(uv)):

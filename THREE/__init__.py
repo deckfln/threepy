@@ -92,6 +92,8 @@ from THREE.PlaneHelper import *
 from THREE.GridHelper import *
 from THREE.PolarGridHelper import *
 from THREE.VertexNormalsHelper import *
+from THREE.SpotLightHelper import *
+from THREE.SkeletonHelper import *
 from THREE.Ray import *
 from THREE.Raycaster import *
 from THREE.Sprite import *

@@ -173,7 +173,7 @@ class Box3:
                     if attribute is not None:
                         for i in range(attribute.count):
                             v1.fromBufferAttribute(attribute, i).applyMatrix4(node.matrixWorld)
-                            scope.expandByPoint(v1)
+                            self.expandByPoint(v1)
 
         object.traverse( _traverse_box3, self)
 

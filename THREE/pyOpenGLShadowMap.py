@@ -94,9 +94,9 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         self.renderSingleSided = True
 
     def render(self, lights, scene, camera ):
-        if self.enabled == False:
+        if not self.enabled:
             return
-        if self.autoUpdate == False and self.needsUpdate == False:
+        if not self.autoUpdate and not self.needsUpdate:
             return
 
         if len(lights) == 0:
@@ -113,8 +113,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
         # // render depth map
 
-        for i in range(len(lights)):
-            light = lights[ i ]
+        for light in lights:
             shadow = light.shadow
             is_PointLight = light and light.my_class(isPointLight)
 
@@ -327,7 +326,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         return result
 
     def renderObject(self, object, camera, shadowCamera, is_PointLight ):
-        if object.visible == False:
+        if not object.visible:
             return
 
         visible = object.layers.test( camera.layers )
@@ -354,7 +353,5 @@ class pyOpenGLShadowMap(pyOpenGLObject):
                     depthMaterial = self.getDepthMaterial( object, material, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
                     self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, None )
 
-        children = object.children
-
-        for i in range(len(children)):
-            self.renderObject( children[ i ], camera, shadowCamera, is_PointLight )
+        for child in object.children:
+            self.renderObject( child, camera, shadowCamera, is_PointLight )
