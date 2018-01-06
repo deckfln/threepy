@@ -81,7 +81,7 @@ def render(p):
     if p.mixer:
         time = datetime.now().timestamp()
 
-        p.mixer.update( ( time - p.prevTime ) * 0.001 )
+        p.mixer.update( ( time - p.prevTime ) * 1 )
         p.prevTime = time
 
     p.renderer.render( p.scene, p.camera )
