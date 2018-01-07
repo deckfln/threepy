@@ -1298,8 +1298,7 @@ class pyOpenGLRenderer:
                     if isinstance( material, list):
                         groups = geometry.groups
 
-                        for i in range(len(groups)):
-                            group = groups[ i ]
+                        for group in groups:
                             groupMaterial = material[ group.materialIndex ]
 
                             if groupMaterial and groupMaterial.visible:

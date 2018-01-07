@@ -5,6 +5,7 @@
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.loaders.OBJLoader import *
+from THREE.pyOpenGL.pyCache import *
 
 
 class Params:
@@ -50,8 +51,15 @@ def init(p):
 
     # model
 
-    loader = OBJLoader( manager )
-    model = loader.load( 'obj/male02/male02.obj')
+    url = "obj/male02/male02.obj"
+    cached = pyCache(url)
+    model = cached.load()
+    if model is None:
+        loader = OBJLoader(manager)
+        model = loader.load('obj/male02/male02.obj')
+        cached.save(model)
+    else:
+        model.rebuild_id()
 
     def _apply_texture(object, scope=None):
         if object.my_class(isMesh):

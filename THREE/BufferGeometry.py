@@ -661,3 +661,6 @@ class BufferGeometry(pyOpenGLObject):
     def dispose(self):
         if self.callback:
             return self.callback(self)
+
+    def rebuild_id(self):
+        self.id = GeometryIdCount()

@@ -238,11 +238,12 @@ class OBJLoader:
     def load(self, url, onLoad=None, onProgress=None, onError=None):
         loader = THREE.FileLoader(self.manager)
         loader.setPath(self.path)
+        text = loader.load(url, None, onProgress,  onError)
+        obj = self.parse(text)
+        if onLoad is not None:
+            onLoad(obj)
 
-        def _onLoad(text):
-            onLoad(self.parse(text))
-
-        loader.load(url, _onLoad, onProgress,  onError)
+        return obj
 
     def setPath(self, value):
         self.path = value

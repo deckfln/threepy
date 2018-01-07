@@ -375,3 +375,10 @@ class Material(pyOpenGLObject):
     def dispose(self, callback):
         if self.callback:
             self.callback(self)
+
+    def rebuild_id(self):
+        global _materialId
+        self.id = _materialId
+        _materialId += 1
+
+        self.uuid = _Math.generateUUID()

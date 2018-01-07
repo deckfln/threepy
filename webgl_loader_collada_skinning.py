@@ -14,6 +14,7 @@ from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.OrbitControls import *
 from THREE.loaders.ColladaLoader2 import *
 import libs.tween as TWEEN
+from THREE.pyOpenGL.pyCache import *
 
 
 class Params:
@@ -26,6 +27,12 @@ class Params:
         self.clock = None
         self.controls = None
         self.mixer = None
+
+
+class _actor:
+    def __init__(self, collada):
+        self.animations = collada.animations
+        self.scene = collada.scene
 
 
 def init(p):
@@ -46,16 +53,23 @@ def init(p):
     loader = ColladaLoader()
     # loader.options.convertUpAxis = True
     
-    def _onload(collada):
-        animations = collada.animations
-        avatar = collada.scene
+    url = "models/collada/stormtrooper/stormtrooper.dae"
+    cached = pyCache(url)
+    actor = cached.load()
+    if actor is None:
+        collada = loader.load( url)
+        actor = _actor(collada)
+        cached.save(actor)
+    else:
+        actor.scene.rebuild_id()
 
-        p.scene.add( avatar )
-        p.mixer = THREE.AnimationMixer( avatar )
+    animations = actor.animations
+    avatar = actor.scene
 
-        action = p.mixer.clipAction(animations[0]).play()
+    p.scene.add( avatar )
+    p.mixer = THREE.AnimationMixer( avatar )
 
-    loader.load( './models/collada/stormtrooper/stormtrooper.dae', _onload )
+    action = p.mixer.clipAction(animations[0]).play()
 
     #
 

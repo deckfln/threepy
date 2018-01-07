@@ -208,8 +208,8 @@ class pyOpenGLPrograms:
                 array.append(name)
                 array.append(str(material.defines[name]))
 
-        for i in range(len(self.parameterNames)):
-            array.append(str(parameters[ self.parameterNames[i]]))
+        for parameter in self.parameterNames:
+            array.append(str(parameters[parameter]))
 
         array.append(str(material.onBeforeCompile))
 
@@ -220,9 +220,7 @@ class pyOpenGLPrograms:
     def acquireProgram(self,  material, shader, parameters, code):
         program = None
         # // Check if code has been already compiled
-        for p in range(len(self.programs)):
-            programInfo = self.programs[p]
-
+        for programInfo in self.programs:
             if programInfo.code == code:
                 program = programInfo
                 program.usedTimes += 1

@@ -17,9 +17,17 @@ from THREE.Skeleton import *
 from THREE.SkinnedMesh import *
 from THREE.Loader import *
 from THREE.LoadingManager import *
-from THREE.pyOpenGL.pyCache import *
+
 
 import THREE._Math as _Math
+
+
+class _animationClip:
+    def __init__(self, name, start, end):
+        self.name = name
+        self.start = start
+        self.end = end
+        self.animations =[]
 
 
 class _keyframes:
@@ -67,6 +75,143 @@ class _geometry:
         self.primitives = []
 
 
+class _asset:
+    def __init__(self, unit, upAxis):
+        self.unit = unit
+        self.upAxis = upAxis
+
+
+class _effectParameterTexture:
+    def __init__(self):
+        self.technique = None
+
+
+class _effectTechnique:
+    def __init__(self):
+        self.parameters = None
+        self.type = None
+
+
+class _effectSampler:
+    def __init__(self):
+        self.source = None
+
+
+class _effectSurface:
+    def __init__(self):
+        self.init_from = None
+
+
+class _effectProfile:
+    def __init__(self):
+        self.surfaces = {}
+        self.samplers = {}
+        self.technique = None
+
+
+class _effect:
+    def __init__(self):
+        self.build = None
+        self.profile = None
+
+
+class _node:
+    def __init__(self, name, type, id, sid):
+        self.name = name
+        self.type = type
+        self.id = id
+        self.sid = sid
+        self.matrix = THREE.Matrix4()
+        self.nodes = []
+        self.instanceCameras = []
+        self.instanceControllers = []
+        self.instanceLights = []
+        self.instanceGeometries = []
+        self.instanceNodes = []
+        self.transforms = {}
+        self.build = None
+
+
+class _idoffset:
+    def __init__(self, id, offset):
+        self.id = id
+        self.offset = offset
+
+
+class _vertexWeights:
+    def __init__(self):
+        self.inputs = {}
+        self.v = None
+        self.vcount = None
+
+
+class _joint:
+    def __init__(self):
+        self.inputs = {}
+
+
+class _skin1:
+    def __init__(self):
+        self.bindShapeMatrix = None
+        self.joints = None
+        self.sources = {}
+        self.vertexWeights = None
+
+
+class _controler1:
+    def __init__(self):
+        self.build = None
+        self.id = None
+        self.skin = None
+
+
+class _source:
+    def __init__(self):
+        self.array = []
+        self.stride = 3
+
+
+class _animationChannel:
+    def __init__(self):
+        self.arraySyntax = False
+        self.id = None
+        self.memberSyntax = False
+        self.sample = None
+        self.sid = None
+        self.indices = None
+        self.member = None
+
+
+class _animationSampler:
+    def __init__(self):
+        self.inputs = {}
+
+
+class _animation:
+    def __init__(self):
+        self.sources = {}
+        self.samplers = {}
+        self.channels = {}
+        self.build = None
+
+
+class _library:
+    def __init__(self):
+        self.animations = {}
+        self.clips = {}
+        self.controllers = {}
+        self.images = {}
+        self.effects = {}
+        self.materials = {}
+        self.cameras = {}
+        self.lights = {}
+        self.geometries = {}
+        self.nodes = {}
+        self.visualScenes = {}
+        self.kinematicsModels = {}
+        self.kinematicsScenes = {}
+
+
 class Collada:
     def __init__(self, animations, kinematics, library, scene):
         self.animations = animations
@@ -82,12 +227,8 @@ class ColladaLoader:
         self.manager = manager if manager is not None else THREE.DefaultLoadingManager
 
     def load(self, url, onLoad=None, onProgress=None, onError=None):
-        cached = pyCache(url)
-        collada = cached.load()
-        if not collada:
-            path = THREE.Loader.extractUrlBase(url)
-            collada = self.parse(url, path)
-            cached.save(collada)
+        path = THREE.Loader.extractUrlBase(url)
+        collada = self.parse(url, path)
 
         if onLoad is not None:
             onLoad(collada)
@@ -98,7 +239,6 @@ class ColladaLoader:
         print('THREE.ColladaLoader.options.convertUpAxis: TODO')
 
     options = property(None, convertUpAxis)
-
 
     def setCrossOrigin(self, value):
         self.crossOrigin = value
@@ -185,15 +325,17 @@ class ColladaLoader:
             return text[1:]
 
         def isEmpty(object):
+            if isinstance(object, dict):
+                return len(object) == 0
+
             return len(object.__dict__) == 0
 
         # asset
 
         def parseAsset(xml):
-            return javascriptObject({
-                'unit': parseAssetUnit(getElementsByTagName(xml, 'unit')[0]),
-                'upAxis': parseAssetUpAxis(getElementsByTagName(xml, 'up_axis')[0])
-            })
+            return _asset(parseAssetUnit(getElementsByTagName(xml, 'unit')[0]),
+                parseAssetUpAxis(getElementsByTagName(xml, 'up_axis')[0])
+            )
 
         def parseAssetUnit(xml):
             meter = xml.getAttribute('meter')
@@ -231,11 +373,7 @@ class ColladaLoader:
         # animation
 
         def parseAnimation(xml):
-            data = javascriptObject({
-                'sources': {},
-                'samplers': {},
-                'channels': {}
-            })
+            data = _animation()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -256,9 +394,7 @@ class ColladaLoader:
             library.animations[xml.getAttribute('id')] = data
 
         def parseAnimationSampler(xml):
-            data = javascriptObject({
-                'inputs': {},
-            })
+            data = _animationSampler()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -272,7 +408,7 @@ class ColladaLoader:
             return data
 
         def parseAnimationChannel(xml):
-            data = javascriptObject({})
+            data = _animationChannel()
 
             target = xml.getAttribute('target')
 
@@ -327,9 +463,9 @@ class ColladaLoader:
                 channel = channels[target]
                 sampler = samplers[channel.sampler]
 
-                inputId = sampler.inputs.INPUT
-                outputId = sampler.inputs.OUTPUT
-                interpolationId = sampler.inputs.INTERPOLATION
+                inputId = sampler.inputs['INPUT']
+                outputId = sampler.inputs['OUTPUT']
+                interpolationId = sampler.inputs['INTERPOLATION']
 
                 inputSource = sources[inputId]
                 outputSource = sources[outputId]
@@ -345,6 +481,11 @@ class ColladaLoader:
             return getBuild(library.animations[id], buildAnimation)
 
         def buildAnimationChannel(channel, inputSource, outputSource, interpolationSource):
+            class _animations1:
+                def __init__(self, name, keyframes):
+                    self.name = name
+                    self.keyframes = keyframes
+
             node = library.nodes[channel.id]
             object3D = getNode(node.id)
 
@@ -382,10 +523,7 @@ class ColladaLoader:
 
             keyframes = prepareAnimationData(data, defaultMatrix)
 
-            animation = javascriptObject({
-                'name': object3D.uuid,
-                'keyframes': keyframes
-            })
+            animation = _animations1(object3D.uuid, keyframes)
 
             return animation
 
@@ -512,12 +650,9 @@ class ColladaLoader:
         # animation clips
 
         def parseAnimationClip(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('id') or 'default',
-                'start': float(xml.getAttribute('start') or 0),
-                'end': float(xml.getAttribute('end') or 0),
-                'animations': []
-            })
+            data = _animationClip(xml.getAttribute('id') or 'default',
+                float(xml.getAttribute('start') or 0),
+                float(xml.getAttribute('end') or 0))
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -548,7 +683,7 @@ class ColladaLoader:
         # controller
 
         def parseController(xml):
-            data = javascriptObject({})
+            data = _controler1()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -562,9 +697,7 @@ class ColladaLoader:
             library.controllers[xml.getAttribute('id')] = data
 
         def parseSkin(xml):
-            data = javascriptObject({
-                'sources': {}
-            })
+            data = _skin1()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -586,9 +719,7 @@ class ColladaLoader:
             return data
 
         def parseJoints(xml):
-            data = javascriptObject({
-                'inputs': {}
-            })
+            data = _joint()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -602,9 +733,7 @@ class ColladaLoader:
             return data
 
         def parseVertexWeights(xml):
-            data = javascriptObject({
-                'inputs': {}
-            })
+            data = _vertexWeights()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -614,7 +743,7 @@ class ColladaLoader:
                     semantic = child.getAttribute('semantic')
                     id = parseId(child.getAttribute('source'))
                     offset = int(child.getAttribute('offset'))
-                    data.inputs[semantic] = javascriptObject({ 'id': id, 'offset': offset })
+                    data.inputs[semantic] = _idoffset(id, offset)
 
                 elif child.nodeName == 'vcount':
                     data.vcount = parseInts(child.firstChild.data)
@@ -652,13 +781,13 @@ class ColladaLoader:
 
             vcount = vertexWeights.vcount
             v = vertexWeights.v
-            jointOffset = vertexWeights.inputs.JOINT.offset
-            weightOffset = vertexWeights.inputs.WEIGHT.offset
+            jointOffset = vertexWeights.inputs['JOINT'].offset
+            weightOffset = vertexWeights.inputs['WEIGHT'].offset
 
-            jointSource = data.sources[data.joints.inputs.JOINT]
-            inverseSource = data.sources[data.joints.inputs.INV_BIND_MATRIX]
+            jointSource = data.sources[data.joints.inputs['JOINT']]
+            inverseSource = data.sources[data.joints.inputs['INV_BIND_MATRIX']]
 
-            weights = sources[vertexWeights.inputs.WEIGHT.id].array
+            weights = sources[vertexWeights.inputs['WEIGHT'].id].array
             stride = 0
 
             # procces skin data for each vertex
@@ -717,7 +846,12 @@ class ColladaLoader:
         # image
 
         def parseImage(xml):
-            data = javascriptObject({})
+            class _image:
+                def __init__(self):
+                    self.init_from = None
+                    self.build = None
+
+            data = _image()
 
             ge = getElementsByTagName(xml, 'init_from')
             if len(ge) > 0:
@@ -737,7 +871,7 @@ class ColladaLoader:
         # effect
 
         def parseEffect(xml):
-            data = javascriptObject({})
+            data = _effect()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -749,10 +883,7 @@ class ColladaLoader:
             library.effects[xml.getAttribute('id')] = data
 
         def parseEffectProfileCOMMON(xml):
-            data = javascriptObject({
-                'surfaces': {},
-                'samplers': {}
-            })
+            data = _effectProfile()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -780,7 +911,7 @@ class ColladaLoader:
                     data.samplers[sid] = parseEffectSampler(child)
 
         def parseEffectSurface(xml):
-            data = javascriptObject({})
+            data = _effectSurface()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -792,7 +923,7 @@ class ColladaLoader:
             return data
 
         def parseEffectSampler(xml):
-            data = javascriptObject({})
+            data = _effectSampler()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -804,7 +935,7 @@ class ColladaLoader:
             return data
 
         def parseEffectTechnique(xml):
-            data = javascriptObject({})
+            data = _effectTechnique()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -817,7 +948,7 @@ class ColladaLoader:
             return data
 
         def parseEffectParameters(xml):
-            data = javascriptObject({})
+            data = {}
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -834,7 +965,12 @@ class ColladaLoader:
             return data
 
         def parseEffectParameter(xml):
-            data = javascriptObject({})
+            class _idextra:
+                def __init__(self, id, extra):
+                    self.id = id
+                    self.extra = extra
+
+            data = {}
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -847,14 +983,12 @@ class ColladaLoader:
                     data[child.nodeName] = float(child.firstChild.data)
 
                 elif child.nodeName == 'texture':
-                    data[child.nodeName] = javascriptObject({ 'id': child.getAttribute('texture'), 'extra': parseEffectParameterTexture(child) })
+                    data[child.nodeName] = _idextra(child.getAttribute('texture'), parseEffectParameterTexture(child) )
 
             return data
 
         def parseEffectParameterTexture(xml):
-            data = javascriptObject({
-                'technique': {}
-            })
+            data = _effectParameterTexture()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -900,9 +1034,12 @@ class ColladaLoader:
 
         # material
         def parseMaterial(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name')
-            })
+            class _material:
+                def __init__(self, name):
+                    self.name = name
+                    self.url = None
+
+            data = _material(xml.getAttribute('name'))
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -962,26 +1099,26 @@ class ColladaLoader:
 
                 if key == 'diffuse':
                     if 'color' in parameter:
-                        material.color.fromArray(parameter.color)
+                        material.color.fromArray(parameter['color'])
                     if 'texture' in parameter:
-                        material.map = getTexture(parameter.texture)
+                        material.map = getTexture(parameter['texture'])
                 elif key == 'specular':
                     if 'color' in parameter:
-                        material.specular.fromArray(parameter.color)
-                    if parameter.texture:
-                        material.specularMap = getTexture(parameter.texture)
+                        material.specular.fromArray(parameter['color'])
+                    if 'texture' in parameter:
+                        material.specularMap = getTexture(parameter['texture'])
                 elif key == 'shininess':
                     if 'float' in parameter:
-                        material.shininess = parameter.float
+                        material.shininess = parameter['float']
                 elif key == 'emission':
                     if 'color' in parameter:
-                        material.emissive.fromArray(parameter.color)
+                        material.emissive.fromArray(parameter['color'])
                 elif key == 'transparent':
                     # if parameter.texture) material.alphaMap = getTexture(parameter.texture)
                     material.transparent = True
                 elif key == 'transparency':
                     if 'float' in parameter is not None:
-                        material.opacity = parameter.float
+                        material.opacity = parameter['float']
                     material.transparent = True
 
             return material
@@ -992,9 +1129,12 @@ class ColladaLoader:
         # camera
 
         def parseCamera(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name')
-            })
+            class _camera:
+                def __init__(self, name):
+                    self.name = name
+                    self.optics = None
+
+            data = _camera(xml.getAttribute('name'))
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1013,7 +1153,12 @@ class ColladaLoader:
             return {}
 
         def parseCameraTechnique(xml):
-            data = javascriptObject({})
+            class _cameraTechnique:
+                def __init__(self):
+                    self.technique = None
+                    self.parameters = None
+
+            data = _cameraTechnique()
             for child in xml.childNodes:
                 if child.nodeName == 'perspective' or child.nodeName == 'orthographic':
                     data.technique = child.nodeName
@@ -1022,7 +1167,7 @@ class ColladaLoader:
             return data
 
         def parseCameraParameters(xml):
-            data = javascriptObject({})
+            data = {}
 
             for child in xml.childNodes:
                 if child.nodeName == 'xfov' or child.nodeName == 'yfov' or child.nodeName == 'xmag' or \
@@ -1072,7 +1217,7 @@ class ColladaLoader:
         # light
 
         def parseLight(xml):
-            data = javascriptObject({})
+            data = None
 
             for child in xml.childNodes:
                 if child.nodeType != 1 :
@@ -1084,7 +1229,12 @@ class ColladaLoader:
             library.lights[xml.getAttribute('id')] = data
 
         def parseLightTechnique(xml):
-            data = javascriptObject({})
+            class _lightTechnique:
+                def __init__(self):
+                    self.technique = None
+                    self.parameters = None
+
+            data = _lightTechnique()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1097,7 +1247,13 @@ class ColladaLoader:
             return data
 
         def parseLightParameters(xml):
-            data = javascriptObject({})
+            class _lightParameters:
+                def __init__(self):
+                    self.color = None
+                    self.falloffAngle = None
+                    self.distance = None
+
+            data = _lightParameters()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1173,13 +1329,10 @@ class ColladaLoader:
             library.geometries[xml.getAttribute('id')] = data
 
         def parseSource(xml):
-            data = javascriptObject({
-                'array': [],
-                'stride': 3
-            })
+            data = _source()
 
             for child in xml.childNodes:
-                if child.nodeType != 1 :
+                if child.nodeType != 1:
                     continue
 
                 if child.nodeName == 'float_array':
@@ -1201,7 +1354,7 @@ class ColladaLoader:
             return data
 
         def parseGeometryVertices(xml):
-            data = javascriptObject({})
+            data = {}
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1212,13 +1365,18 @@ class ColladaLoader:
             return data
 
         def parseGeometryPrimitive(xml):
-            primitive = javascriptObject({
-                'type': xml.nodeName,
-                'material': xml.getAttribute('material'),
-                'count':  int(xml.getAttribute('count')),
-                'inputs': {},
-                'stride': 0
-            })
+            class _geometryPrimitive:
+                def __init__(self, type, material, count):
+                    self.type = type
+                    self.material = material
+                    self.count = count
+                    self.inputs = {}
+                    self.stride = 0
+
+            primitive = _geometryPrimitive(
+                xml.nodeName,
+                xml.getAttribute('material'),
+                int(xml.getAttribute('count')))
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1228,7 +1386,7 @@ class ColladaLoader:
                     id = parseId(child.getAttribute('source'))
                     semantic = child.getAttribute('semantic')
                     offset = int(child.getAttribute('offset'))
-                    primitive.inputs[semantic] = javascriptObject({ 'id': id, 'offset': offset })
+                    primitive.inputs[semantic] = _idoffset(id, offset )
                     primitive.stride = max(primitive.stride, offset + 1)
 
                 elif child.nodeName == 'vcount':
@@ -1240,7 +1398,7 @@ class ColladaLoader:
             return primitive
 
         def groupPrimitives(primitives):
-            build = javascriptObject({})
+            build = {}
 
             for primitive in primitives:
                 if not primitive.type in build:
@@ -1272,7 +1430,13 @@ class ColladaLoader:
             return build
 
         def buildGeometryType(primitives, sources, vertices):
-            build = javascriptObject({})
+            class _buildGeometryType:
+                def __init__(self):
+                    self.data = None
+                    self.type = None
+                    self.materialKeys = None
+
+            build = _buildGeometryType()
 
             position = _skinArray(0)
             normal = _skinArray(0)
@@ -1432,11 +1596,13 @@ class ColladaLoader:
 
         # kinematics
         def parseKinematicsModel(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name') or '',
-                'joints': [],
-                'links': []
-            })
+            class _kinematicsModel:
+                def __init__(self, name):
+                    self.name = name
+                    self.joints = []
+                    self.links = []
+
+            data = _kinematicsModel(xml.getAttribute('name') or '')
 
             for child in xml.childNodes:
                 if child.nodeType != 1 :
@@ -1479,19 +1645,24 @@ class ColladaLoader:
             return data
 
         def parseKinematicsJointParameter(xml, data=None):
-            data = javascriptObject({
-                'sid':  xml.getAttribute('sid'),
-                'name': xml.getAttribute('name') or '',
-                'axis': THREE.Vector3(),
-                'limits': {
-                    'min': 0,
-                    'max': 0
-                },
-                'type': xml.nodeName,
-                'static': False,
-                'zeroPosition': 0,
-                'middlePosition': 0
-            })
+            class _kinematicsJointParameter:
+                def __init__(self, sid, name, type):
+                    self.sid = sid
+                    self.name = name
+                    self.axis = THREE.Vector3()
+                    self.limits: {
+                        'min': 0,
+                        'max': 0
+                    }
+                    self.type = xml.nodeName
+                    self.static = False
+                    self.zeroPosition = 0
+                    self.middlePosition = 0
+
+            data = _kinematicsJointParameter(
+                xml.getAttribute('sid'),
+                xml.getAttribute('name') or '',
+                xml.nodeName)
 
             for child in xml.childNodes:
                 if child.nodeType != 1 :
@@ -1517,12 +1688,16 @@ class ColladaLoader:
             return data
 
         def parseKinematicsLink(xml):
-            data = javascriptObject({
-                'sid': xml.getAttribute('sid'),
-                'name': xml.getAttribute('name') or '',
-                'attachments': [],
-                'transforms': []
-            })
+            class _kinematicsLink:
+                def __init__(self, sid, name):
+                    self.sid = sid
+                    self.name = name
+                    self.attachments = []
+                    self.transforms = []
+
+            data = _kinematicsLink(
+                xml.getAttribute('sid'),
+                xml.getAttribute('name') or '')
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1537,11 +1712,14 @@ class ColladaLoader:
             return data
 
         def parseKinematicsAttachment(xml):
-            data = javascriptObject({
-                'joint': xml.getAttribute('joint').split('/').pop(),
-                'transforms': [],
-                'links': []
-            })
+            class _kinematicsAttachment:
+                def __init__(self, joint):
+                    self.joint = joint
+                    self.transforms = []
+                    self.links = []
+
+            data = _kinematicsAttachment(
+                xml.getAttribute('joint').split('/').pop())
 
             for child in xml.childNodes:
                 if child.nodeType != 1 :
@@ -1556,9 +1734,13 @@ class ColladaLoader:
             return data
 
         def parseKinematicsTransform(xml):
-            data = javascriptObject({
-                'type': xml.nodeName
-            })
+            class _kinematicsTransform:
+                def __init__(self, type):
+                    self.type = type
+                    self.obj = None
+                    self.angle = None
+
+            data = _kinematicsTransform(xml.nodeName)
 
             array = _parseFloats(xml.firstChild.data)
 
@@ -1578,9 +1760,11 @@ class ColladaLoader:
             return data
 
         def parseKinematicsScene(xml):
-            data = javascriptObject({
-                'bindJointAxis': []
-            })
+            class _kinematicsScene:
+                def __init__(self):
+                    self.bindJointAxis = []
+
+            data = _kinematicsScene()
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1592,9 +1776,13 @@ class ColladaLoader:
             library.kinematicsScenes[parseId(xml.getAttribute('url'))] = data
 
         def parseKinematicsBindJointAxis(xml):
-            data = javascriptObject({
-                'target': xml.getAttribute('target').split('/').pop()
-            })
+            class _kinematicsBindJointAxis:
+                def __init__(self, target):
+                    self.target = target
+                    self.axis = None
+                    self.jointIndex = None
+
+            data = _kinematicsBindJointAxis(xml.getAttribute('target').split('/').pop())
 
             for child in xml.childNodes:
                 if child.nodeType != 1:
@@ -1617,11 +1805,24 @@ class ColladaLoader:
             return getBuild(library.kinematicsScenes[id], buildKinematicsScene)
 
         def setupKinematics():
+            class _jointMap:
+                def __init__(self, object, transforms, joint, position):
+                    self.object = object
+                    self.transforms = tranforms
+                    self.joint = joint
+                    self.position = position
+
+            class _kinematics:
+                def __init__(self, joints, getJointValue, setJointValue):
+                    self.joints = joints
+                    self.getJointValue = getJointValue,
+                    self.setJointValue = setJointValue
+
             nonlocal kinematics
 
-            kinematicsModelId = library.kinematicsModels.__dict__.keys()
-            kinematicsSceneId = library.kinematicsScenes.__dict__.keys()
-            visualSceneId = library.visualScenes.__dict__.keys()
+            kinematicsModelId = library.kinematicsModels.keys()
+            kinematicsSceneId = library.kinematicsScenes.keys()
+            visualSceneId = library.visualScenes.keys()
 
             if len(kinematicsModelId) == 0 or len(kinematicsSceneId) == 0:
                 return
@@ -1644,12 +1845,11 @@ class ColladaLoader:
 
                 def _traverse(object, scope=None):
                     if object.name == visualElementName:
-                        jointMap[jointIndex] = javascriptObject({
-                            'object': object,
-                            'transforms': buildTransformList(visualElement),
-                            'joint': joint,
-                            'position': joint.zeroPosition
-                        })
+                        jointMap[jointIndex] = _jointMap(
+                            object,
+                            buildTransformList(visualElement),
+                            joint,
+                            joint.zeroPosition)
 
                 visualScene.traverse(_traverse)
 
@@ -1730,13 +1930,19 @@ class ColladaLoader:
                 else:
                     print('THREE.ColladaLoader: ' + jointIndex + ' does not exist.')
                     
-            kinematics = javascriptObject({
-                'joints': kinematicsModel and kinematicsModel.joints,
-                'getJointValue': _getJointValue,
-                'setJointValue': _setJointValue
-            })
+            kinematics = _kinematics(
+                kinematicsModel and kinematicsModel.joints,
+                _getJointValue,
+                _setJointValue)
 
         def buildTransformList(node):
+            class _transform:
+                def __init__(self, sid, type, obj, angle=None):
+                    self.sid = sid
+                    self.type = type
+                    self.obj = obj
+                    self.angle = angle
+
             transforms = []
 
             xml = getElementsBySelector(collada, 'id', node.attributes['id'].nodeValue)
@@ -1748,49 +1954,33 @@ class ColladaLoader:
                 if child.nodeName == 'matrix':
                     array = _parseFloats(child.firstChild.data)
                     matrix = THREE.Matrix4().fromArray(array).transpose()
-                    transforms.append(javascriptObject({
-                        'sid': child.getAttribute('sid'),
-                        'type': child.nodeName,
-                        'obj': matrix
-                    }))
+                    transforms.append(_transform(
+                        child.getAttribute('sid'),
+                        child.nodeName,
+                        matrix))
 
                 elif child.nodeName == 'translate' or child.nodeName ==  'scale':
                     array = _parseFloats(child.firstChild.data)
                     vector = THREE.Vector3().fromArray(array)
-                    transforms.append(javascriptObject({
-                        'sid': child.getAttribute('sid'),
-                        'type': child.nodeName,
-                        'obj': vector
-                    }))
+                    transforms.append(_transform(
+                        child.getAttribute('sid'),
+                        child.nodeName,
+                        vector))
 
                 elif child.nodeName == 'rotate':
                     array = _parseFloats(child.firstChild.data)
                     vector = THREE.Vector3().fromArray(array)
                     angle = _Math.degToRad(array[3])
-                    transforms.append(javascriptObject({
-                        'sid': child.getAttribute('sid'),
-                        'type': child.nodeName,
-                        'obj': vector,
-                        'angle': angle
-                    }))
+                    transforms.append(_transform(
+                        child.getAttribute('sid'),
+                        child.nodeName,
+                        vector,
+                        angle))
 
             return transforms
 
         def parseNode(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name'),
-                'type': xml.getAttribute('type'),
-                'id': xml.getAttribute('id'),
-                'sid': xml.getAttribute('sid'),
-                'matrix': THREE.Matrix4(),
-                'nodes': [],
-                'instanceCameras': [],
-                'instanceControllers': [],
-                'instanceLights': [],
-                'instanceGeometries': [],
-                'instanceNodes': [],
-                'transforms': {}
-            })
+            data = _node(xml.getAttribute('name'), xml.getAttribute('type'), xml.getAttribute('id'), xml.getAttribute('sid'))
 
             for child in xml.childNodes:
                 if child.nodeType != 1 :
@@ -1850,11 +2040,13 @@ class ColladaLoader:
             return data
 
         def parseNodeInstance(xml):
-            data = javascriptObject({
-                'id': parseId(xml.getAttribute('url')),
-                'materials': {},
-                'skeletons': []
-            })
+            class _nodeInstance:
+                def __init__(self, id):
+                    self.id = id
+                    self.materials = {}
+                    self.skeletons = []
+
+            data = _nodeInstance(parseId(xml.getAttribute('url')))
 
             for child in xml.childNodes:
                 if child.nodeName == 'bind_material':
@@ -1914,6 +2106,12 @@ class ColladaLoader:
             return Skeleton(bones, boneInverses)
 
         def buildBoneHierarchy(root, joints, boneData):
+            class _boneHierarchy:
+                def __init__(self, bone, boneInverse):
+                    self.bone = bone
+                    self.boneInverse = boneInverse
+                    self.processed = False
+
             # setup bone data from visual scene
             def _traverse(obj, scope=None):
                 if obj.isBone is True:
@@ -1933,7 +2131,7 @@ class ColladaLoader:
 
                          boneInverse = THREE.Matrix4()
 
-                    boneData.append(javascriptObject({ 'bone': obj, 'boneInverse': boneInverse, 'processed': False }))
+                    boneData.append(_boneHierarchy(obj, boneInverse))
 
             root.traverse(_traverse)
 
@@ -2068,10 +2266,12 @@ class ColladaLoader:
 
         # visual scenes
         def parseVisualScene(xml):
-            data = javascriptObject({
-                'name': xml.getAttribute('name'),
-                'children': []
-            })
+            class _visualScene:
+                def __init__(self, name):
+                    self.name = name
+                    self.children = []
+
+            data = _visualScene(xml.getAttribute('name'))
 
             elements = getElementsByTagName(xml, 'node')
 
@@ -2127,7 +2327,7 @@ class ColladaLoader:
         print('THREE.ColladaLoader')
 
         if len(text) == 0:
-            return javascriptObject({ 'scene': THREE.Scene() })
+            return Collada(None, None, None, THREE.Scene())
 
         print('THREE.ColladaLoader: DOMParser')
 
@@ -2150,21 +2350,7 @@ class ColladaLoader:
 
         #
 
-        library = javascriptObject({
-            'animations': {},
-            'clips': {},
-            'controllers': {},
-            'images': {},
-            'effects': {},
-            'materials': {},
-            'cameras': {},
-            'lights': {},
-            'geometries': {},
-            'nodes': {},
-            'visualScenes': {},
-            'kinematicsModels': {},
-            'kinematicsScenes': {}
-        })
+        library = _library()
 
         print('THREE.ColladaLoader: Parse')
 

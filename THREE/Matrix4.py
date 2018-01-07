@@ -32,7 +32,6 @@ class Matrix4(pyOpenGLObject):
             0, 0, 1, 0,
             0, 0, 0, 1
             ], dtype=np.float64)
-
         self.matrix = self.elements.reshape(4, 4)
 
         self.old = np.zeros(16, dtype=np.float64)
@@ -352,8 +351,13 @@ class Matrix4(pyOpenGLObject):
         return self.multiplyMatrices(m, self)
 
     def multiplyMatrices(self, a, b):
-        t = np.dot(b.matrix, a.matrix)
-        np.copyto(self.matrix, t)
+        amatrix = a.elements.reshape(4, 4)
+        bmatrix = b.elements.reshape(4, 4)
+
+        t = np.dot(bmatrix, amatrix)
+        self.matrix = t
+        self.elements = self.matrix.reshape(16)
+
 
         """
         ae = a.elements

@@ -92,8 +92,12 @@ class Matrix3(pyOpenGLObject):
         return self.multiplyMatrices( m, self )
 
     def multiplyMatrices(self, a, b ):
-        t = np.dot(b.matrix, a.matrix)
-        np.copyto(self.matrix, t)
+        amatrix = a.elements.reshape(3, 3)
+        bmatrix = b.elements.reshape(3, 3)
+
+        t = np.dot(bmatrix, amatrix)
+        self.matrix = t
+        self.elements = self.matrix.reshape(9)
         return self
 
     def multiplyScalar(self, s ):

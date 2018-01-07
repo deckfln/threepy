@@ -307,12 +307,10 @@ class Object3D(pyOpenGLObject):
         return None
 
     def traverse(self, callback, scope=None):
-        if callback is None:
-            print("xx")
         callback(self, scope)
         children = self.children
-        for i in range(len(children)):
-            children[ i ].traverse(callback)
+        for child in children:
+            child.traverse(callback)
 
     def traverseVisible(self, callback):
         if not self.visible:
@@ -322,8 +320,8 @@ class Object3D(pyOpenGLObject):
 
         children = self.children
 
-        for i in range(len(children)):
-            children[ i ].traverseVisible(callback)
+        for child in children:
+            child.traverseVisible(callback)
 
     def traverseAncestors(self, callback):
         parent = self.parent
@@ -490,8 +488,21 @@ class Object3D(pyOpenGLObject):
         self.userData = json.loads(json.dumps(source.userData))
 
         if recursive:
-            for i in range(len(source.children)):
-                child = source.children[ i ]
+            for child in source.children:
                 self.add(child.clone())
 
         return self
+
+    def rebuild_id(self):
+        global _object3DId
+        self.id = _object3DId
+        _object3DId += 1
+
+        if self.geometry is not None:
+            self.geometry.rebuild_id()
+        if self.material is not None:
+            self.material.rebuild_id()
+
+        for child in self.children:
+            child.rebuild_id()
+
