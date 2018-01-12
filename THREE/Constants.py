@@ -46,7 +46,7 @@ profiler = Profiler()
 
 Number = _number()
 
-REVISION = '87dev'
+REVISION = '87'
 MOUSE = { 'LEFT': 0, 'MIDDLE': 1, 'RIGHT': 2 }
 CullFaceNone = 0
 CullFaceBack = 1

@@ -1372,6 +1372,7 @@ class ColladaLoader:
                     self.count = count
                     self.inputs = {}
                     self.stride = 0
+                    self.vcount = None
 
             primitive = _geometryPrimitive(
                 xml.nodeName,

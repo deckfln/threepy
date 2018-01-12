@@ -42,10 +42,13 @@ class pyOpenGL(EventManager):
         # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
 
     def loop(self):
-        t0 = time.time()
+        s = t0 = time.time()
 
         while True:
             t1 = time.time()
+            if t1 - s > 30:
+                break
+
             if t1 - t0 > 0.033:
                 self.dispatchEvent({'type': 'animationRequest'}, self.params)
 
@@ -59,7 +62,7 @@ class pyOpenGL(EventManager):
             if event.type == py.QUIT:
                 profiler.print()
                 py.quit()
-                quit()
+                return 0
 
             elif event.type == py.KEYDOWN:
                 self.dispatchEvent({'type': 'keydown', 'keyCode': event.key}, self.params)

@@ -197,6 +197,20 @@ def _glGetActiveAttrib(program, index):
     return name.value, size.value, type_.value
 
 
+def _getAttributeLocations(program):
+    attributes = {}
+
+    n = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES)
+
+    for i in range(n):
+        info = _glGetActiveAttrib(program, i)
+        name = info[0]
+
+        attributes[name] = glGetAttribLocation(program, name)
+
+    return attributes
+
+
 class _AttributeLocations:
     def __init__(self, program, identifiers=None ):
         self._attributes = {}
@@ -568,6 +582,8 @@ class pyOpenGLProgram:
         # // set up caching for uniform locations
 
         self.cachedUniforms = pyOpenGLUniforms(program, renderer, vertexGlsl, fragmentGlsl)
+        # self.cachedAttributes = _getAttributeLocations(program)
+        # FDE: optimization
         self.cachedAttributes = _AttributeLocations(program)
 
         self.program = program

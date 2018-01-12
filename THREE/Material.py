@@ -122,6 +122,7 @@ class Material(pyOpenGLObject):
         self.linewidth = 1
         self.color = None
         self.extensions = None
+        self.wireframeLinewidth = None
 
     def onBeforeCompile(self, shader):
         return True

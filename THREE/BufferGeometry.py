@@ -149,13 +149,13 @@ class BufferGeometry(pyOpenGLObject):
         self.drawRange.count = count
         
     def applyMatrix(self, matrix ):
-        position = self.attributes.position
-        if position is not None:
+        if 'position' in self.attributes:
+            position = self.attributes.position
             matrix.applyToBufferAttribute( position )
             position.needsUpdate = True
 
-        normal = self.attributes.normal
-        if normal is not None:
+        if 'normal' in self.attributes:
+            normal = self.attributes.normal
             normalMatrix = Matrix3().getNormalMatrix( matrix )
             normalMatrix.applyToBufferAttribute( normal )
             normal.needsUpdate = True

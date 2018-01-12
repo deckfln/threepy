@@ -501,7 +501,11 @@ class Object3D(pyOpenGLObject):
         if self.geometry is not None:
             self.geometry.rebuild_id()
         if self.material is not None:
-            self.material.rebuild_id()
+            if isinstance(self.material, list):
+                for material in self.material:
+                    material.rebuild_id()
+            else:
+                self.material.rebuild_id()
 
         for child in self.children:
             child.rebuild_id()
