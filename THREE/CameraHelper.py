@@ -131,10 +131,10 @@ class CameraHelper(LineSegments):
             points = pointMap[ point ]
 
             if points is not None:
-                position = geometry.getAttribute( 'position' )
+                position = geometry.attributes.position
 
-                for i in range(len(points)):
-                    position.setXYZ( int(points[ i ]), vector.x, vector.y, vector.z )
+                for point in points:
+                    position.setXYZ( int(point), vector.x, vector.y, vector.z )
         
         # // center / target
 
@@ -173,4 +173,4 @@ class CameraHelper(LineSegments):
         setPoint( "cn3",   0, - h, - 1 )
         setPoint( "cn4",   0,   h, - 1 )
 
-        geometry.getAttribute( 'position' ).needsUpdate = True
+        geometry.attributes.position.needsUpdate = True

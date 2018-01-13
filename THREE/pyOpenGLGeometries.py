@@ -72,8 +72,10 @@ class pyOpenGLGeometries:
         if index:
             self.attributes.update( index, GL_ELEMENT_ARRAY_BUFFER)
 
-        for name in geometryAttributes:
-            self.attributes.update( geometryAttributes[name], GL_ARRAY_BUFFER)
+        for name in geometryAttributes.__dict__:
+            attribute = geometryAttributes.__dict__[name]
+            if attribute is not None:
+                self.attributes.update(attribute , GL_ARRAY_BUFFER)
 
         # // morph targets
         morphAttributes = geometry.morphAttributes

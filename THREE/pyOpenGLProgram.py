@@ -205,45 +205,11 @@ def _getAttributeLocations(program):
     for i in range(n):
         info = _glGetActiveAttrib(program, i)
         name = info[0]
+        item = name.decode("utf-8")
 
-        attributes[name] = glGetAttribLocation(program, name)
+        attributes[item] = glGetAttribLocation(program, name)
 
     return attributes
-
-
-class _AttributeLocations:
-    def __init__(self, program, identifiers=None ):
-        self._attributes = {}
-
-        n = glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES )
-
-        for i in range(n):
-            info = _glGetActiveAttrib( program, i )
-            name = info[0]
-
-            self._attributes[ name ] = glGetAttribLocation( program, name )
-
-    def __getattr__(self, item):
-        bytes = item.decode("utf-8")
-        if bytes in self._attributes:
-            return self._attributes[bytes]
-
-        #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
-        return None
-
-    def __iter__(self):
-        return iter(self._attributes)
-
-    def __getitem__(self, item):
-        if isinstance(item, str):
-            bytes = item.encode("utf-8")
-        else:
-            bytes = item
-        if bytes in self._attributes:
-            return self._attributes[bytes]
-
-        #raise RuntimeError("pyOpenGL: no OpenGL Attribute ", item)
-        return None
 
 
 class pyOpenGLProgram:
@@ -582,9 +548,7 @@ class pyOpenGLProgram:
         # // set up caching for uniform locations
 
         self.cachedUniforms = pyOpenGLUniforms(program, renderer, vertexGlsl, fragmentGlsl)
-        # self.cachedAttributes = _getAttributeLocations(program)
-        # FDE: optimization
-        self.cachedAttributes = _AttributeLocations(program)
+        self.cachedAttributes = _getAttributeLocations(program)
 
         self.program = program
         self.vertexShader = glVertexShader

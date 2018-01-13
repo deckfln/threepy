@@ -6,29 +6,30 @@ import math
 import sys
 from datetime import datetime
 from THREE import *
-
-camera = None
-scene = None
-renderer = None
-startTime = None
-object = None
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-def init():
-    global camera, scene, renderer, startTime, object
+class Params:
+    def __init__(self):
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.startTime = None
+        self.object = None
 
-    renderer = pyOpenGLRenderer()
 
-    size = renderer.getSize()
-    camera = THREE.PerspectiveCamera( 36, size['width'] / size['height'], 0.25, 16 )
+def init(p):
+    p.container = pyOpenGL(p)
 
-    camera.position.set( 0, 1.3, 3 )
+    p.camera = THREE.PerspectiveCamera( 36, window.innerWidth / window.innerHeight, 0.25, 16 )
 
-    scene = THREE.Scene()
+    p.camera.position.set( 0, 1.3, 3 )
+
+    p.scene = THREE.Scene()
 
     # // Lights
 
-    scene.add( THREE.AmbientLight( 0x505050 ) )
+    p.scene.add( THREE.AmbientLight( 0x505050 ) )
 
     spotLight = THREE.SpotLight( 0xffffff )
     spotLight.angle = math.pi / 5
@@ -39,7 +40,7 @@ def init():
     spotLight.shadow.camera.far = 10
     spotLight.shadow.mapSize.width = 1024
     spotLight.shadow.mapSize.height = 1024
-    scene.add( spotLight )
+    p.scene.add( spotLight )
 
     dirLight = THREE.DirectionalLight( 0x55505a, 1 )
     dirLight.position.set( 0, 3, 0 )
@@ -54,7 +55,7 @@ def init():
 
     dirLight.shadow.mapSize.width = 1024
     dirLight.shadow.mapSize.height = 1024
-    scene.add( dirLight )
+    p.scene.add( dirLight )
 
     # // ***** Clipping planes: *****
 
@@ -76,9 +77,9 @@ def init():
 
     geometry = THREE.TorusKnotBufferGeometry( 0.4, 0.08, 95, 20 )
 
-    object = THREE.Mesh( geometry, material )
-    object.castShadow = True
-    scene.add( object )
+    p.object = THREE.Mesh( geometry, material )
+    p.object.castShadow = True
+    p.scene.add( p.object )
 
     ground = THREE.Mesh(
             THREE.PlaneBufferGeometry( 9, 9, 1, 1 ),
@@ -87,67 +88,65 @@ def init():
 
     ground.rotation.x = - math.pi / 2    # // rotates X/Y to X/Z
     ground.receiveShadow = True
-    scene.add( ground )
+    p.scene.add( ground )
 
 
     # // Renderer
 
-    renderer.addEventListener('resize', onWindowResize)
-    renderer.addEventListener('onKeyDown', onKeyDown)
-    renderer.addEventListener('animationFrame', animate)
+    p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
-    renderer.shadowMap.enabled = True
-    renderer.shadowMap.renderSingleSided = False
+    p.renderer.shadowMap.enabled = True
+    p.renderer.shadowMap.renderSingleSided = False
 
     # // ***** Clipping setup (renderer): *****
     globalPlanes = [ globalPlane ]
     Empty = []
-    renderer.clippingPlanes = Empty     # // GUI sets it to globalPlanes
-    renderer.localClippingEnabled = True
+    p.renderer.clippingPlanes = Empty     # // GUI sets it to globalPlanes
+    p.renderer.localClippingEnabled = True
 
     # // Start
 
-    startTime = datetime.now().timestamp()
+    p.startTime = datetime.now().timestamp()
 
 
-def onWindowResize(width, height):
-    global camera, scene, renderer, startTime, object
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+def onWindowResize(event, params):
+    params.camera.aspect = window.innerWidth / window.innerHeight
+    params.camera.updateProjectionMatrix()
 
-    renderer.setSize( width, height)
+    params.renderer.setSize( window.innerWidth, window.innerHeight )
 
 
-def onKeyDown( c, x=0, y=0 ):
+def onKeyDown( event, p ):
     """keyboard callback."""
-    global scene, camera, mesh, cameraPerspective, cameraPerspectiveHelper,cameraOrtho,cameraOrthoHelper,activeCamera,activeHelper,frustumSize
-
-    if c == 113: # q
+    if evenr["keycode"] == 113: # q
         sys.exit(0)
 
-def animate():
-    global camera, scene, renderer, startTime, object
+
+def animate(p):
     currentTime = datetime.now().timestamp()
 
-    time = ( currentTime - startTime ) / 10000
+    time = ( currentTime - p.startTime ) / 10000
 
-    object.position.y = 0.8
-    object.rotation.x += 0.05
-    object.rotation.y += 0.02
-    object.scale.setScalar( math.cos( time ) * 0.125 + 0.875 )
+    p.object.position.y = 0.8
+    p.object.rotation.x += 0.05
+    p.object.rotation.y += 0.02
+    p.object.scale.setScalar( math.cos( time ) * 0.125 + 0.875 )
 
-    render()
+    render(p)
 
 
-def render():
-    global camera, scene, renderer, startTime, object
-    renderer.render(scene, camera)
+def render(p):
+    p.renderer.render(p.scene, p.camera)
 
 
 def main(argv=None):
-    global renderer
-    init()
-    return renderer.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

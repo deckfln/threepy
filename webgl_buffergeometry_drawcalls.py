@@ -339,17 +339,6 @@ def onWindowResize(event, params):
     params.renderer.setSize( width, height )
 
 
-def keyboard(c, x=0, y=0):
-    """keyboard callback."""
-
-    if c == b'q':
-        sys.exit(0)
-
-
-"""
-"""
-
-
 def main(argv=None):
     global container
 

@@ -10,36 +10,37 @@ from THREE.pyOpenGL.pyOpenGL import *
 from THREE.Constants import *
 import THREE._Math as _Math
 from THREE.cameras.CinematicCamera import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-container = None
-camera = None
-scene = None
-raycaster = None
-renderer = None
+class Params:
+    def __init__(self):
+        self.container = None
+        self.camera = None
+        self.scene = None
+        self.raycaster = None
+        self.renderer = None
+        self.mouse = THREE.Vector2()
+        self.INTERSECTED = None
+        self.radius = 100
+        self.theta = 0
 
-mouse = THREE.Vector2()
-INTERSECTED = None
-radius = 100
-theta = 0
 
+def init(p):
+    p.container = pyOpenGL(p)
 
-def init():
-    global container, camera, scene, raycaster, renderer, raycaster
-    container = pyOpenGL()
+    p.camera = CinematicCamera( 60, p.container.clientWidth / p.container.clientHeight, 1, 1000 )
+    p.camera.setLens(5)
+    p.camera.position.set(2, 1, 500)
 
-    camera = CinematicCamera( 60, container.clientWidth / container.clientHeight, 1, 1000 )
-    camera.setLens(5)
-    camera.position.set(2, 1, 500)
+    p.scene = THREE.Scene()
+    p.scene.background = THREE.Color( 0xf0f0f0 )
 
-    scene = THREE.Scene()
-    scene.background = THREE.Color( 0xf0f0f0 )
-
-    scene.add( THREE.AmbientLight( 0xffffff, 0.3 ) )
+    p.scene.add( THREE.AmbientLight( 0xffffff, 0.3 ) )
 
     light = THREE.DirectionalLight( 0xffffff, 0.35 )
     light.position.set( 1, 1, 1 ).normalize()
-    scene.add( light )
+    p.scene.add( light )
 
     geometry = THREE.BoxGeometry( 20, 20, 20 )
 
@@ -50,15 +51,15 @@ def init():
         object.position.y = random.random() * 800 - 400
         object.position.z = random.random() * 800 - 400
 
-        scene.add( object )
+        p.scene.add( object )
 
-    raycaster = THREE.Raycaster()
+    p.raycaster = THREE.Raycaster()
 
-    renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
-    renderer.setSize( container.clientWidth, container.clientHeight )
+    p.renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
+    p.renderer.setSize( p.container.clientWidth, p.container.clientHeight )
 
-    container.addEventListener( 'mousemove', onDocumentMouseMove, False )
-    container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'mousemove', onDocumentMouseMove, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
     effectController  = {
         'focalLength': 15,
@@ -88,94 +89,90 @@ def init():
 
     def matChanger():
         for e in effectController:
-            if e in camera.postprocessing.bokeh_uniforms:
-                camera.postprocessing.bokeh_uniforms[ e ].value = effectController[ e ]
+            if e in p.camera.postprocessing.bokeh_uniforms:
+                p.camera.postprocessing.bokeh_uniforms[ e ].value = effectController[ e ]
 
-        camera.postprocessing.bokeh_uniforms[ 'znear' ].value = camera.near
-        camera.postprocessing.bokeh_uniforms[ 'zfar' ].value = camera.far
-        camera.setLens(effectController['focalLength'], camera.frameHeight ,effectController['fstop'], camera.coc)
-        effectController['focalDepth'] = camera.postprocessing.bokeh_uniforms["focalDepth"].value
+        p.camera.postprocessing.bokeh_uniforms[ 'znear' ].value = p.camera.near
+        p.camera.postprocessing.bokeh_uniforms[ 'zfar' ].value = p.camera.far
+        p.camera.setLens(effectController['focalLength'], p.camera.frameHeight ,effectController['fstop'], p.camera.coc)
+        effectController['focalDepth'] = p.camera.postprocessing.bokeh_uniforms["focalDepth"].value
 
     matChanger()
 
-    container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
 
-def onWindowResize(event):
-    global camera, scene, renderer, container
+def onWindowResize(event, p):
     height = event.height
     width = event.width
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    p.camera.aspect = width / height
+    p.camera.updateProjectionMatrix()
 
-    renderer.setSize(width, height)
+    p.renderer.setSize(width, height)
 
 
-def onDocumentMouseMove( event ):
-    global camera, scene, renderer, container,mouse
+def onDocumentMouseMove( event, p ):
     event.preventDefault()
 
-    mouse.x = ( event.clientX / container.clientWidth ) * 2 - 1
-    mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1
+    p.mouse.x = ( event.clientX / p.container.clientWidth ) * 2 - 1
+    p.mouse.y = - ( event.clientY / p.container.clientHeight ) * 2 + 1
 
 
-def animate():
-    render()
+def animate(p):
+    render(p)
 
 
-def render():
-    global camera, scene, renderer, container, mouse
-    global theta, INTERSECTED, raycaster
+def render(p):
+    p.theta += 0.1
 
-    theta += 0.1
+    p.camera.position.x = p.radius * math.sin( _Math.degToRad( p.theta ) )
+    p.camera.position.y = p.radius * math.sin( _Math.degToRad( p.theta ) )
+    p.camera.position.z = p.radius * math.cos( _Math.degToRad( p.theta ) )
+    p.camera.lookAt( p.scene.position )
 
-    camera.position.x = radius * math.sin( _Math.degToRad( theta ) )
-    camera.position.y = radius * math.sin( _Math.degToRad( theta ) )
-    camera.position.z = radius * math.cos( _Math.degToRad( theta ) )
-    camera.lookAt( scene.position )
-
-    camera.updateMatrixWorld()
+    p.camera.updateMatrixWorld()
 
     # // find intersections
 
-    raycaster.setFromCamera( mouse, camera )
+    p.raycaster.setFromCamera( p.mouse, p.camera )
 
-    intersects = raycaster.intersectObjects( scene.children )
+    intersects = p.raycaster.intersectObjects( p.scene.children )
 
     if len(intersects) > 0:
         targetDistance = intersects[ 0 ].distance
         
         # // Using Cinematic camera focusAt method
-        camera.focusAt(targetDistance)
+        p.camera.focusAt(targetDistance)
 
-        if INTERSECTED != intersects[ 0 ].object:
-            if INTERSECTED:
-                INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex )
+        if p.INTERSECTED != intersects[ 0 ].object:
+            if p.INTERSECTED:
+                p.INTERSECTED.material.emissive.setHex( p.INTERSECTED.currentHex )
 
-            INTERSECTED = intersects[ 0 ].object
-            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex()
-            INTERSECTED.material.emissive.setHex( 0xff0000 )
+            p.INTERSECTED = intersects[ 0 ].object
+            p.INTERSECTED.currentHex = p.INTERSECTED.material.emissive.getHex()
+            p.INTERSECTED.material.emissive.setHex( 0xff0000 )
     else:
-        if INTERSECTED:
-            INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex )
+        if p.INTERSECTED:
+            p.INTERSECTED.material.emissive.setHex( p.INTERSECTED.currentHex )
 
-        INTERSECTED = None
+        p.INTERSECTED = None
 
-    if camera.postprocessing.enabled:
+    if p.camera.postprocessing.enabled:
         # //rendering Cinematic Camera effects
-        camera.renderCinematic(scene, renderer)
+        p.camera.renderCinematic(p.scene, p.renderer)
     else:
-        scene.overrideMaterial = None
+        p.scene.overrideMaterial = None
 
-        renderer.clear()
-        renderer.render( scene, camera )
+        p.renderer.clear()
+        p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global container
-    init()
-    container.addEventListener( 'animationRequest', animate)
-    return container.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

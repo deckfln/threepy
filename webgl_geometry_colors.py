@@ -3,46 +3,43 @@
 """
 from PIL import Image
 from THREE import *
-from THREE.pyOpenGL.pyOpenGL import *
 
 import math
-
-container = None
-
-camera=None
-scene=None
-renderer=None
-
-mesh=None
-group1=None
-group2=None
-group3=None
-light=None
-
-mouseX = 0
-mouseY = 0
-
-windowHalfX = 0
-windowHalfY = 0
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-def init():
-    global container,camera,scene,renderer,mesh,group1,group2,group3,light,windowHalfX,windowHalfY
+class Params:
+    def __init__(self):
+        self.container = None
+        self.camera=None
+        self.scene=None
+        self.renderer=None
+        self.mesh=None
+        self.group1=None
+        self.group2=None
+        self.group3=None
+        self.light=None
+        self.mouseX = 0
+        self.mouseY = 0
+        self.windowHalfX = 0
+        self.windowHalfY = 0
 
-    container = pyOpenGL()
 
-    windowHalfX = window.innerWidth / 2
-    windowHalfY = window.innerHeight / 2
+def init(p):
+    p.container = pyOpenGL(p)
 
-    camera = THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 10000 )
-    camera.position.z = 1800
+    p.windowHalfX = window.innerWidth / 2
+    p.windowHalfY = window.innerHeight / 2
 
-    scene = THREE.Scene()
-    scene.background = THREE.Color( 0xffffff )
+    p.camera = THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 10000 )
+    p.camera.position.z = 1800
 
-    light = THREE.DirectionalLight( 0xffffff )
-    light.position.set( 0, 0, 1 )
-    scene.add( light )
+    p.scene = THREE.Scene()
+    p.scene.background = THREE.Color( 0xffffff )
+
+    p.light = THREE.DirectionalLight( 0xffffff )
+    p.light.position.set( 0, 0, 1 )
+    p.scene.add( p.light )
 
     # // shadow
     #  https: // stackoverflow.com / questions / 30608035 / plot - gradients - using - pil - in -python
@@ -75,19 +72,19 @@ def init():
     mesh = THREE.Mesh( shadowGeo, shadowMaterial )
     mesh.position.y = - 250
     mesh.rotation.x = - math.pi / 2
-    scene.add( mesh )
+    p.scene.add( mesh )
 
     mesh = THREE.Mesh( shadowGeo, shadowMaterial )
     mesh.position.y = - 250
     mesh.position.x = - 400
     mesh.rotation.x = - math.pi / 2
-    scene.add( mesh )
+    p.scene.add( mesh )
 
     mesh = THREE.Mesh( shadowGeo, shadowMaterial )
     mesh.position.y = - 250
     mesh.position.x = 400
     mesh.rotation.x = - math.pi / 2
-    scene.add( mesh )
+    p.scene.add( mesh )
 
     faceIndices = [ 'a', 'b', 'c' ]
 
@@ -105,15 +102,15 @@ def init():
         for j in range(3):
             vertexIndex = f[ faceIndices[ j ] ]
 
-            p = geometry.vertices[ vertexIndex ]
+            v = geometry.vertices[ vertexIndex ]
 
             color = THREE.Color( 0xffffff )
-            color.setHSL( ( p.y / radius + 1 ) / 2, 1.0, 0.5 )
+            color.setHSL( ( v.y / radius + 1 ) / 2, 1.0, 0.5 )
 
             f.vertexColors.append(color)
 
             color = THREE.Color( 0xffffff )
-            color.setHSL( 0.0, ( p.y / radius + 1 ) / 2, 0.5 )
+            color.setHSL( 0.0, ( v.y / radius + 1 ) / 2, 0.5 )
 
             f2.vertexColors.append(color)
 
@@ -129,73 +126,65 @@ def init():
 
     ]
 
-    group1 = THREE.SceneUtils.createMultiMaterialObject( geometry, materials )
-    group1.position.x = -400
-    group1.rotation.x = -1.87
-    scene.add( group1 )
+    p.group1 = THREE.SceneUtils.createMultiMaterialObject( geometry, materials )
+    p.group1.position.x = -400
+    p.group1.rotation.x = -1.87
+    p.scene.add( p.group1 )
 
-    group2 = THREE.SceneUtils.createMultiMaterialObject( geometry2, materials )
-    group2.position.x = 400
-    group2.rotation.x = 0
-    scene.add( group2 )
+    p.group2 = THREE.SceneUtils.createMultiMaterialObject( geometry2, materials )
+    p.group2.position.x = 400
+    p.group2.rotation.x = 0
+    p.scene.add( p.group2 )
 
-    group3 = THREE.SceneUtils.createMultiMaterialObject( geometry3, materials )
-    group3.position.x = 0
-    group3.rotation.x = 0
-    scene.add( group3 )
+    p.group3 = THREE.SceneUtils.createMultiMaterialObject( geometry3, materials )
+    p.group3.position.x = 0
+    p.group3.rotation.x = 0
+    p.scene.add( p.group3 )
 
-    renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
-    renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
 
-    container.addEventListener( 'mousemove', onDocumentMouseMove, False )
+    p.container.addEventListener( 'mousemove', onDocumentMouseMove, False )
 
     # //
 
-    container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
 
-def onWindowResize(event, params):
-    global container,camera,scene,renderer,mesh,group1,group2,group3,light,windowHalfX,windowHalfY
+def onWindowResize(event, p):
+    p.windowHalfX = window.innerWidth / 2
+    p.windowHalfY = window.innerHeight / 2
 
-    windowHalfX = window.innerWidth / 2
-    windowHalfY = window.innerHeight / 2
+    p.camera.aspect = window.innerWidth / window.innerHeight
+    p.camera.updateProjectionMatrix()
 
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-
-    renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
 
     
-def onDocumentMouseMove( event, params ):
-    global container,camera,scene,renderer,mesh,group1,group2,group3,light, mouseX, mouseY
+def onDocumentMouseMove( event, p ):
+    p.mouseX = ( event.clientX - p.windowHalfX )
+    p.mouseY = ( event.clientY - p.windowHalfY )
 
-    mouseX = ( event.clientX - windowHalfX )
-    mouseY = ( event.clientY - windowHalfY )
 
-# //
+def animate(p):
+    render(p)
 
-def animate(params):
-    global container,camera,scene,renderer,mesh,group1,group2,group3,light
 
-    render(params)
+def render(p):
+    p.camera.position.x += ( p.mouseX - p.camera.position.x ) * 0.05
+    p.camera.position.y += ( - p.mouseY - p.camera.position.y ) * 0.05
 
-def render(params):
-    global container,camera,scene,renderer,mesh,group1,group2,group3,light
+    p.camera.lookAt( p.scene.position )
 
-    camera.position.x += ( mouseX - camera.position.x ) * 0.05
-    camera.position.y += ( - mouseY - camera.position.y ) * 0.05
-
-    camera.lookAt( scene.position )
-
-    renderer.render( scene, camera )
-
+    p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global container
-    init()
-    container.addEventListener( 'animationRequest', animate)
-    return container.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

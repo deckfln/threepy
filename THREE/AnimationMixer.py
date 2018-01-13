@@ -196,7 +196,7 @@ class AnimationMixer(EventManager):
 
         else:
             actionsForClip = actionsByClip[clipUuid]
-            knownActions = actionsForClip['knownActions']
+            knownActions = actionsForClip.knownActions
 
             action._byClipCacheIndex = len(knownActions)
             knownActions.append( action )
@@ -424,7 +424,7 @@ class AnimationMixer(EventManager):
 
             # we know the clip, so we don't have to parse all
             # the bindings again but can just copy
-            prototypeAction = actionsForClip['knownActions'][ 0 ]
+            prototypeAction = actionsForClip.knownActions[ 0 ]
 
             # also, take the clip from the prototype action
             if clipObject is None:

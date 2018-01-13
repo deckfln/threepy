@@ -10,40 +10,38 @@ from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.TrackballControls import *
 from THREE.Constants import *
 import THREE._Math as _Math
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-renderer = None
-scene = None
-camera = None
+class Params:
+    def __init__(self):
+        self.renderer = None
+        self.scene = None
+        self.camera = None
+        self.sphere = None
+        self.uniforms = None
+        self.displacement = None
+        self.noise = None
 
-sphere = None
-uniforms = None
 
-displacement = None
-noise = None
+def init(p):
+    p.container = pyOpenGL(p)
 
+    p.renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
 
-def init():
-    global camera, scene, renderer, container, displacement, noise, sphere, uniforms
+    p.camera = THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 )
+    p.camera.position.z = 300
 
-    container = pyOpenGL()
+    p.scene = THREE.Scene()
+    p.scene.background = THREE.Color( 0x050505 )
 
-    renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
-    size = renderer.getSize()
-
-    camera = THREE.PerspectiveCamera( 30, size['width'] / size['height'], 1, 10000 )
-    camera.position.z = 300
-
-    scene = THREE.Scene()
-    scene.background = THREE.Color( 0x050505 )
-
-    uniforms = Uniforms({
+    p.uniforms = Uniforms({
         'amplitude': { 'value': 1.0 },
         'color':     { 'value': THREE.Color( 0xff2200 ) },
         'texture':   { 'value': THREE.TextureLoader().load( "textures/water.jpg" ) }
     })
 
-    uniforms.texture.value.wrapS = uniforms.texture.value.wrapT = THREE.RepeatWrapping
+    p.uniforms.texture.value.wrapS = p.uniforms.texture.value.wrapT = THREE.RepeatWrapping
 
     vertexshader = """
         uniform float amplitude;
@@ -87,7 +85,7 @@ def init():
     """
 
     shaderMaterial = THREE.ShaderMaterial( {
-        'uniforms': uniforms,
+        'uniforms': p.uniforms,
         'vertexShader': vertexshader,
         'fragmentShader': fragmentshader
     })
@@ -99,62 +97,60 @@ def init():
 
     geometry = THREE.SphereBufferGeometry( radius, segments, rings )
 
-    displacement = Float32Array( geometry.attributes.position.count )
-    noise = Float32Array( geometry.attributes.position.count )
+    p.displacement = Float32Array( geometry.attributes.position.count )
+    p.noise = Float32Array( geometry.attributes.position.count )
 
-    for i in range(len(displacement)):
-        noise[ i ] = random.random() * 5
+    for i in range(len(p.displacement)):
+        p.noise[ i ] = random.random() * 5
 
-    geometry.addAttribute( 'displacement', THREE.BufferAttribute( displacement, 1 ) )
+    geometry.addAttribute( 'displacement', THREE.BufferAttribute( p.displacement, 1 ) )
 
-    sphere = THREE.Mesh( geometry, shaderMaterial )
-    scene.add( sphere )
+    p.sphere = THREE.Mesh( geometry, shaderMaterial )
+    p.scene.add( p.sphere )
 
-    container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
     
-def onWindowResize(event, params):
-    global camera, scene, renderer, startTime, object, clipMaterial, volumeVisualization, globalClippingPlanes
+def onWindowResize(event, p):
     height = event.height
     width = event.width
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    p.camera.aspect = width / height
+    p.camera.updateProjectionMatrix()
 
-    renderer.setSize(width, height)
-
-
-def animate(params):
-    render()
+    p.renderer.setSize(width, height)
 
 
-def render():
-    global camera, scene, renderer, container, displacement, noise, sphere, uniforms
+def animate(p):
+    render(p)
 
+
+def render(p):
     tim = datetime.now().timestamp()
 
-    sphere.rotation.y = sphere.rotation.z = 0.01 * tim
+    p.sphere.rotation.y = p.sphere.rotation.z = 0.01 * tim
 
-    uniforms.amplitude.value = 2.5 * math.sin( sphere.rotation.y * 0.125 )
-    uniforms.color.value.offsetHSL( 0.0005, 0, 0 )
+    p.uniforms.amplitude.value = 2.5 * math.sin( p.sphere.rotation.y * 0.125 )
+    p.uniforms.color.value.offsetHSL( 0.0005, 0, 0 )
 
-    for i in range(len(displacement)):
-        displacement[ i ] = math.sin( 0.1 * i + tim )
+    for i in range(len(p.displacement)):
+        p.displacement[ i ] = math.sin( 0.1 * i + tim )
 
-        noise[ i ] += 0.5 * ( 0.5 - random.random() )
-        noise[ i ] = _Math.clamp( noise[ i ], -5, 5 )
+        p.noise[ i ] += 0.5 * ( 0.5 - random.random() )
+        p.noise[ i ] = _Math.clamp( p.noise[ i ], -5, 5 )
 
-        displacement[ i ] += noise[ i ]
+        p.displacement[ i ] += p.noise[ i ]
 
-    sphere.geometry.attributes.displacement.needsUpdate = True
+    p.sphere.geometry.attributes.displacement.needsUpdate = True
 
-    renderer.render( scene, camera )
+    p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global container
-    init()
-    container.addEventListener( 'animationRequest', animate)
-    return container.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

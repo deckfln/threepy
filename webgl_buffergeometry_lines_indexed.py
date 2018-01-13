@@ -5,26 +5,25 @@ import math
 import random
 from datetime import datetime
 from THREE import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-camera = None
-scene = None
-renderer = None
-
-mesh = None
-parent_node = None
-
-WIDTH = 800
-HEIGHT = 600
+class Params:
+    def __init__(self):
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.mesh = None
+        self.parent_node = None
 
 
-def init():
-    global camera, scene, renderer, parent_node
+def init(p):
+    p.container = pyOpenGL(p)
 
-    camera = THREE.PerspectiveCamera( 27, WIDTH / HEIGHT, 1, 10000 )
-    camera.position.z = 9000
+    p.camera = THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 3500)
+    p.camera.position.z = 2750
 
-    scene = THREE.Scene()
+    p.scene = THREE.Scene()
 
     geometry = THREE.BufferGeometry()
     material = THREE.LineBasicMaterial({ 'vertexColors': THREE.VertexColors })
@@ -135,79 +134,45 @@ def init():
     geometry.addAttribute( 'color', THREE.Float32BufferAttribute( colors, 3 ) )
     geometry.computeBoundingSphere()
 
-    mesh = THREE.LineSegments( geometry, material )
-    mesh.position.x -= 1200
-    mesh.position.y -= 1200
+    p.mesh = THREE.LineSegments( geometry, material )
+    p.mesh.position.x -= 1200
+    p.mesh.position.y -= 1200
 
-    parent_node = THREE.Object3D()
-    parent_node.add(mesh)
+    p.parent_node = THREE.Object3D()
+    p.parent_node.add(p.mesh)
 
-    scene.add( parent_node )
+    p.scene.add( p.parent_node )
 
-    renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
-    renderer.setPixelRatio( 1 )
-    renderer.setSize( WIDTH, HEIGHT )
-
-    renderer.gammaInput = True
-    renderer.gammaOutput = True
-
-    return renderer
+    p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
 
-def animate():
-    render()
+def onWindowResize(event, params):
+    params.camera.aspect = window.innerWidth / window.innerHeight
+    params.camera.updateProjectionMatrix()
+
+    params.renderer.setSize( window.innerWidth, window.innerHeight )
 
 
-def render():
-    global mesh, renderer, parent_node
-    time = datetime.now().timestamp() * 0.1
-
-    parent_node.rotation.z = time * 0.5
-
-    renderer.render( scene, camera )
+def animate(p):
+    render(p)
 
 
-def reshape(width, height):
-    """window reshape callback."""
-    global camera, renderer
+def render(p):
+    time = datetime.now().timestamp()
 
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    p.parent_node.rotation.z = time * 0.5
 
-    renderer.setSize(width, height)
-
-    glViewport(0, 0, width, height)
-
-
-def mouse(button, state, x, y):
-    if button == GLUT_LEFT_BUTTON:
-        rotating = (state == GLUT_DOWN)
-    elif button == GLUT_RIGHT_BUTTON:
-        scaling = (state == GLUT_DOWN)
-
-
-def motion(x1, y1):
-    glutPostRedisplay()
-
-
-def keyboard(c, x=0, y=0):
-    """keyboard callback."""
-
-    if c == b'q':
-        sys.exit(0)
-
-    glutPostRedisplay()
-
-
-"""
-"""
+    p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global renderer, camera, scene
+    params = Params()
 
-    renderer = init()
-    return renderer.loop()
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

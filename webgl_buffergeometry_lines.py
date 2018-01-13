@@ -4,25 +4,24 @@
 import random
 from datetime import datetime
 from THREE import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-camera = None
-scene = None
-renderer = None
-
-mesh = None
-
-WIDTH = 800
-HEIGHT = 600
+class Params:
+    def __init__(self):
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.mesh = None
 
 
-def init():
-    global camera, scene, renderer, mesh
+def init(p):
+    p.container = pyOpenGL(p)
 
-    camera = THREE.PerspectiveCamera( 27, WIDTH / HEIGHT, 1, 4000 )
-    camera.position.z = 2750
+    p.camera = THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 3500)
+    p.camera.position.z = 2750
 
-    scene = THREE.Scene()
+    p.scene = THREE.Scene()
 
     segments = 10000
 
@@ -56,74 +55,40 @@ def init():
 
     geometry.computeBoundingSphere()
 
-    mesh = THREE.Line( geometry, material )
-    scene.add( mesh )
+    p.mesh = THREE.Line( geometry, material )
+    p.scene.add( p.mesh )
 
-    # //
-    renderer = pyOpenGLRenderer(None, reshape, render, keyboard, mouse, motion, animate)
-    renderer.setPixelRatio( 1 )
-    renderer.setSize( WIDTH, HEIGHT )
-
-    renderer.gammaInput = True
-    renderer.gammaOutput = True
-
-    return renderer
-
-def animate():
-    render()
+    p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
 
-def render():
-    global mesh, renderer
-    time = datetime.now().timestamp() * 0.1
+def onWindowResize(event, params):
+    params.camera.aspect = window.innerWidth / window.innerHeight
+    params.camera.updateProjectionMatrix()
 
-    mesh.rotation.x = time * 0.25
-    mesh.rotation.y = time * 0.5
-
-    renderer.render( scene, camera )
+    params.renderer.setSize( window.innerWidth, window.innerHeight )
 
 
-def reshape(width, height):
-    """window reshape callback."""
-    global camera, renderer
-
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-
-    renderer.setSize(width, height)
-
-    glViewport(0, 0, width, height)
+def animate(p):
+    render(p)
 
 
-def mouse(button, state, x, y):
-    if button == GLUT_LEFT_BUTTON:
-        rotating = (state == GLUT_DOWN)
-    elif button == GLUT_RIGHT_BUTTON:
-        scaling = (state == GLUT_DOWN)
+def render(p):
+    time = datetime.now().timestamp()
 
+    p.mesh.rotation.x = time * 0.25
+    p.mesh.rotation.y = time * 0.5
 
-def motion(x1, y1):
-    glutPostRedisplay()
-
-
-def keyboard(c, x=0, y=0):
-    """keyboard callback."""
-
-    if c == b'q':
-        sys.exit(0)
-
-    glutPostRedisplay()
-
-
-"""
-"""
+    p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global renderer, camera, scene
+    params = Params()
 
-    renderer = init()
-    return renderer.loop()
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

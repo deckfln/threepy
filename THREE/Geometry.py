@@ -140,10 +140,10 @@ class Geometry(pyOpenGLObject):
         attributes = geometry.attributes
 
         positions = attributes.position.array
-        normals = attributes.normal.array if 'normal' in attributes else None
-        colors = attributes.color.array if 'colors' in attributes else None
-        uvs = attributes.uv.array if 'uv' in attributes else None
-        uvs2 = attributes.uv2.array if 'uv2' in attributes else None
+        normals = attributes.normal.array if attributes.normal is not None else None
+        colors = attributes.color.array if attributes.colors is not None  else None
+        uvs = attributes.uv.array if attributes.uv is not None else None
+        uvs2 = attributes.uv2.array if attributes.uv2 is not None else None
 
         if uvs2 != None:
             self.faceVertexUvs[ 1 ] = []

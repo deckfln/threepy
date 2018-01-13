@@ -7,29 +7,29 @@ from datetime import datetime
 
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.pyOpenGL.pyOpenGL import *
 
 
-container = None
+class Params:
+    def __init__(self):
+        self.container = None
+        self.camera = None
+        self.scene = None
+        self.renderer = None
 
-camera = None
-scene = None
-renderer = None
 
+def init(p):
+    p.container = pyOpenGL(p)
+    p.camera = THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 )
+    p.camera.position.y = 400
 
-def init():
-    global container, camera, scene, renderer
+    p.scene = THREE.Scene()
 
-    container = pyOpenGL()
-    camera = THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 )
-    camera.position.y = 400
-
-    scene = THREE.Scene()
-
-    scene.add( THREE.AmbientLight( 0x404040 ) )
+    p.scene.add( THREE.AmbientLight( 0x404040 ) )
 
     light = THREE.DirectionalLight( 0xffffff )
     light.position.set( 0, 1, 0 )
-    scene.add( light )
+    p.scene.add( light )
 
     map = THREE.TextureLoader().load( 'textures/UV_Grid_Sm.jpg' )
     map.wrapS = map.wrapT = THREE.RepeatWrapping
@@ -41,41 +41,41 @@ def init():
 
     object = THREE.Mesh( THREE.SphereGeometry( 75, 20, 10 ), material )
     object.position.set( -400, 0, 200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.IcosahedronGeometry( 75, 1 ), material )
     object.position.set( -200, 0, 200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.OctahedronGeometry( 75, 2 ), material )
     object.position.set( 0, 0, 200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.TetrahedronGeometry( 75, 0 ), material )
     object.position.set( 200, 0, 200 )
-    scene.add( object )
+    p.scene.add( object )
 
     # //
 
     object = THREE.Mesh( THREE.PlaneGeometry( 100, 100, 4, 4 ), material )
     object.position.set( -400, 0, 0 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.BoxGeometry( 100, 100, 100, 4, 4, 4 ), material )
     object.position.set( -200, 0, 0 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.CircleGeometry( 50, 20, 0, math.pi * 2 ), material )
     object.position.set( 0, 0, 0 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.RingGeometry( 10, 50, 20, 5, 0, math.pi * 2 ), material )
     object.position.set( 200, 0, 0 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.CylinderGeometry( 25, 75, 100, 40, 5 ), material )
     object.position.set( 400, 0, 0 )
-    scene.add( object )
+    p.scene.add( object )
 
     # //
 
@@ -86,71 +86,68 @@ def init():
 
     object = THREE.Mesh( THREE.LatheGeometry( points, 20 ), material )
     object.position.set( -400, 0, -200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.TorusGeometry( 50, 20, 20, 20 ), material )
     object.position.set( -200, 0, -200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.Mesh( THREE.TorusKnotGeometry( 50, 10, 50, 20 ), material )
     object.position.set( 0, 0, -200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.AxisHelper( 50 )
     object.position.set( 200, 0, -200 )
-    scene.add( object )
+    p.scene.add( object )
 
     object = THREE.ArrowHelper( THREE.Vector3( 0, 1, 0 ), THREE.Vector3( 0, 0, 0 ), 50 )
     object.position.set( 400, 0, -200 )
-    scene.add( object )
+    p.scene.add( object )
 
     # //
 
-    renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
-    renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
 
     # //
 
-    container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
 
     
-def onWindowResize(event, params):
-    global container, camera, scene, renderer
+def onWindowResize(event, p):
     height = event.height
     width = event.width
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    p.camera.aspect = width / height
+    p.camera.updateProjectionMatrix()
 
-    renderer.setSize(width, height)
+    p.renderer.setSize(width, height)
 
-# //
 
-def animate(params):
-    global container, camera, scene, renderer
-    render()
+def animate(p):
+    render(p)
 
     
-def render():
-    global container, camera, scene, renderer
-    timer = datetime.now().timestamp()
+def render(p):
+    timer = datetime.now().timestamp() * 0.1
 
-    camera.position.x = math.cos( timer ) * 800
-    camera.position.z = math.sin( timer ) * 800
+    p.camera.position.x = math.cos( timer ) * 800
+    p.camera.position.z = math.sin( timer ) * 800
 
-    camera.lookAt( scene.position )
+    p.camera.lookAt( p.scene.position )
 
-    for obj in scene.children:
+    for obj in p.scene.children:
         obj.rotation.x = timer * 5
         obj.rotation.y = timer * 2.5
 
-    renderer.render( scene, camera )
+        p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global container
-    init()
-    container.addEventListener( 'animationRequest', animate)
-    return container.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

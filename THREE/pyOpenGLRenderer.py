@@ -927,9 +927,9 @@ class pyOpenGLRenderer:
             programAttribute = programAttributes[ name ]
 
             if programAttribute >= 0:
-                geometryAttribute = geometryAttributes[ name ]
+                if name in geometryAttributes.__dict__:
+                    geometryAttribute = geometryAttributes.__dict__[ name ]
 
-                if geometryAttribute is not None:
                     normalized = geometryAttribute.normalized
                     size = geometryAttribute.itemSize
 
@@ -949,7 +949,7 @@ class pyOpenGLRenderer:
                         stride = data.stride
                         offset = geometryAttribute.offset
 
-                        if data and data.isInstancedInterleavedBuffer:
+                        if data and data.my_class(isInstancedInterleavedBuffer):
                             self.state.enableAttributeAndDivisor( programAttribute, data.meshPerAttribute )
 
                             if geometry.maxInstancedCount is None:

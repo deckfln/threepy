@@ -46,6 +46,7 @@ class Curve(pyOpenGLObject):
      **************************************************************/
     """
     def __init__(self):
+        super().__init__()
         self.arcLengthDivisions = 200
         self.needsUpdate = False
         self.cacheArcLengths = None

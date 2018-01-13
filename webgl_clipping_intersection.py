@@ -9,11 +9,7 @@ from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.TrackballControls import *
 from THREE.Constants import *
 from THREE.controls.OrbitControls import *
-
-camera = None
-scene = None
-renderer = None
-container = None
+from THREE.pyOpenGL.pyOpenGL import *
 
 
 class Params:
@@ -21,40 +17,38 @@ class Params:
         self.clipIntersection = True
         self.planeConstant = True
         self.showHelpers = True
+        self.camera = None
+        self.scene = None
+        self.renderer = None
+        self.container = None
 
 
-params = Params()
+def init(p):
+    clipPlanes = [
+        THREE.Plane(THREE.Vector3(1, 0, 0), 0),
+        THREE.Plane(THREE.Vector3(0, - 1, 0), 0),
+        THREE.Plane(THREE.Vector3(0, 0, - 1), 0)
+    ]
 
-clipPlanes = [
-    THREE.Plane( THREE.Vector3( 1, 0, 0 ), 0 ),
-    THREE.Plane( THREE.Vector3( 0, - 1, 0 ), 0 ),
-    THREE.Plane( THREE.Vector3( 0, 0, - 1 ), 0 )
-]
+    p.container = pyOpenGL(p)
+    p.renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
+    p.renderer.localClippingEnabled = True
 
+    p.scene = THREE.Scene()
 
-def init():
-    global camera, scene, renderer, container
-    
-    container = pyOpenGL()
-    renderer = THREE.pyOpenGLRenderer( { 'antialias': True } )
-    size = renderer.getSize()
-    renderer.localClippingEnabled = True
+    p.camera = THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 200 )
 
-    scene = THREE.Scene()
+    p.camera.position.set( - 20, 30, 40 )
 
-    camera = THREE.PerspectiveCamera( 40, size['width'] / size['height'], 1, 200 )
-
-    camera.position.set( - 20, 30, 40 )
-
-    controls = OrbitControls( camera, container )
-    controls.minDistance = 10
-    controls.maxDistance = 100
-    controls.enablePan = False
+    p.controls = OrbitControls( p.camera, p.container )
+    p.controls.minDistance = 10
+    p.controls.maxDistance = 100
+    p.controls.enablePan = False
 
     light = THREE.HemisphereLight( 0xffffff, 0x080808, 1 )
-    scene.add( light )
+    p.scene.add( light )
 
-    scene.add( THREE.AmbientLight( 0x505050 ) )
+    p.scene.add( THREE.AmbientLight( 0x505050 ) )
 
     # //
 
@@ -67,12 +61,12 @@ def init():
             'color': THREE.Color( math.sin( i * 0.5 ) * 0.5 + 0.5, math.cos( i * 1.5 ) * 0.5 + 0.5, math.sin( i * 4.5 + 0 ) * 0.5 + 0.5 ),
             'side': THREE.DoubleSide,
             'clippingPlanes': clipPlanes,
-            'clipIntersection': params.clipIntersection
+            'clipIntersection': p.clipIntersection
         } )
 
         group.add( THREE.Mesh( geometry, material ) )
 
-    scene.add( group )
+    p.scene.add( group )
 
     # // helpers
 
@@ -82,33 +76,36 @@ def init():
     helpers.add( THREE.PlaneHelper( clipPlanes[ 1 ], 30, 0x00ff00 ) )
     helpers.add( THREE.PlaneHelper( clipPlanes[ 2 ], 30, 0x0000ff ) )
     helpers.visible = True
-    scene.add( helpers )
+    p.scene.add( helpers )
 
-    container.addEventListener( 'resize', onWindowResize, False )
-    container.addEventListener( 'animationRequest', render, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'animationRequest', render, False )
 
 
-def onWindowResize(event, params):
-    global camera, controls, scene, renderer, cross, container
+def onWindowResize(event, p):
     height = event.height
     width = event.width
 
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
+    p.camera.aspect = width / height
+    p.camera.updateProjectionMatrix()
 
-    renderer.setSize( width, height )
+    p.renderer.setSize( width, height )
 
 
-def render(params):
-    global camera, scene, renderer, container
-    
-    renderer.render( scene, camera )
+def animate(p):
+    render(p)
+
+
+def render(p):
+    p.renderer.render( p.scene, p.camera )
 
 
 def main(argv=None):
-    global container
-    init()
-    return container.loop()
+    params = Params()
+
+    init(params)
+    params.container.addEventListener( 'animationRequest', animate)
+    return params.container.loop()
 
 
 if __name__ == "__main__":

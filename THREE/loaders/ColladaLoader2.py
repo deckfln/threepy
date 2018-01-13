@@ -1602,6 +1602,7 @@ class ColladaLoader:
                     self.name = name
                     self.joints = []
                     self.links = []
+                    self.build = None
 
             data = _kinematicsModel(xml.getAttribute('name') or '')
 
@@ -1646,16 +1647,18 @@ class ColladaLoader:
             return data
 
         def parseKinematicsJointParameter(xml, data=None):
+            class _kinematicsJointParameterMaxMin:
+                def __init__(self):
+                    self.min = 0
+                    self.max = 0
+
             class _kinematicsJointParameter:
                 def __init__(self, sid, name, type):
                     self.sid = sid
                     self.name = name
                     self.axis = THREE.Vector3()
-                    self.limits: {
-                        'min': 0,
-                        'max': 0
-                    }
-                    self.type = xml.nodeName
+                    self.limits =_kinematicsJointParameterMaxMin()
+                    self.type = type
                     self.static = False
                     self.zeroPosition = 0
                     self.middlePosition = 0
@@ -1764,6 +1767,7 @@ class ColladaLoader:
             class _kinematicsScene:
                 def __init__(self):
                     self.bindJointAxis = []
+                    self.build = None
 
             data = _kinematicsScene()
 
@@ -1809,7 +1813,7 @@ class ColladaLoader:
             class _jointMap:
                 def __init__(self, object, transforms, joint, position):
                     self.object = object
-                    self.transforms = tranforms
+                    self.transforms = transforms
                     self.joint = joint
                     self.position = position
 
@@ -2234,7 +2238,7 @@ class ColladaLoader:
                         materials.append(THREE.MeshPhongMaterial())
 
                 # regard skinning
-                skinning = ('skinIndex' in geometry.data.attributes)
+                skinning = geometry.data.attributes.skinIndex is not None
 
                 if skinning:
                     for material in materials:

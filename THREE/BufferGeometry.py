@@ -26,45 +26,15 @@ def GeometryIdCount():
     _gIdcount += 1
     return _gIdcount
 
-    
-class _attributesList(object):
+
+class _attributesList:
     def __init__(self):
-        super().__setattr__('_attr', {})
-
-    def __getitem__(self, item):
-        if isinstance(item, bytes):
-            item = item.decode("utf-8")
-        if item in self._attr:
-            return self._attr[item]
-        return None
-
-    def __setitem__(self, item, value):
-        self._attr[item] = value
-
-    def __delitem__(self, item):
-        del self._attr[item]
-
-    def __setstate__(self, state):
-        for a in state.keys():
-            self.__dict__[a] = state[a]
-
-    def __getattr__(self, k):
-        if isinstance(k, bytes):
-            k = k.decode("utf-8")
-
-        try:
-            return self._attr[k]
-        except KeyError:
-            raise AttributeError("Missing attribute %s" % k)
-            
-    def __setattr__(self, key, value):
-        self._attr[key] = value
-
-    def __delattr__(self, key):
-        del self._attr[key]
-
-    def __iter__(self):
-        return iter(self._attr)
+        self.position = None
+        self.normal = None
+        self.uv = None
+        self.uv2 = None
+        self.colors = None
+        self.skinIndex = None
 
 
 class _drawRange:
@@ -118,7 +88,7 @@ class BufferGeometry(pyOpenGLObject):
             self.index = index
 
     def addAttribute(self, name, attribute):
-        if not ( attribute and attribute.isBufferAttribute ) and not ( attribute and attribute.my_class(isInterleavedBufferAttribute)):
+        if not ( attribute and attribute.my_class(isBufferAttribute) ) and not ( attribute and attribute.my_class(isInterleavedBufferAttribute)):
             print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
             self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
             return
@@ -128,14 +98,13 @@ class BufferGeometry(pyOpenGLObject):
             self.setIndex( attribute )
             return
 
-        self.attributes[name] = attribute
-        return self
-        
+        self.attributes.__dict__[name] = attribute
+
     def getAttribute(self, name ):
-        return self.attributes[name]
+        return self.attributes.__dict__[name]
 
     def removeAttribute(self, name ):
-        del self.attributes[name]
+        del self.attributes.__dict__[name]
         return self
         
     def addGroup(self, start, count, materialIndex=0 ):
@@ -149,12 +118,12 @@ class BufferGeometry(pyOpenGLObject):
         self.drawRange.count = count
         
     def applyMatrix(self, matrix ):
-        if 'position' in self.attributes:
+        if self.attributes.position is not None:
             position = self.attributes.position
             matrix.applyToBufferAttribute( position )
             position.needsUpdate = True
 
-        if 'normal' in self.attributes:
+        if self.attributes.normal is not None:
             normal = self.attributes.normal
             normalMatrix = Matrix3().getNormalMatrix( matrix )
             normalMatrix.applyToBufferAttribute( normal )
@@ -417,7 +386,7 @@ class BufferGeometry(pyOpenGLObject):
         groups = self.groups
         if attributes.position:
             positions = attributes.position.array
-            if 'normal' not in attributes:
+            if attributes.normal is None:
                 self.addAttribute( 'normal', BufferAttribute( np.zeros( len(positions), 'f' ), 3 ) )
             else:
                 # // reset existing normals to zero

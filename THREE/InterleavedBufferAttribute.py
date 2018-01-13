@@ -104,8 +104,9 @@ class InterleavedBuffer(pyOpenGLObject):
     isInterleavedBuffer = True
     
     def __init__(self, array=None, stride=None ):
+        super().__init__()
         self.uuid = _Math.generateUUID()
-
+        self.set_class(isInterleavedBuffer)
         self.array = array
         self.stride = stride
         self.count = len(array) / stride if array is not None else 0
