@@ -145,7 +145,7 @@ class ShapePath:
         if len(subPaths) == 0:
             return []
 
-        if noHoles == True:
+        if noHoles:
             return _toShapesNoHoles( subPaths )
 
         shapes = []

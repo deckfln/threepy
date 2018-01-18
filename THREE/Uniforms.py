@@ -49,7 +49,9 @@
  */
 """
 import numpy as np
+from OpenGL_accelerate import *
 from OpenGL.GL import *
+import THREE.pyOpenGL.OpenGL as cOpenGL
 import re
 from THREE.Texture import *
 from THREE.CubeTexture import *
@@ -70,19 +72,24 @@ class UniformContainer():
 
 
 class Uniform:
-    def __init__(self, dic=None):
+    def __init__(self, source=None):
         self.type = None
         self.value = None
         self.needsUpdate = True
+        self.properties = None
 
-        if dic is None:
+        if source is None:
             return
 
-        if type in dic:
-            self.type = dic[type]
-        self.value = dic['value']
-        if 'needsUpdate' in dic:
-            self.needsUpdate = dic['needsUpdate']
+        if isinstance(source, dict):
+            if 'type' in source:
+                self.type = source['type']
+            self.value = source['value']
+            if 'needsUpdate' in source:
+                self.needsUpdate = source['needsUpdate']
+        else:
+            self.value = source.value
+            self.properties = source.properties
 
     def __iter__(self):
         return iter(self.__dict__)
@@ -96,7 +103,6 @@ class Uniform:
 
 class Uniforms:
     def __init__(self, lst=None):
-        super().__setattr__('Uniforms', {})
         if lst is None:
             return
 
@@ -107,28 +113,19 @@ class Uniforms:
                 new_uniform = source_uniform
             else:
                 new_uniform = Uniform(source_uniform)
-            self.Uniforms[uniform] = new_uniform
+            self.__dict__[uniform] = new_uniform
 
-    def __getattr__(self, item):
-        try:
-            return self.Uniforms[item]
-        except KeyError:
-            raise AttributeError
+    # def __delattr__(self, item):
+    #    del self.Uniforms[item]
 
-    def __setattr__(self, key, value):
-        self.Uniforms[key] = value
+    # def __iter__(self):
+    #    return iter(self.Uniforms)
 
-    def __delattr__(self, item):
-        del self.Uniforms[item]
+    # def __getitem__(self, item):
+    #    return self.Uniforms[item]
 
-    def __iter__(self):
-        return iter(self.Uniforms)
-
-    def __getitem__(self, item):
-        return self.Uniforms[item]
-
-    def __setitem__(self, item, value):
-        self.Uniforms[item] = value
+    # def __setitem__(self, item, value):
+    #    self.Uniforms[item] = value
 
 # // Array Caches (provide typed arrays for temporary by size)
 
@@ -241,12 +238,12 @@ class SingleUniform:
             glUniform2f(self.addr, v.x, v.y)
 
     def setValue3fv(self, v, renderer=None):
-        if isinstance(v, list):
-            glUniform3fv(self.addr, 1, v)
-        elif v.my_class(isVector3):
+        if v.my_class(isVector3):
             glUniform3f(self.addr, v.x, v.y, v.z)
-        else:
+        elif v.my_class(isColor):
             glUniform3f(self.addr, v.r, v.g, v.b)
+        else :
+            glUniform3fv(self.addr, 1, v)
 
     def setValue4fv(self, v, renderer=None):
         if hasattr(v, 'x') is None:
@@ -266,9 +263,11 @@ class SingleUniform:
             glUniformMatrix3fv(self.addr, GL_FALSE, v)
 
     def setValue4fm(self, v, renderer=None):
-        try:
+        if hasattr(v, 'elements'):
+            # p = np.ascontiguousarray(v.elements, np.float32)
+            # cOpenGL.glUniformMatrix4fv(self.addr, 1, GL_FALSE, p)
             glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
-        except:
+        else:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
 
     # // Single texture (2D / Cube)
@@ -580,14 +579,14 @@ class pyOpenGLUniforms( UniformContainer ):
 
     def setOptional(self, object, name ):
         if hasattr(object, name):
-            v = object[ name ]
+            v = object.__dict__[ name ]
             self.setValue( name, v )
 
 # // Static interface
 
     def upload(gl, seq, values, renderer ):
         for u in seq:
-            v = values[ u.id ]
+            v = values.__dict__[ u.id ]
 
             if v.needsUpdate is not False:
                 # // note: always updating when .needsUpdate is undefined
@@ -597,7 +596,7 @@ class pyOpenGLUniforms( UniformContainer ):
         r = []
 
         for u in seq:
-            if u.id in values:
+            if u.id in values.__dict__:
                 r.append( u )
 
         return r

@@ -13,7 +13,8 @@ import pygame
 from pygame.locals import *
 from ctypes import c_void_p
 
-from OpenGL.GL import *
+from OpenGL_accelerate import *
+import THREE.pyOpenGL.OpenGL as cOpenGL
 
 from THREE import *
 import THREE._Math as _Math
@@ -23,7 +24,6 @@ from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
-
 
 """
 stubs
@@ -563,17 +563,17 @@ class pyOpenGLRenderer:
             # // RectAreaLight Texture
             # // TODO (mrdoob): Find a nicer implementation
 
-            if 'ltcMat' in m_uniforms is not None:
+            if hasattr(m_uniforms, 'ltcMat'):
                 m_uniforms.ltcMat.value = UniformsLib['LTC_MAT_TEXTURE']
-            if 'ltcMag' in m_uniforms is not None:
+            if hasattr(m_uniforms, 'ltcMag'):
                 m_uniforms.ltcMag.value = UniformsLib['LTC_MAG_TEXTURE']
 
             pyOpenGLUniforms.upload(None, materialProperties.uniformsList, m_uniforms, self)
 
         # // common matrices
 
-        #if object.modelViewMatrix.updated:
-        #TODO FDE: why is there no object if we use the update flag
+        # if object.modelViewMatrix.updated:
+        # TODO FDE: why is there no object if we use the update flag
         p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
 
         if object.normalMatrix.updated:
@@ -913,9 +913,9 @@ class pyOpenGLRenderer:
         materialProperties.uniformsList = uniformsList
 
     def _setupVertexAttributes(self, material, program, geometry, startIndex=0):
-        if geometry and geometry.my_class(isInstancedBufferGeometry):
-            if extensions.get('ANGLE_instanced_arrays') is None:
-                raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
+        # if geometry and geometry.my_class(isInstancedBufferGeometry):
+        #    if extensions.get('ANGLE_instanced_arrays') is None:
+        #        raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
 
         self.state.initAttributes()
 
@@ -926,63 +926,75 @@ class pyOpenGLRenderer:
         for name in programAttributes:
             programAttribute = programAttributes[ name ]
 
-            if programAttribute >= 0:
-                if name in geometryAttributes.__dict__:
-                    geometryAttribute = geometryAttributes.__dict__[ name ]
+            if programAttribute < 0:
+                continue
 
-                    normalized = geometryAttribute.normalized
-                    size = geometryAttribute.itemSize
 
-                    attribute = self.attributes.get( geometryAttribute )
+            if hasattr(geometryAttributes, name):
+                geometryAttribute = geometryAttributes.__dict__[ name ]
 
-                    # // TODO Attribute may not be available on context restore
+                if geometryAttribute is None:
+                    print("_setupVertexAttributes: missing geometryAttribute")
+                    continue
 
-                    if attribute is None:
-                        continue
+                normalized = geometryAttribute.normalized
+                size = geometryAttribute.itemSize
 
-                    buffer = attribute.buffer
-                    type = attribute.type
-                    bytesPerElement = attribute.bytesPerElement
+                attribute = self.attributes.get( geometryAttribute )
 
-                    if geometryAttribute.my_class(isInterleavedBufferAttribute):
-                        data = geometryAttribute.data
-                        stride = data.stride
-                        offset = geometryAttribute.offset
+                # // TODO Attribute may not be available on context restore
+                if attribute is None:
+                    continue
 
-                        if data and data.my_class(isInstancedInterleavedBuffer):
-                            self.state.enableAttributeAndDivisor( programAttribute, data.meshPerAttribute )
+                buffer = attribute.buffer
+                type = attribute.type
+                bytesPerElement = attribute.bytesPerElement
 
-                            if geometry.maxInstancedCount is None:
-                                geometry.maxInstancedCount = data.meshPerAttribute * data.count
-                        else:
-                            self.state.enableAttribute( programAttribute )
+                if geometryAttribute.my_class(isBufferAttribute):
+                    if geometryAttribute.my_class(isInstancedBufferAttribute):
+                        self.state.enableAttributeAndDivisor(programAttribute, geometryAttribute.meshPerAttribute)
 
-                        glBindBuffer( GL_ARRAY_BUFFER, buffer )
-                        glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(( startIndex * stride + offset ) * bytesPerElement) )
+                        if geometry.maxInstancedCount is None:
+                            geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
                     else:
-                        if geometryAttribute.my_class(isInstancedBufferAttribute):
-                            self.state.enableAttributeAndDivisor( programAttribute, geometryAttribute.meshPerAttribute )
+                        self.state.enableAttribute(programAttribute)
 
-                            if geometry.maxInstancedCount is None:
-                                geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
-                        else:
-                            self.state.enableAttribute( programAttribute )
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+                    pointer = startIndex * size * bytesPerElement
+                    if not pointer:
+                        pointer = None
+                    else:
+                        pointer = c_void_p(pointer)
+                    cOpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
 
-                        glBindBuffer( GL_ARRAY_BUFFER, buffer )
-                        glVertexAttribPointer( programAttribute, size, type, normalized, 0, c_void_p(startIndex * size * bytesPerElement) )
+                elif geometryAttribute.my_class(isInterleavedBufferAttribute):
+                    data = geometryAttribute.data
+                    stride = data.stride
+                    offset = geometryAttribute.offset
 
-                elif materialDefaultAttributeValues is not None:
-                    if name in materialDefaultAttributeValues:
-                        value = materialDefaultAttributeValues[name]
+                    if data and data.my_class(isInstancedInterleavedBuffer):
+                        self.state.enableAttributeAndDivisor( programAttribute, data.meshPerAttribute )
 
-                        if value.length == 2:
-                            glVertexAttrib2fv( programAttribute, value )
-                        elif value.length == 3:
-                            glVertexAttrib3fv( programAttribute, value )
-                        elif value.length == 4:
-                            glVertexAttrib4fv( programAttribute, value )
-                        else:
-                            glVertexAttrib1fv( programAttribute, value )
+                        if geometry.maxInstancedCount is None:
+                            geometry.maxInstancedCount = data.meshPerAttribute * data.count
+                    else:
+                        self.state.enableAttribute( programAttribute )
+
+                    glBindBuffer( GL_ARRAY_BUFFER, buffer )
+                    pyOpenGL.OpenGL.glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(( startIndex * stride + offset ) * bytesPerElement) )
+
+            elif materialDefaultAttributeValues is not None:
+                if name in materialDefaultAttributeValues:
+                    value = materialDefaultAttributeValues[name]
+
+                    if value.length == 2:
+                        glVertexAttrib2fv( programAttribute, value )
+                    elif value.length == 3:
+                        glVertexAttrib3fv( programAttribute, value )
+                    elif value.length == 4:
+                        glVertexAttrib4fv( programAttribute, value )
+                    else:
+                        glVertexAttrib1fv( programAttribute, value )
 
         self.state.disableUnusedAttributes()
 
@@ -1099,7 +1111,7 @@ class pyOpenGLRenderer:
             glBufferData(GL_ARRAY_BUFFER, object.positionArray, GL_DYNAMIC_DRAW)
 
             self.state.enableAttribute(programAttributes.position)
-            glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasNormals:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
@@ -1132,7 +1144,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.normal)
 
-            glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasUvs and material.map:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.uv)
@@ -1140,7 +1152,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.uv)
 
-            glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasColors and material.vertexColors != NoColors:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.color)
@@ -1148,7 +1160,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.color)
 
-            glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, c_void_p(0))
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         self.state.disableUnusedAttributes()
 
@@ -1521,21 +1533,21 @@ class pyOpenGLRenderer:
         return textureUnit
 
     def setTexture2D(self,  texture, slot):
-        warned = False
-        if texture and texture.my_class(isWebGLRenderTarget):
-            if not warned:
-                print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." )
-                warned = True
+        # warned = False
+        # if texture and texture.my_class(isWebGLRenderTarget):
+        #    if not warned:
+        #        print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." )
+        #        warned = True
 
-            texture = texture.texture
+        #    texture = texture.texture
 
         self.textures.setTexture2D( texture, slot )
 
     def setTexture(self, texture, slot):
-        warned = False
-        if not warned:
-            print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." )
-            warned = True
+        # warned = False
+        # if not warned:
+        #    print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." )
+        #    warned = True
         self.textures.setTexture2D( texture, slot )
 
     def setTextureCube(self, texture, slot):

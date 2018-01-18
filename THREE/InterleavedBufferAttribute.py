@@ -11,7 +11,7 @@ from THREE.BufferAttribute import *
 class InterleavedBufferAttribute(pyOpenGLObject):
     isInterleavedBufferAttribute = True
     
-    def __init__(self, interleavedBuffer, itemSize, offset, normalized ):
+    def __init__(self, interleavedBuffer, itemSize, offset, normalized=False ):
         self.uuid = _Math.generateUUID()
 
         super().__init__()
@@ -21,7 +21,7 @@ class InterleavedBufferAttribute(pyOpenGLObject):
         self.itemSize = itemSize
         self.offset = offset
 
-        self.normalized = normalized == True
+        self.normalized = normalized
 
     def _getCount(self):
         return self.data.count
@@ -122,7 +122,7 @@ class InterleavedBuffer(pyOpenGLObject):
         return True
 
     def set(self, value ):
-        if value == True:
+        if value:
             self.version += 1
 
     needsUpdate = property(None, set)    

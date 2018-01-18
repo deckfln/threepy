@@ -43,9 +43,9 @@ class pyOpenGLBackground:
                 self.boxMesh = Mesh(
                     BoxBufferGeometry( 1, 1, 1 ),
                     ShaderMaterial( {
-                        'uniforms': ShaderLib.cube.uniforms,
-                        'vertexShader': ShaderLib.cube.vertexShader,
-                        'fragmentShader': ShaderLib.cube.fragmentShader,
+                        'uniforms': ShaderLib['cube'].uniforms,
+                        'vertexShader': ShaderLib['cube'].vertexShader,
+                        'fragmentShader': ShaderLib['cube'].fragmentShader,
                         'side': BackSide,
                         'depthTest': True,
                         'depthWrite': False,

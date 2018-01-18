@@ -109,7 +109,7 @@ class _state:
     def __init__(self):
         self.hash = ''
 
-        self.ambient = [0, 0, 0]
+        self.ambient = THREE.Color(0, 0, 0)
         self.directional = []
         self.directionalShadowMap = []
         self.directionalShadowMatrix = []
@@ -282,9 +282,9 @@ class pyOpenGLLights:
 
                 self.state.hemi.append(uniforms)
 
-        self.state.ambient[ 0 ] = r
-        self.state.ambient[ 1 ] = g
-        self.state.ambient[ 2 ] = b
+        self.state.ambient.r = r
+        self.state.ambient.g = g
+        self.state.ambient.b = b
 
         # // TODO (sam-g-steel) why aren't we using join
         self.state.hash = "%d+%d+%d+%d+%d+%d" % (len(self.state.directional), len(self.state.point), len(self.state.spot), len(self.state.rectArea), len(self.state.hemi), len(shadows))

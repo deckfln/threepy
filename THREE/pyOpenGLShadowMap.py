@@ -4,7 +4,7 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-from OpenGL.GL import *
+from OpenGL_accelerate import *
 
 from THREE.Constants import *
 from THREE.Vector2 import *
@@ -271,7 +271,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
             result = customMaterial
 
         if self._renderer.localClippingEnabled and \
-                material.clipShadows == True and \
+                material.clipShadows and \
                 len(material.clippingPlanes) != 0:
 
             # // in self case we need a unique material instance reflecting the

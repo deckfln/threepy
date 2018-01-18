@@ -170,8 +170,8 @@ class CylinderBufferGeometry(BufferGeometry):
 
             groupCount = 0
 
-            radius = radiusTop if ( top == True ) else radiusBottom
-            sign = 1 if ( top == True ) else - 1
+            radius = radiusTop if ( top ) else radiusBottom
+            sign = 1 if ( top ) else - 1
 
             # // save the index of the first center vertex
             centerIndexStart = index
@@ -237,7 +237,7 @@ class CylinderBufferGeometry(BufferGeometry):
                 c = centerIndexStart + x
                 i = centerIndexEnd + x
 
-                if top == True:
+                if top:
                 # // face top
                     indices.extend([i, i + 1, c])
                 else:
@@ -247,7 +247,7 @@ class CylinderBufferGeometry(BufferGeometry):
                 groupCount += 3
 
             # // add a group to the geometry. self will ensure multi material support
-            self.addGroup(groupStart, groupCount, 1 if top == True else 2 )
+            self.addGroup(groupStart, groupCount, 1 if top else 2 )
 
             # // calculate start value for groups
             groupStart += groupCount

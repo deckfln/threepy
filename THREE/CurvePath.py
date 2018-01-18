@@ -216,7 +216,7 @@ class EllipseCurve(Curve):
             else:
                 deltaAngle = twoPi
 
-        if self.aClockwise == True and not samePoints:
+        if self.aClockwise and not samePoints:
             if deltaAngle == twoPi:
                 deltaAngle = - twoPi
             else:

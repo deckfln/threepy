@@ -62,10 +62,10 @@ class Box3:
         maxY = float('-inf')
         maxZ = float('-inf')
 
-        for i in range(int(attribute.count)):
-            x = attribute.getX( i )
-            y = attribute.getY( i )
-            z = attribute.getZ( i )
+        for i in range(0, len(attribute.array), attribute.itemSize):
+            x = attribute.array[i]
+            y = attribute.array[i + 1]
+            z = attribute.array[i + 2]
 
             if x < minX: minX = x
             if y < minY: minY = y

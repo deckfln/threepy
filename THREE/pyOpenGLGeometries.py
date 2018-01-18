@@ -3,6 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
+from OpenGL_accelerate import *
 from OpenGL.GL import *
 from THREE.BufferGeometry import *
 import THREE

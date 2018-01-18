@@ -6,7 +6,7 @@
 """
 from ctypes import c_void_p
 
-from OpenGL.GL import *
+from OpenGL_accelerate import *
 from PIL import Image, ImageDraw
 from THREE.javascriparray import *
 from THREE.Vector3 import *

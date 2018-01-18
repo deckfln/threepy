@@ -5,6 +5,7 @@
 """
 import numpy as np
 import re
+from OpenGL_accelerate import *
 from OpenGL.GL import *
 from THREE.Constants import *
 from THREE.Vector4 import *
@@ -280,24 +281,24 @@ class pyOpenGLState:
         #     self.newAttributes[ i ] = 0
 
     def enableAttribute(self, attribute ):
-        self.newAttributes[ attribute ] = 1
+        self.newAttributes[ attribute ] = True
 
-        if self.enabledAttributes[ attribute ] == 0:
+        if not self.enabledAttributes[ attribute ]:
             glEnableVertexAttribArray( attribute )
-            self.enabledAttributes[ attribute ] = 1
+            self.enabledAttributes[ attribute ] = True
 
-        if self.attributeDivisors[ attribute ] != 0:
+        if self.attributeDivisors[ attribute ]:
             extension = self.extensions.get( 'ANGLE_instanced_arrays' )
 
             extension.vertexAttribDivisorANGLE( attribute, 0 )
-            self.attributeDivisors[ attribute ] = 0
+            self.attributeDivisors[ attribute ] = False
 
     def enableAttributeAndDivisor(self, attribute, meshPerAttribute ):
-        self.newAttributes[ attribute ] = 1
+        self.newAttributes[ attribute ] = True
 
-        if self.enabledAttributes[ attribute ] == 0:
+        if self.enabledAttributes[ attribute ]:
             glEnableVertexAttribArray( attribute )
-            self.enabledAttributes[ attribute ] = 1
+            self.enabledAttributes[ attribute ] = True
 
         if self.attributeDivisors[ attribute ] != meshPerAttribute:
             extension = self.extensions.get( 'ANGLE_instanced_arrays' )
@@ -307,9 +308,9 @@ class pyOpenGLState:
 
     def disableUnusedAttributes(self):
         for i in range(len(self.enabledAttributes)):
-            if self.enabledAttributes[ i ] != self.newAttributes[ i ]:
+            if self.enabledAttributes[ i ] and  not self.newAttributes[ i ]:
                 glDisableVertexAttribArray( i )
-                self.enabledAttributes[ i ] = 0
+                self.enabledAttributes[ i ] = False
 
     def enable(self, id):
         if id not in self.capabilities:
@@ -320,7 +321,7 @@ class pyOpenGLState:
             self.capabilities[id] = True
 
     def disable(self, id ):
-        if not id in self.capabilities:
+        if id not in self.capabilities:
             return
 
         if self.capabilities[id]:

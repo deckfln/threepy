@@ -288,7 +288,7 @@ class Curve(pyOpenGLObject):
 
         # // if the curve is closed, postprocess the vectors so the first and last normal vectors are the same
 
-        if closed == True:
+        if closed:
             theta = math.acos( _Math.clamp( normals[ 0 ].dot( normals[ segments ] ), - 1, 1 ) )
             theta /= segments
 

@@ -164,7 +164,7 @@ class DirectGeometry:
                 #self.colors[k + 1] = color
                 #self.colors[k + 2] = color
 
-            if hasFaceVertexUv == True:
+            if hasFaceVertexUv:
                 vertexUvs = faceVertexUvs[ 0 ][ i ]
 
                 if vertexUvs is not None:
@@ -179,7 +179,7 @@ class DirectGeometry:
                     #self.uvs[k + 1] = Vector2()
                     #self.uvs[k + 2] = Vector2()
 
-            if hasFaceVertexUv2 == True:
+            if hasFaceVertexUv2:
                 vertexUvs = faceVertexUvs[ 1 ][ i ]
 
                 if vertexUvs is not None:

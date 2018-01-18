@@ -18,11 +18,11 @@ def intersectObject( object, raycaster, intersects, recursive=False ):
 
     object.raycast( raycaster, intersects )
 
-    if recursive == True:
+    if recursive:
         children = object.children
 
-        for i in range(len(children)):
-            intersectObject( children[ i ], raycaster, intersects, True )
+        for child in children:
+            intersectObject( child, raycaster, intersects, True )
 
 
 class Raycaster:

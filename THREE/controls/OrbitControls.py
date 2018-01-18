@@ -405,7 +405,7 @@ class OrbitControls(EventManager):
 
         self.object.lookAt( self.target )
 
-        if self.enableDamping == True:
+        if self.enableDamping:
             self.sphericalDelta.theta *= ( 1 - self.dampingFactor )
             self.sphericalDelta.phi *= ( 1 - self.dampingFactor )
         else:
