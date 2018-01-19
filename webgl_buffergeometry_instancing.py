@@ -9,6 +9,7 @@ from THREE import *
 import THREE._Math as _Math
 from THREE.pyOpenGL.pyOpenGL import *
 
+
 class Params:
     def __init__(self):
         self.container = None

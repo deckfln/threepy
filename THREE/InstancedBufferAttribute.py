@@ -7,11 +7,11 @@ from THREE.BufferAttribute import *
 class InstancedBufferAttribute(BufferAttribute):
     isInstancedBufferAttribute = True
 
-    def __init__(self, array, itemSize, meshPerAttribute):
+    def __init__(self, array, itemSize, meshPerAttribute=1):
         super().__init__(array, itemSize)
 
         self.set_class(isInstancedBufferAttribute)
-        self.meshPerAttribute = meshPerAttribute or 1
+        self.meshPerAttribute = meshPerAttribute
 
     def copy(self, source):
         super().copy(source)

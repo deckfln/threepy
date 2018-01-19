@@ -76,7 +76,7 @@ class BufferAttribute(pyOpenGLObject):
         return self
 
     def copy(self, source):
-        self.array = BufferAttribute(source.array)
+        self.array[:] = source.array[:]
         self.itemSize = source.itemSize
         self.count = source.count
         self.normalized = source.normalized
@@ -241,7 +241,7 @@ class Int8BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'b'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'b'), itemSize)
+            super().__init__(np.zeros(arrayx, 'b').shape, itemSize)
 
 
 class Uint8BufferAttribute(BufferAttribute):
@@ -249,7 +249,7 @@ class Uint8BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'B'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'B'), itemSize)
+            super().__init__(np.zeros(arrayx, 'B').shape, itemSize)
 
 
 class Uint8ClampedBufferAttribute(BufferAttribute):
@@ -257,7 +257,7 @@ class Uint8ClampedBufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'B'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'B'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'B'), itemSize)
 
 
 class Int16BufferAttribute(BufferAttribute):
@@ -265,7 +265,7 @@ class Int16BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'l'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'l'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'l'), itemSize)
 
 
 class Uint16BufferAttribute(BufferAttribute):
@@ -273,7 +273,7 @@ class Uint16BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'L'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'L'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'L'), itemSize)
 
 
 class Int32BufferAttribute(BufferAttribute):
@@ -281,7 +281,7 @@ class Int32BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'l'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'l'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'l'), itemSize)
 
 
 class Uint32BufferAttribute(BufferAttribute):
@@ -289,7 +289,7 @@ class Uint32BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'L'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'L'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'L'), itemSize)
 
 
 class Float32BufferAttribute(BufferAttribute):
@@ -297,8 +297,8 @@ class Float32BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'f'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'f'), itemSize)
-
+            a = np.zeros(arrayx.shape, 'f')
+            super().__init__(a, itemSize)
 
 
 class Float64BufferAttribute(BufferAttribute):
@@ -306,4 +306,4 @@ class Float64BufferAttribute(BufferAttribute):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'd'), itemSize)
         else:
-            super().__init__(np.zeros(arrayx, 'd'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'd'), itemSize)

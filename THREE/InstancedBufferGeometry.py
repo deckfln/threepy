@@ -30,9 +30,10 @@ class InstancedBufferGeometry(BufferGeometry):
 
         attributes = source.attributes
         
-        for name in attributes:
-            attribute = attributes[ name ]
-            self.addAttribute( name, attribute.clone() )
+        for name in attributes.__dict__:
+            attribute = attributes.__dict__[ name ]
+            if attribute is not None:
+                self.addAttribute( name, attribute.clone() )
 
         groups = source.groups
         
