@@ -288,22 +288,18 @@ class pyOpenGLState:
             self.enabledAttributes[ attribute ] = True
 
         if self.attributeDivisors[ attribute ]:
-            extension = self.extensions.get( 'ANGLE_instanced_arrays' )
-
-            extension.vertexAttribDivisorANGLE( attribute, 0 )
+            glVertexAttribDivisor( attribute, 0 )
             self.attributeDivisors[ attribute ] = False
 
     def enableAttributeAndDivisor(self, attribute, meshPerAttribute ):
         self.newAttributes[ attribute ] = True
 
-        if self.enabledAttributes[ attribute ]:
+        if not self.enabledAttributes[ attribute ]:
             glEnableVertexAttribArray( attribute )
             self.enabledAttributes[ attribute ] = True
 
         if self.attributeDivisors[ attribute ] != meshPerAttribute:
-            extension = self.extensions.get( 'ANGLE_instanced_arrays' )
-
-            extension.vertexAttribDivisorANGLE( attribute, meshPerAttribute )
+            glVertexAttribDivisor( attribute, meshPerAttribute )
             self.attributeDivisors[ attribute ] = meshPerAttribute
 
     def disableUnusedAttributes(self):

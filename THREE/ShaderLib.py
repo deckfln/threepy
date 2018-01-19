@@ -25,7 +25,7 @@ global ShaderChunk
 """
 
 
-class _uniform_lib:
+class UniformValue:
     def __init__(self, value, properties=None):
         self.value = value
         self.properties = properties
@@ -35,105 +35,105 @@ UniformsLib = {
 
     'common': {
 
-        'diffuse': _uniform_lib(Color(0xeeeeee)),
-        'opacity': _uniform_lib(1.0),
+        'diffuse': UniformValue(Color(0xeeeeee)),
+        'opacity': UniformValue(1.0),
 
-        'map': _uniform_lib(None),
-        'offsetRepeat': _uniform_lib(Vector4( 0, 0, 1, 1 ) ),
+        'map': UniformValue(None),
+        'offsetRepeat': UniformValue(Vector4(0, 0, 1, 1)),
 
-        'alphaMap': _uniform_lib(None),
+        'alphaMap': UniformValue(None),
 
     },
 
     'specularmap': {
 
-        'specularMap': _uniform_lib(None ),
+        'specularMap': UniformValue(None),
 
     },
 
     'envmap': {
 
-        'envMap': _uniform_lib(None),
-        'flipEnvMap': _uniform_lib(- 1 ),
-        'reflectivity': _uniform_lib(1.0 ),
-        'refractionRatio': _uniform_lib(0.98 )
+        'envMap': UniformValue(None),
+        'flipEnvMap': UniformValue(- 1),
+        'reflectivity': UniformValue(1.0),
+        'refractionRatio': UniformValue(0.98)
 
     },
 
     'aomap': {
 
-        'aoMap': _uniform_lib(None),
-        'aoMapIntensity': _uniform_lib(1 )
+        'aoMap': UniformValue(None),
+        'aoMapIntensity': UniformValue(1)
 
     },
 
     'lightmap': {
 
-        'lightMap': _uniform_lib(None ),
-        'lightMapIntensity': _uniform_lib(1)
+        'lightMap': UniformValue(None),
+        'lightMapIntensity': UniformValue(1)
 
     },
 
     'emissivemap': {
 
-        'emissiveMap': _uniform_lib(None)
+        'emissiveMap': UniformValue(None)
 
     },
 
     'bumpmap': {
 
-        'bumpMap': _uniform_lib(None),
-        'bumpScale': _uniform_lib(1)
+        'bumpMap': UniformValue(None),
+        'bumpScale': UniformValue(1)
 
     },
 
     'normalmap': {
 
-        'normalMap': _uniform_lib(None),
-        'normalScale': _uniform_lib(Vector2( 1, 1 ) )
+        'normalMap': UniformValue(None),
+        'normalScale': UniformValue(Vector2(1, 1))
 
     },
 
     'displacementmap': {
 
-        'displacementMap': _uniform_lib(None),
-        'displacementScale': _uniform_lib(1),
-        'displacementBias': _uniform_lib(0)
+        'displacementMap': UniformValue(None),
+        'displacementScale': UniformValue(1),
+        'displacementBias': UniformValue(0)
 
     },
 
     'roughnessmap': {
 
-        'roughnessMap': _uniform_lib(None)
+        'roughnessMap': UniformValue(None)
 
     },
 
     'metalnessmap': {
 
-        'metalnessMap': _uniform_lib(None)
+        'metalnessMap': UniformValue(None)
 
     },
 
     'gradientmap': {
 
-        'gradientMap': _uniform_lib(None)
+        'gradientMap': UniformValue(None)
 
     },
 
     'fog': {
 
-        'fogDensity': _uniform_lib(0.00025),
-        'fogNear': _uniform_lib(1),
-        'fogFar': _uniform_lib(2000),
-        'fogColor': _uniform_lib(Color( 0xffffff ) )
+        'fogDensity': UniformValue(0.00025),
+        'fogNear': UniformValue(1),
+        'fogFar': UniformValue(2000),
+        'fogColor': UniformValue(Color(0xffffff))
 
     },
 
     'lights': {
 
-        'ambientLightColor': _uniform_lib(None),
+        'ambientLightColor': UniformValue(None),
 
-        'directionalLights': _uniform_lib(
+        'directionalLights': UniformValue(
             [],
            {
                 'direction': {},
@@ -145,11 +145,11 @@ UniformsLib = {
                 'shadowMapSize': {}
         } ),
 
-        'directionalShadowMap': _uniform_lib([]),
-        'directionalShadowMatrix': _uniform_lib([]),
+        'directionalShadowMap': UniformValue([]),
+        'directionalShadowMatrix': UniformValue([]),
 
-        'spotLights': _uniform_lib([],
-            {
+        'spotLights': UniformValue([],
+                                   {
             'color': {},
             'position': {},
             'direction': {},
@@ -162,13 +162,13 @@ UniformsLib = {
             'shadowBias': {},
             'shadowRadius': {},
             'shadowMapSize': {}
-        } ),
+        }),
 
-        'spotShadowMap': _uniform_lib([]),
-        'spotShadowMatrix': _uniform_lib([]),
+        'spotShadowMap': UniformValue([]),
+        'spotShadowMatrix': UniformValue([]),
 
-        'pointLights': _uniform_lib([],
-            {
+        'pointLights': UniformValue([],
+                                    {
             'color': {},
             'position': {},
             'decay': {},
@@ -180,37 +180,37 @@ UniformsLib = {
             'shadowMapSize': {},
             'shadowCameraNear': {},
             'shadowCameraFar': {}
-        } ),
+        }),
 
-        'pointShadowMap': _uniform_lib([]),
-        'pointShadowMatrix': _uniform_lib([]),
+        'pointShadowMap': UniformValue([]),
+        'pointShadowMatrix': UniformValue([]),
 
-        'hemisphereLights': _uniform_lib([],
-            {
+        'hemisphereLights': UniformValue([],
+                                         {
             'direction': {},
             'skyColor': {},
             'groundColor': {}
-        } ),
+        }),
 
         # // TODO (abelnation): RectAreaLight BRDF data needs to be moved from example to main src
-        'rectAreaLights': _uniform_lib([],
-            {
+        'rectAreaLights': UniformValue([],
+                                       {
             'color': {},
             'position': {},
             'width': {},
             'height': {}
-        } )
+        })
 
     },
 
     'points': {
 
-        'diffuse': _uniform_lib(Color( 0xeeeeee ) ),
-        'opacity': _uniform_lib(1.0 ),
-        'size': _uniform_lib(1.0 ),
-        'scale': _uniform_lib(1.0 ),
-        'map': _uniform_lib(None),
-        'offsetRepeat': _uniform_lib(Vector4( 0, 0, 1, 1 ) )
+        'diffuse': UniformValue(Color(0xeeeeee)),
+        'opacity': UniformValue(1.0),
+        'size': UniformValue(1.0),
+        'scale': UniformValue(1.0),
+        'map': UniformValue(None),
+        'offsetRepeat': UniformValue(Vector4(0, 0, 1, 1))
 
     }
 }
@@ -248,7 +248,7 @@ ShaderLib = {
                 UniformsLib['fog'],
                 UniformsLib['lights'],
                 {
-                    'emissive': _uniform_lib(Color( 0x000000 ))
+                    'emissive': UniformValue(Color(0x000000))
                 }
             ] ),
             ShaderChunk['meshlambert_vert'],
@@ -270,9 +270,9 @@ ShaderLib = {
                 UniformsLib['fog'],
                 UniformsLib['lights'],
                 {
-                    'emissive': _uniform_lib(Color( 0x000000 )),
-                    'specular': _uniform_lib(Color( 0x111111 )),
-                    'shininess': _uniform_lib(30)
+                    'emissive': UniformValue(Color(0x000000)),
+                    'specular': UniformValue(Color(0x111111)),
+                    'shininess': UniformValue(30)
                 }
             ] ),
             ShaderChunk['meshphong_vert'],
@@ -294,10 +294,10 @@ ShaderLib = {
                 UniformsLib['fog'],
                 UniformsLib['lights'],
                 {
-                    'emissive': _uniform_lib(Color( 0x000000 )),
-                    'roughness': _uniform_lib(0.5),
-                    'metalness': _uniform_lib(0.5),
-                    'envMapIntensity': _uniform_lib(1) # // temporary
+                    'emissive': UniformValue(Color(0x000000)),
+                    'roughness': UniformValue(0.5),
+                    'metalness': UniformValue(0.5),
+                    'envMapIntensity': UniformValue(1) # // temporary
                 }
             ] ),
             ShaderChunk['meshphysical_vert'],
@@ -318,9 +318,9 @@ ShaderLib = {
                 UniformsLib['common'],
                 UniformsLib['fog'],
                 {
-                    'scale': _uniform_lib(1),
-                    'dashSize': _uniform_lib(1),
-                    'totalSize': _uniform_lib(2)
+                    'scale': UniformValue(1),
+                    'dashSize': UniformValue(1),
+                    'totalSize': UniformValue(2)
                 }
             ] ),
             ShaderChunk['linedashed_vert'],
@@ -343,7 +343,7 @@ ShaderLib = {
                 UniformsLib['normalmap'],
                 UniformsLib['displacementmap'],
                 {
-                    'opacity': _uniform_lib(1.0)
+                    'opacity': UniformValue(1.0)
                 }
             ] ),
             ShaderChunk['normal_vert'],
@@ -356,9 +356,9 @@ ShaderLib = {
 
         'cube': _shaders(
             {
-                'tCube': _uniform_lib(None),
-                'tFlip': _uniform_lib(- 1),
-                'opacity': _uniform_lib(1.0)
+                'tCube': UniformValue(None),
+                'tFlip': UniformValue(- 1),
+                'opacity': UniformValue(1.0)
             },
             ShaderChunk['cube_vert'],
             ShaderChunk['cube_frag']
@@ -366,7 +366,7 @@ ShaderLib = {
 
         'equirect': _shaders(
             {
-                'tEquirect': _uniform_lib(None),
+                'tEquirect': UniformValue(None),
             },
             ShaderChunk['equirect_vert'],
             ShaderChunk['equirect_frag']
@@ -377,9 +377,9 @@ ShaderLib = {
                 UniformsLib['common'],
                 UniformsLib['displacementmap'],
                 {
-                    'referencePosition': _uniform_lib(Vector3()),
-                    'nearDistance': _uniform_lib(1),
-                    'farDistance': _uniform_lib(1000)
+                    'referencePosition': UniformValue(Vector3()),
+                    'nearDistance': UniformValue(1),
+                    'farDistance': UniformValue(1000)
                 }
             ] ),
             ShaderChunk['distanceRGBA_vert'],
@@ -390,8 +390,8 @@ ShaderLib = {
             UniformsUtils.merge( [
                 UniformsLib['lights'],
                 {
-                    'color': _uniform_lib(Color( 0x00000 )),
-                    'opacity': _uniform_lib(1.0)
+                    'color': UniformValue(Color(0x00000)),
+                    'opacity': UniformValue(1.0)
                 },
             ] ),
             ShaderChunk['shadow_vert'],
@@ -413,12 +413,12 @@ ShaderLib = {
                 UniformsLib['fog'],
                 UniformsLib['lights'],
                 {
-                    'emissive': _uniform_lib(Color( 0x000000 )),
-                    'roughness': _uniform_lib(0.5),
-                    'metalness': _uniform_lib(0.5),
-                    'envMapIntensity': _uniform_lib(1), # // temporary
-                    'clearCoat': _uniform_lib(0),
-                    'clearCoatRoughness': _uniform_lib(0)
+                    'emissive': UniformValue(Color(0x000000)),
+                    'roughness': UniformValue(0.5),
+                    'metalness': UniformValue(0.5),
+                    'envMapIntensity': UniformValue(1), # // temporary
+                    'clearCoat': UniformValue(0),
+                    'clearCoatRoughness': UniformValue(0)
                 }
             ] ),
             ShaderChunk['meshphysical_vert'],

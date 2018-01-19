@@ -5,6 +5,7 @@
 """
 from OpenGL_accelerate import *
 from OpenGL.GL import *
+from THREE.pyOpenGLObject import *
 
 
 class pyOpenGLBufferRenderer:
@@ -28,18 +29,14 @@ class pyOpenGLBufferRenderer:
             self.infoRender.points += count
 
     def renderInstances(self, geometry, start, count ):
-        extension = self.extensions.get( 'ANGLE_instanced_arrays' )
-
-        if extension is None:
-            raise RuntimeError( 'THREE.WebGLBufferRenderer: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.' );
-
         position = geometry.attributes.position
 
         if position.my_class(isInterleavedBufferAttribute):
             count = position.data.count
-            self.extensions.drawArraysInstancedANGLE( self.mode, 0, count, geometry.maxInstancedCount )
+            glDrawArraysInstanced( self.mode, 0, count, geometry.maxInstancedCount )
         else:
-            self.extensions.drawArraysInstancedANGLE( self.mode, start, count, geometry.maxInstancedCount )
+
+            glDrawArraysInstanced( self.mode, start, count, geometry.maxInstancedCount )
 
         self.infoRender.calls += 1
         self.infoRender.vertices += count * geometry.maxInstancedCount

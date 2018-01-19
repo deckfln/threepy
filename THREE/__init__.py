@@ -21,7 +21,9 @@ from THREE.Spherical import *
 from THREE.Geometry import *
 from THREE.BufferAttribute import *
 from THREE.InterleavedBufferAttribute import *
+from THREE.InstancedBufferAttribute import *
 from THREE.BufferGeometry import *
+from THREE.InstancedBufferGeometry import *
 from THREE.DirectGeometry import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
