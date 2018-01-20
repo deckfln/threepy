@@ -46,8 +46,9 @@ class pyOpenGL(EventManager):
 
         while True:
             t1 = time.time()
-            # if t1 - s > 30:
-            #    break
+            if t1 - s > 30:
+                print("Frames:%d" % self.params.renderer._infoRender.frame)
+                break
 
             if t1 - t0 > 0.033:
                 self.dispatchEvent({'type': 'animationRequest'}, self.params)

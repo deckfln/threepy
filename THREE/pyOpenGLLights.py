@@ -127,6 +127,10 @@ class pyOpenGLLights:
     def __init__(self):
         self.cache = _UniformsCache()
         self.state = _state()
+        # reusable variable
+        self.vector3 = Vector3()
+        self.matrix4 = Matrix4()
+        self.matrix42 = Matrix4()
 
     def setup(self, lights, shadows, camera ):
         r = 0
@@ -147,9 +151,9 @@ class pyOpenGLLights:
 
         viewMatrix = camera.matrixWorldInverse
 
-        vector3 = Vector3()
-        matrix4 = Matrix4()
-        matrix42 = Matrix4()
+        vector3 = self.vector3
+        matrix4 = self.matrix4
+        matrix42 = self.matrix42
 
         for light in lights:
             color = light.color
