@@ -328,8 +328,8 @@ class Quaternion:
     def multiplyQuaternions(self, a, b ):
         # // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
-        qax = a._x, qay = a._y, qaz = a._z, qaw = a._w
-        qbx = b._x, qby = b._y, qbz = b._z, qbw = b._w
+        qax = a._x; qay = a._y; qaz = a._z; qaw = a._w
+        qbx = b._x; qby = b._y; qbz = b._z; qbw = b._w
 
         self._x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby
         self._y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz
