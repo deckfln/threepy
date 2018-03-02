@@ -12,7 +12,7 @@ from THREE.Vector2 import *
 from THREE.Vector3 import *
 from THREE.Vector4 import *
 from THREE.Color import *
-from THREE.Javascript import *
+from THREE.UniformValue import *
 
 
 global ShaderLib
@@ -23,13 +23,6 @@ global ShaderChunk
  * Uniforms library for shared webgl shaders
  */
 """
-
-
-class UniformValue:
-    def __init__(self, value, properties=None):
-        self.value = value
-        self.properties = properties
-
 
 UniformsLib = {
 
@@ -216,7 +209,7 @@ UniformsLib = {
 }
 
 
-class _shaders:
+class _shader_lib:
     def __init__(self, uniforms, vertexShader, fragmentShader):
         self.uniforms = uniforms
         self.vertexShader = vertexShader
@@ -224,7 +217,7 @@ class _shaders:
 
 
 ShaderLib = {
-        'basic':  _shaders(
+        'basic':  _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['specularmap'],
@@ -237,7 +230,7 @@ ShaderLib = {
             ShaderChunk['meshbasic_frag']
         ),
 
-        'lambert': _shaders(
+        'lambert': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['specularmap'],
@@ -255,7 +248,7 @@ ShaderLib = {
             ShaderChunk['meshlambert_frag']
         ),
 
-        'phong': _shaders(
+        'phong': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['specularmap'],
@@ -279,7 +272,7 @@ ShaderLib = {
             ShaderChunk['meshphong_frag']
         ),
 
-        'standard': _shaders(
+        'standard': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['envmap'],
@@ -304,7 +297,7 @@ ShaderLib = {
             ShaderChunk['meshphysical_frag']
         ),
 
-        'points': _shaders(
+        'points': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['points'],
                 UniformsLib['fog']
@@ -313,7 +306,7 @@ ShaderLib = {
             ShaderChunk['points_frag']
         ),
 
-        'dashed': _shaders(
+        'dashed': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['fog'],
@@ -327,7 +320,7 @@ ShaderLib = {
             ShaderChunk['linedashed_frag']
         ),
 
-        'depth': _shaders(
+        'depth': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['displacementmap']
@@ -336,7 +329,7 @@ ShaderLib = {
             ShaderChunk['depth_frag']
         ),
 
-        'normal': _shaders(
+        'normal': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['bumpmap'],
@@ -354,7 +347,7 @@ ShaderLib = {
     # //    Cube map shader
     #  ------------------------------------------------------------------------- */
 
-        'cube': _shaders(
+        'cube': _shader_lib(
             {
                 'tCube': UniformValue(None),
                 'tFlip': UniformValue(- 1),
@@ -364,7 +357,7 @@ ShaderLib = {
             ShaderChunk['cube_frag']
         ),
 
-        'equirect': _shaders(
+        'equirect': _shader_lib(
             {
                 'tEquirect': UniformValue(None),
             },
@@ -372,7 +365,7 @@ ShaderLib = {
             ShaderChunk['equirect_frag']
         ),
 
-        'distanceRGBA': _shaders(
+        'distanceRGBA': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['displacementmap'],
@@ -386,7 +379,7 @@ ShaderLib = {
             ShaderChunk['distanceRGBA_frag']
         ),
 
-        'shadow': _shaders(
+        'shadow': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['lights'],
                 {
@@ -398,7 +391,7 @@ ShaderLib = {
             ShaderChunk['shadow_frag']
         ),
 
-        'physical': _shaders(
+        'physical': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['common'],
                 UniformsLib['envmap'],

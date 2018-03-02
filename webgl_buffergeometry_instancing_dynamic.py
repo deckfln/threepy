@@ -208,7 +208,7 @@ def init(p):
         'fragmentShader': fragmentShader,
         'side': THREE.DoubleSide,
         'transparent': False
-    } );
+    } )
 
     mesh = THREE.Mesh( geometry, material )
     p.scene.add( mesh )

@@ -94,7 +94,6 @@ class CameraHelper(LineSegments):
         addLine( "cf1", "cf2", colorCross )
         addLine( "cf3", "cf4", colorCross )
 
-
         geometry.addAttribute( 'position', Float32BufferAttribute( vertices, 3 ) )
         geometry.addAttribute( 'color', Float32BufferAttribute( colors, 3 ) )
 

@@ -22,7 +22,7 @@ class FileLoader:
             url = ''
 
         if self.path is not None:
-            url = self.path + url
+            url = self.path + '/'+ url
 
         cached = Cache.get( url )
 

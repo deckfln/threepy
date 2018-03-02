@@ -222,9 +222,11 @@ class RawObject:
                 self.attachFace(buffer[i], None, buffer[i + 1])
                 self.attachFace(buffer[i + 2], None, buffer[i + 3])
 
-    def attachFace(self, faceIndexV, faceIndexU, faceIndexN):
+    def attachFace(self, faceIndexV, faceIndexU=None, faceIndexN=None):
         indexV = int(int(faceIndexV) - self.globalVertexOffset) * 3
         vertices = self.rawObjectDescriptionInUse.vertices
+        if indexV < 0:
+            indexV = 0
         vertices.append(self.vertices[indexV])
         vertices.append(self.vertices[indexV + 1])
         vertices.append(self.vertices[indexV + 2])
@@ -253,19 +255,17 @@ class RawObject:
             normals.append(self.normals[indexN + 2])
             indexN += 2
 
-    def buildLineVvt(self, lineArray):
+    def buildLineVvt(self, lineArray, length):
         """
          * Support for lines with or without texture. irst element in indexArray is the line identification
          * 0: "f vertex/uv        vertex/uv         ..."
          * 1: "f vertex            vertex             ..."
         """
-        length = len(lineArray)
         for i in range(1, length):
             self.vertices.append(int(lineArray[i]))
             self.uvs.append(int(lineArray[i]))
 
-    def buildLineV(self, lineArray):
-        length = len(lineArray)
+    def buildLineV(self, lineArray, length):
         for i in range(1, length):
             self.vertices.append(int(lineArray[i]))
 
@@ -465,9 +465,9 @@ class Parser:
 
         elif buffer[0] == LINE_L:
             if bufferLength == slashesCount * 2:
-                self.rawObject.buildLineVvt(buffer)
+                self.rawObject.buildLineVvt(buffer, bufferLength)
             else:
-                self.rawObject.buildLineV(buffer)
+                self.rawObject.buildLineV(buffer, bufferLength)
 
         elif buffer[0] == LINE_S:
             self.rawObject.pushSmoothingGroup(buffer[1])
@@ -723,6 +723,7 @@ class OBJLoader2:
         self.parser = Parser(self.meshCreator)
 
         self.validated = False
+        self.obj = None
 
     def setPath(self, path):
         """
@@ -762,7 +763,7 @@ class OBJLoader2:
         self.parser.setDebug(parserDebug)
         self.meshCreator.setDebug(meshCreatorDebug)
 
-    def load(self, url, onLoad, onProgress, onError, useArrayBuffer=True):
+    def load(self, url, onLoad=None, onProgress=None, onError=None, useArrayBuffer=True):
         """
          * Use self convenient method to load an OBJ file at the given URL. Per default the fileLoader uses an arraybuffer
          * @memberOf THREE.OBJLoader2
@@ -778,12 +779,15 @@ class OBJLoader2:
         self.fileLoader.setResponseType('arraybuffer' if useArrayBuffer is not False else 'text')
 
         scope = self
+
         def _load(content):
             # only use parseText if useArrayBuffer is explicitly set to False
-            p = scope.parse(content) if useArrayBuffer is not False else scope.parseText(content)
-            onLoad(p)
+            scope.obj = scope.parse(content) if useArrayBuffer is not False else scope.parseText(content)
+            if onLoad:
+                onLoad(p)
 
-        scope.fileLoader.load(url, _load, onProgress, onError)
+        self.fileLoader.load(url, _load, onProgress, onError)
+        return self.obj
 
     def parse(self, arrayBuffer):
         """

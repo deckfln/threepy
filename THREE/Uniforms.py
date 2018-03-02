@@ -106,6 +106,9 @@ class Uniforms:
         if lst is None:
             return
 
+        if isinstance(lst, Uniforms):
+            lst = lst.__dict__
+
         for uniform in lst:
             source_uniform = lst[uniform]
             if isinstance(source_uniform, Uniform):
@@ -119,13 +122,13 @@ class Uniforms:
     #    del self.Uniforms[item]
 
     # def __iter__(self):
-    #    return iter(self.Uniforms)
+    #    return iter(self.__dict__(keys)
 
-    # def __getitem__(self, item):
-    #    return self.Uniforms[item]
+    #def __getitem__(self, item):
+    #    return self.__dict__[item]
 
     # def __setitem__(self, item, value):
-    #    self.Uniforms[item] = value
+    #   self.Uniforms[item] = value
 
 # // Array Caches (provide typed arrays for temporary by size)
 

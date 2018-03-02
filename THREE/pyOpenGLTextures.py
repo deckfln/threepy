@@ -354,7 +354,7 @@ class pyOpenGLTextures():
     def setupDepthRenderbuffer(self, renderTarget):
         renderTargetProperties = self.properties.get(renderTarget)
 
-        isCube = (renderTarget.my_class(isWebGLRenderTargetCube) == True)
+        isCube = renderTarget.my_class(isWebGLRenderTargetCube)
 
         if renderTarget.depthTexture:
 

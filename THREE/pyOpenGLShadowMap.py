@@ -341,8 +341,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
                 if isinstance(material, list ):
                     groups = geometry.groups
 
-                    for k in range(len(groups)):
-                        group = groups[ k ]
+                    for group in groups:
                         groupMaterial = material[ group.materialIndex ]
 
                         if groupMaterial and groupMaterial.visible:

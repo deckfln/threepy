@@ -21,6 +21,7 @@
  */
 """
 from THREE.Material import *
+import THREE.UniformsUtils as UniformsUtils
 
 
 class ShaderMaterial(Material):

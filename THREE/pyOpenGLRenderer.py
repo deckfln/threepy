@@ -24,13 +24,15 @@ from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
+from THREE.Shader import *
+
 
 """
 stubs
 """
 
 class pyOpenGLFlareRenderer:
-    def __init__(self, renderer, state, textures, capabilities ) :
+    def __init__(self, renderer, state, textures, capabilities) :
         self.renderer = renderer
 
     def render(self, flares, scene, camera, viewport):
@@ -72,14 +74,6 @@ class _vr:
 
     def dispose(self):
         return True
-
-
-class _shader:
-    def __init__(self, name, uniforms, vertexShader, fragmentShader):
-        self.name = name
-        self.uniforms = uniforms
-        self.vertexShader = vertexShader
-        self.fragmentShader = fragmentShader
 
 
 """
@@ -246,8 +240,8 @@ class pyOpenGLRenderer:
         self.bufferRenderer = pyOpenGLBufferRenderer(self.extensions, self._infoRender)
         self.indexedBufferRenderer = pyOpenGLIndexedBufferRenderer(self.extensions, self._infoRender)
 
-        self.flareRenderer = pyOpenGLFlareRenderer( self, self.state, self.textures, self.capabilities )
-        self.spriteRenderer = pyOpenGLSpriteRenderer( self, self.state, self.textures, self.capabilities )
+        self.flareRenderer = pyOpenGLFlareRenderer(self, self.state, self.textures, self.capabilities)
+        self.spriteRenderer = pyOpenGLSpriteRenderer(self, self.state, self.textures, self.capabilities)
 
         self.info.programs = self.programCache.programs
 
@@ -291,7 +285,7 @@ class pyOpenGLRenderer:
 
         self._pixelRatio = value
 
-        self.setSize( self._width, self._height, False )
+        self.setSize(self._width, self._height, False)
 
     def getSize(self):
         return {
@@ -299,30 +293,30 @@ class pyOpenGLRenderer:
             'height': self._height
             }
 
-    def setSize(self, width, height, updateStyle=False ):
+    def setSize(self, width, height, updateStyle=False):
         device = self.vr.getDevice()
 
         if device and device.isPresenting:
-            print( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' )
+            print('THREE.WebGLRenderer: Can\'t change size while VR device is presenting.')
             return
         self._width = width
         self._height = height
 
-        self.setViewport( 0, 0, width, height )
+        self.setViewport(0, 0, width, height)
 
-    def setViewport (self, x, y, width, height ):
-        self._viewport.set( x, self._height - y - height, width, height )
-        self.state.viewport( self._currentViewport.copy( self._viewport ).multiplyScalar( self._pixelRatio ) )
+    def setViewport (self, x, y, width, height):
+        self._viewport.set(x, self._height - y - height, width, height)
+        self.state.viewport(self._currentViewport.copy(self._viewport).multiplyScalar(self._pixelRatio))
 
-    def setScissor(self, x, y, width, height ):
-        self._scissor.set( x, self._height - y - height, width, height )
-        self.state.scissor( self._currentScissor.copy( self._scissor ).multiplyScalar( self._pixelRatio ) )
+    def setScissor(self, x, y, width, height):
+        self._scissor.set(x, self._height - y - height, width, height)
+        self.state.scissor(self._currentScissor.copy(self._scissor).multiplyScalar(self._pixelRatio))
 
-    def setScissorTest(self,  bool ):
+    def setScissorTest(self,  bool):
         self._scissorTest = bool
-        self.state.setScissorTest( bool )
+        self.state.setScissorTest(bool)
 
-    def clear(self, color=True, depth=True, stencil=True ):
+    def clear(self, color=True, depth=True, stencil=True):
         bits = 0
         if color:
             bits |= GL_COLOR_BUFFER_BIT
@@ -331,20 +325,20 @@ class pyOpenGLRenderer:
         if stencil:
             bits |= GL_STENCIL_BUFFER_BIT
 
-        glClear( bits )
+        glClear(bits)
 
     def clearColor(self):
-        self.clear( True, False, False )
+        self.clear(True, False, False)
 
     def clearDepth(self):
-        self.clear( False, True, False )
+        self.clear(False, True, False)
 
     def clearStencil(self):
-        self.clear( False, False, True )
+        self.clear(False, False, True)
 
-    def clearTarget(self, renderTarget, color, depth, stencil ):
-        self.setRenderTarget( renderTarget )
-        self.clear( color, depth, stencil )
+    def clearTarget(self, renderTarget, color, depth, stencil):
+        self.setRenderTarget(renderTarget)
+        self.clear(color, depth, stencil)
 
     def dispose(self):
         self.renderLists.dispose()
@@ -391,7 +385,7 @@ class pyOpenGLRenderer:
 
         if material.needsUpdate:
             self._initMaterial(material, fog, object)
-        material.needsUpdate = False
+            material.needsUpdate = False
 
         refreshProgram = False
         refreshMaterial = False
@@ -700,7 +694,7 @@ class pyOpenGLRenderer:
 
     def _refreshUniformsPhong(self, uniforms, material):
         uniforms.specular.value = material.specular
-        uniforms.shininess.value = max(material.shininess, 1e-4)  # // to prevent pow( 0.0, 0.0 )
+        uniforms.shininess.value = max(material.shininess, 1e-4)  # // to prevent pow(0.0, 0.0)
 
         if material.emissiveMap:
             uniforms.emissiveMap.value = material.emissiveMap
@@ -844,12 +838,12 @@ class pyOpenGLRenderer:
             if parameters['shaderID']:
                 shader = ShaderLib[parameters['shaderID']]
 
-                materialProperties.shader = _shader(material.type,
+                materialProperties.shader = Shader(material.type,
                                                     UniformsUtils.clone(shader.uniforms),
                                                     shader.vertexShader,
                                                     shader.fragmentShader)
             else:
-                materialProperties.shader = _shader(material.type,
+                materialProperties.shader = Shader(material.type,
                                                     material.uniforms,
                                                     material.vertexShader,
                                                     material.fragmentShader)
@@ -924,14 +918,13 @@ class pyOpenGLRenderer:
         materialDefaultAttributeValues = material.defaultAttributeValues
 
         for name in programAttributes:
-            programAttribute = programAttributes[ name ]
+            programAttribute = programAttributes[name]
 
             if programAttribute < 0:
                 continue
 
-
             if hasattr(geometryAttributes, name):
-                geometryAttribute = geometryAttributes.__dict__[ name ]
+                geometryAttribute = geometryAttributes.__dict__[name]
 
                 if geometryAttribute is None:
                     print("_setupVertexAttributes: missing geometryAttribute")
@@ -940,7 +933,7 @@ class pyOpenGLRenderer:
                 normalized = geometryAttribute.normalized
                 size = geometryAttribute.itemSize
 
-                attribute = self.attributes.get( geometryAttribute )
+                attribute = self.attributes.get(geometryAttribute)
 
                 # // TODO Attribute may not be available on context restore
                 if attribute is None:
@@ -973,28 +966,28 @@ class pyOpenGLRenderer:
                     offset = geometryAttribute.offset
 
                     if data and data.my_class(isInstancedInterleavedBuffer):
-                        self.state.enableAttributeAndDivisor( programAttribute, data.meshPerAttribute )
+                        self.state.enableAttributeAndDivisor(programAttribute, data.meshPerAttribute)
 
                         if geometry.maxInstancedCount is None:
                             geometry.maxInstancedCount = data.meshPerAttribute * data.count
                     else:
-                        self.state.enableAttribute( programAttribute )
+                        self.state.enableAttribute(programAttribute)
 
-                    glBindBuffer( GL_ARRAY_BUFFER, buffer )
-                    pyOpenGL.OpenGL.glVertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(( startIndex * stride + offset ) * bytesPerElement) )
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p((startIndex * stride + offset) * bytesPerElement))
 
             elif materialDefaultAttributeValues is not None:
                 if name in materialDefaultAttributeValues:
                     value = materialDefaultAttributeValues[name]
 
-                    if value.length == 2:
-                        glVertexAttrib2fv( programAttribute, value )
-                    elif value.length == 3:
-                        glVertexAttrib3fv( programAttribute, value )
-                    elif value.length == 4:
-                        glVertexAttrib4fv( programAttribute, value )
+                    if len(value) == 2:
+                        glVertexAttrib2fv(programAttribute, value)
+                    elif len(value) == 3:
+                        glVertexAttrib3fv(programAttribute, value)
+                    elif len(value) == 4:
+                        glVertexAttrib4fv(programAttribute, value)
                     else:
-                        glVertexAttrib1fv( programAttribute, value )
+                        glVertexAttrib1fv(programAttribute, value)
 
         self.state.disableUnusedAttributes()
 
@@ -1081,7 +1074,7 @@ class pyOpenGLRenderer:
         """
         object.render(
             self._renderBufferImmediate(object, program, material)
-        )
+       )
 
     def _renderBufferImmediate(self, object, program, material):
         """
@@ -1281,7 +1274,7 @@ class pyOpenGLRenderer:
         else:
             renderer.render(drawStart, drawCount)
 
-    def _projectObject(self, object, camera, sortObjects ):
+    def _projectObject(self, object, camera, sortObjects):
         """
 
         :param object:
@@ -1293,25 +1286,25 @@ class pyOpenGLRenderer:
             return
 
         _vector3 = self._vector3
-        visible = object.layers.test( camera.layers )
+        visible = object.layers.test(camera.layers)
 
         if visible:
             if object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 
-                if not object.frustumCulled or self._frustum.intersectsObject( object ):
+                if not object.frustumCulled or self._frustum.intersectsObject(object):
                     if sortObjects:
-                        _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
+                        _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
-                    geometry = self.objects.update( object )
+                    geometry = self.objects.update(object)
                     material = object.material
 
-                    if isinstance( material, list):
+                    if isinstance(material, list):
                         groups = geometry.groups
 
                         for group in groups:
-                            groupMaterial = material[ group.materialIndex ]
+                            groupMaterial = material[group.materialIndex]
 
                             if groupMaterial and groupMaterial.visible:
                                 self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
@@ -1320,27 +1313,27 @@ class pyOpenGLRenderer:
                         self.currentRenderList.push(object, geometry, material, _vector3.np[2], None)
 
             elif object.my_class(isLight):
-                self.lightsArray.append( object )
+                self.lightsArray.append(object)
 
                 if object.castShadow:
-                    self.shadowsArray.append( object )
+                    self.shadowsArray.append(object)
 
             elif object.my_class(isSprite):
-                if not object.frustumCulled or self._frustum.intersectsSprite( object ):
-                    self.spritesArray.append( object )
+                if not object.frustumCulled or self._frustum.intersectsSprite(object):
+                    self.spritesArray.append(object)
 
             elif object.my_class(isLensFlare):
-                self.flaresArray.append( object )
+                self.flaresArray.append(object)
 
             elif object.my_class(isImmediateRenderObject):
                 if sortObjects:
-                    _vector3.setFromMatrixPosition( object.matrixWorld ).applyMatrix4( self._projScreenMatrix )
+                    _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
 
         children = object.children
         for i in children:
-            self._projectObject( i, camera, sortObjects )
+            self._projectObject(i, camera, sortObjects)
 
     def render(self, scene, camera, renderTarget=None, forceClear=False):
         """
@@ -1376,10 +1369,10 @@ class pyOpenGLRenderer:
             camera.updateMatrixWorld()
 
         if self.vr.enabled:
-            camera = self.vr.getCamera( camera )
+            camera = self.vr.getCamera(camera)
 
-        self._projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse )
-        self._frustum.setFromMatrix( self._projScreenMatrix )
+        self._projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+        self._frustum.setFromMatrix(self._projScreenMatrix)
 
         self.lightsArray.clear()
         self.shadowsArray.clear()
@@ -1388,12 +1381,12 @@ class pyOpenGLRenderer:
         self.flaresArray.clear()
 
         self._localClippingEnabled = self.localClippingEnabled
-        self._clippingEnabled = self._clipping.init( self.clippingPlanes, self._localClippingEnabled, camera )
+        self._clippingEnabled = self._clipping.init(self.clippingPlanes, self._localClippingEnabled, camera)
 
-        self.currentRenderList = self.renderLists.get( scene, camera )
+        self.currentRenderList = self.renderLists.get(scene, camera)
         self.currentRenderList.init()
 
-        self._projectObject( scene, camera, self.sortObjects )
+        self._projectObject(scene, camera, self.sortObjects)
 
         if self.sortObjects:
             self.currentRenderList.sort()
@@ -1403,9 +1396,9 @@ class pyOpenGLRenderer:
         if self._clippingEnabled:
             self._clipping.beginShadows()
 
-        self.shadowMap.render( self.shadowsArray, scene, camera )
+        self.shadowMap.render(self.shadowsArray, scene, camera)
 
-        self.lights.setup( self.lightsArray, self.shadowsArray, camera )
+        self.lights.setup(self.lightsArray, self.shadowsArray, camera)
 
         if self._clippingEnabled:
             self._clipping.endShadows()
@@ -1418,11 +1411,11 @@ class pyOpenGLRenderer:
         self._infoRender.faces = 0
         self._infoRender.points = 0
 
-        self.setRenderTarget( renderTarget )
+        self.setRenderTarget(renderTarget)
 
         # //
 
-        self.background.render( self.currentRenderList, scene, camera, forceClear )
+        self.background.render(self.currentRenderList, scene, camera, forceClear)
 
         # // render scene
 
@@ -1433,36 +1426,36 @@ class pyOpenGLRenderer:
             overrideMaterial = scene.overrideMaterial
 
             if len(opaqueObjects) > 0:
-                self._renderObjects( opaqueObjects, scene, camera, overrideMaterial )
+                self._renderObjects(opaqueObjects, scene, camera, overrideMaterial)
             if len(transparentObjects) > 0:
-                self._renderObjects( transparentObjects, scene, camera, overrideMaterial )
+                self._renderObjects(transparentObjects, scene, camera, overrideMaterial)
 
         else:
             # // opaque pass (front-to-back order)
             if len(opaqueObjects) > 0:
-                self._renderObjects( opaqueObjects, scene, camera )
+                self._renderObjects(opaqueObjects, scene, camera)
 
             # // transparent pass (back-to-front order)
             if len(transparentObjects) > 0:
-                self._renderObjects( transparentObjects, scene, camera )
+                self._renderObjects(transparentObjects, scene, camera)
 
         # // custom renderers
 
-        self.spriteRenderer.render( self.spritesArray, scene, camera )
-        self.flareRenderer.render( self.flaresArray, scene, camera, self._currentViewport )
+        self.spriteRenderer.render(self.spritesArray, scene, camera)
+        self.flareRenderer.render(self.flaresArray, scene, camera, self._currentViewport)
 
         # // Generate mipmap if we're using any kind of mipmap filtering
 
         if renderTarget:
-            self.textures.updateRenderTargetMipmap( renderTarget )
+            self.textures.updateRenderTargetMipmap(renderTarget)
 
         # // Ensure depth buffer writing is enabled so it can be cleared on next render
 
-        self.state.buffers.depth.setTest( True )
-        self.state.buffers.depth.setMask( True )
-        self.state.buffers.color.setMask( True )
+        self.state.buffers.depth.setTest(True)
+        self.state.buffers.depth.setMask(True)
+        self.state.buffers.color.setMask(True)
 
-        self.state.setPolygonOffset( False )
+        self.state.setPolygonOffset(False)
 
         if self.vr.enabled:
             self.vr.submitFrame()
@@ -1476,49 +1469,49 @@ class pyOpenGLRenderer:
         """
         return self._currentRenderTarget
 
-    def setRenderTarget (self, renderTarget ):
+    def setRenderTarget (self, renderTarget):
         """
 
         :param renderTarget:
         :return:
         """
-        _currentRenderTarget = renderTarget
+        self._currentRenderTarget = renderTarget
 
-        if renderTarget and self.properties.get( renderTarget ).frameBuffer is None :
-            self.textures.setupRenderTarget( renderTarget )
+        if renderTarget and self.properties.get(renderTarget).frameBuffer is None:
+            self.textures.setupRenderTarget(renderTarget)
 
         _framebuffer = 0
         isCube = False
 
         if renderTarget:
-            frameBuffer = self.properties.get( renderTarget ).frameBuffer
+            frameBuffer = self.properties.get(renderTarget).frameBuffer
 
             if renderTarget.my_class(isWebGLRenderTargetCube):
-                _framebuffer = frameBuffer[ renderTarget.activeCubeFace ]
+                _framebuffer = frameBuffer[renderTarget.activeCubeFace]
                 isCube = True
             else:
                 _framebuffer = frameBuffer
 
-            self._currentViewport.copy( renderTarget.viewport )
-            self._currentScissor.copy( renderTarget.scissor )
+            self._currentViewport.copy(renderTarget.viewport)
+            self._currentScissor.copy(renderTarget.scissor)
             self._currentScissorTest = renderTarget.scissorTest
 
         else:
-            self._currentViewport.copy( self._viewport ).multiplyScalar( self._pixelRatio )
-            self._currentScissor.copy( self._scissor ).multiplyScalar( self._pixelRatio )
+            self._currentViewport.copy(self._viewport).multiplyScalar(self._pixelRatio)
+            self._currentScissor.copy(self._scissor).multiplyScalar(self._pixelRatio)
             self._currentScissorTest = self._scissorTest
 
         if self._currentFramebuffer != _framebuffer:
-            glBindFramebuffer( GL_FRAMEBUFFER, _framebuffer )
+            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer)
             self._currentFramebuffer = _framebuffer
 
-        self.state.viewport( self._currentViewport )
-        self.state.scissor( self._currentScissor )
-        self.state.setScissorTest( self._currentScissorTest )
+        self.state.viewport(self._currentViewport)
+        self.state.scissor(self._currentScissor)
+        self.state.setScissorTest(self._currentScissorTest)
 
         if isCube:
-            textureProperties = self.properties.get( renderTarget.texture )
-            glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, renderTarget.activeMipMapLevel )
+            textureProperties = self.properties.get(renderTarget.texture)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, renderTarget.activeMipMapLevel)
 
     """
     //Textures
@@ -1527,7 +1520,7 @@ class pyOpenGLRenderer:
         textureUnit = self._usedTextureUnits
 
         if textureUnit >= self.capabilities.maxTextures:
-            raise RuntimeWarning( 'THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + self.capabilities.maxTextures )
+            raise RuntimeWarning('THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + self.capabilities.maxTextures)
 
         self._usedTextureUnits += 1
         return textureUnit
@@ -1536,19 +1529,19 @@ class pyOpenGLRenderer:
         # warned = False
         # if texture and texture.my_class(isWebGLRenderTarget):
         #    if not warned:
-        #        print( "THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead." )
+        #        print("THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead.")
         #        warned = True
 
         #    texture = texture.texture
 
-        self.textures.setTexture2D( texture, slot )
+        self.textures.setTexture2D(texture, slot)
 
     def setTexture(self, texture, slot):
         # warned = False
         # if not warned:
-        #    print( "THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead." )
+        #    print("THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead.")
         #    warned = True
-        self.textures.setTexture2D( texture, slot )
+        self.textures.setTexture2D(texture, slot)
 
     def setTextureCube(self, texture, slot):
         warned = False

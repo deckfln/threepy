@@ -128,7 +128,7 @@ class MaterialCreator:
             # Absolute URL
             # if /^https?:\/\#i.test(url)) return url
 
-            return baseUrl + url
+            return baseUrl + '/' + url
 
         def setMapForType(mapType, value):
             if mapType in params:
@@ -247,8 +247,9 @@ class MTLLoader:
         self.texturePath = ""
         self.crossOrigin = True
         self.materialOptions = None
-        
-    def load(self, url, onLoad, onProgress=None, onError=None):
+        self.mtl = None
+
+    def load(self, url, onLoad=None, onProgress=None, onError=None):
         """
          * Loads and parses a MTL asset from a URL.
          *
@@ -269,9 +270,12 @@ class MTLLoader:
         loader.setPath(self.path)
 
         def _onLoad(text):
-            onLoad(scope.parse(text))
+            scope.mtl = scope.parse(text)
+            if onLoad:
+                onLoad(scope.parse(text))
 
         loader.load(url, _onLoad, onProgress, onError)
+        return self.mtl
 
     def setPath(self, path):
         """

@@ -296,6 +296,8 @@ class Float32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
         if isinstance(arrayx, list):
             super().__init__(np.array(arrayx, 'f'), itemSize)
+        elif isinstance(arrayx, int):
+            super().__init__(np.zeros(arrayx, 'f'), itemSize)
         else:
             a = np.zeros(arrayx.shape, 'f')
             super().__init__(a, itemSize)

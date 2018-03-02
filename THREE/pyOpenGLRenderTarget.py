@@ -28,8 +28,8 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
         super().__init__()
         self.set_class(isWebGLRenderTarget)
 
-        self.width = width
-        self.height = height
+        self.width = int(width)
+        self.height = int(height)
 
         self.scissor = Vector4( 0, 0, width, height )
         self.scissorTest = False

@@ -15,13 +15,6 @@ class InstancedBufferGeometry(BufferGeometry):
         self.type = 'InstancedBufferGeometry'
         self.maxInstancedCount = None
 
-    def addGroup(self, start, count, materialIndex ):
-        self.groups.push( {
-            'start': start,
-            'count': count,
-            'materialIndex': materialIndex
-        } )
-
     def copy(self, source ):
         index = source.index
 

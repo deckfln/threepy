@@ -458,18 +458,18 @@ class BufferGeometry(pyOpenGLObject):
             return
 
         attributes = self.attributes
-        for key in attributes:
-            if geometry.attributes[ key ] is None:
+        for key in attributes.__dict__:
+            if geometry.attributes.__dict__[ key ] is None:
                 continue
-            attribute1 = attributes[ key ]
-            attributeArray1 = attribute1.array
-            attribute2 = geometry.attributes[ key ]
-            attributeArray2 = attribute2.array
-            attributeSize = attribute2.itemSize
-            j = j = attributeSize * offset
-            for i in range (len(attributeArray2)):
-                attributeArray1[ j ] = attributeArray2[ i ]
-                j += 1
+
+            attribute2 = geometry.attributes.__dict__[ key ]
+            attribute1 = attributes.__dict__[ key ]
+
+            if attribute1 is None:
+                attributes.__dict__[key] = attribute2.clone()
+            else:
+                xv = np.concatenate([attribute1.array, attribute2.array])
+                attribute1.array = xv
 
         return self
         
