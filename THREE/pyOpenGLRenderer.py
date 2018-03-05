@@ -566,9 +566,9 @@ class pyOpenGLRenderer:
 
         # // common matrices
 
-        # if object.modelViewMatrix.updated:
-        # TODO FDE: why is there no object if we use the update flag
-        p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
+        if object.modelViewMatrix.updated:
+            # TODO FDE: why is there no object if we use the update flag
+            p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
 
         if object.normalMatrix.updated:
             p_uniforms.setValue('normalMatrix', object.normalMatrix)
@@ -1047,7 +1047,8 @@ class pyOpenGLRenderer:
         if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
             object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
             object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-            object.modelViewMatrix.updated = object.normalMatrix.updated = True
+            object.modelViewMatrix.updated = True
+            object.normalMatrix.updated = True
 
         if object.my_class(isImmediateRenderObject):
             self.state.setMaterial(material)
@@ -1274,7 +1275,54 @@ class pyOpenGLRenderer:
         else:
             renderer.render(drawStart, drawCount)
 
-    def _projectObject(self, object, camera, sortObjects):
+    def _projectOctree(self, octree, camera, sortObjects, test_culled=True):
+        """
+        Hiarchical Frustrum using octree
+        :param object:
+        :param camera:
+        :param sortObjects:
+        :return:
+        """
+
+        visibility = self._frustum.intersectsOctree(octree) if test_culled else 1
+        if visibility < 0:
+            # completely outside of the frustrum
+            return
+
+        elif visibility > 0:
+            # completely inside the frustrum
+            if octree.leaf:
+                # for leaf, test each object individually
+                for child in octree.children:
+                    self._projectObject(child, camera, sortObjects, False)
+                #if len(octree.children) > 0:
+                #    self._projectObject(octree.children[0], camera, sortObjects, False)
+
+            else:
+                # for branch, push all objects down
+                #if len(octree.children) > 8:
+                #    self._projectObject(octree.children[8], camera, sortObjects, False)
+                for child in octree.children:
+                    if child is not None:
+                        self._projectOctree(child, camera, sortObjects, False)
+
+        else:
+            # partialy in the frustrum => recurse to find more
+            if octree.leaf:
+                # for leaf, test each object individually
+                for child in octree.children:
+                   self._projectObject(child, camera, sortObjects, False)
+                #if len(octree.children) > 0:
+                #    self._projectObject(octree.children[0], camera, sortObjects, False)
+            else:
+                # for branch, continue testing down
+                #if len(octree.children) > 8:
+                #    self._projectObject(octree.children[8], camera, sortObjects, False)
+                for child in octree.children:
+                    if child is not None:
+                        self._projectOctree(child, camera, sortObjects, test_culled)
+
+    def _projectObject(self, object, camera, sortObjects, test_culled=True):
         """
 
         :param object:
@@ -1293,7 +1341,7 @@ class pyOpenGLRenderer:
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 
-                if not object.frustumCulled or self._frustum.intersectsObject(object):
+                if not test_culled or not object.frustumCulled or self._frustum.intersectsObject(object):
                     if sortObjects:
                         _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
@@ -1330,6 +1378,10 @@ class pyOpenGLRenderer:
                     _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
+
+            elif object.my_class(isOctree):
+                self._projectOctree(object, camera, sortObjects)
+                return
 
         children = object.children
         for i in children:

@@ -1,3 +1,3 @@
 kernprof -l -v webgl_lights_pointlights2.py
-python -m cProfile -s tottime -o out.prof webgl_clipping_advanced.py
+python -m cProfile -s tottime -o out.prof webgl_lights_pointlights2.py
 snakeviz out.prof

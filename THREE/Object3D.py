@@ -240,7 +240,7 @@ class Object3D(pyOpenGLObject):
             return self
 
         for i in range(len(self.children)):
-            child = self.children[ i ]
+            child = self.children[ i]
             object = child.getObjectByProperty(name, value)
 
             if object is not None:
@@ -361,7 +361,8 @@ class Object3D(pyOpenGLObject):
         # // update children
         children = self.children
         for child in children:
-            child.updateMatrixWorld(force)
+            if child is not None:
+                child.updateMatrixWorld(force)
 
     def toJSON(self, meta):
         # // meta is '' when called from JSON.stringify
@@ -429,7 +430,7 @@ class Object3D(pyOpenGLObject):
         if len(self.children) > 0:
             object['children'] = []
             for i in range(len(self.children)):
-                object['children'].append(self.children[ i ].toJSON(meta).object)
+                object['children'].append(self.children[ i].toJSON(meta).object)
 
 
         # // extract data from the cache hash

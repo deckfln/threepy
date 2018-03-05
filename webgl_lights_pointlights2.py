@@ -3,11 +3,78 @@
 """        
 
 from datetime import datetime
+import math
 
 from THREE import *
 import THREE._Math as _Math
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.TrackballControls import *
+from THREE.Group import *
+from THREE.Sphere import *
+
+
+class OcTree(Group):
+    def __init__(self, position, size):
+        super().__init__()
+        self.type = 'octree'
+
+        self.set_class(isOctree)
+        self.position = position
+        self.size = size
+        self.boundingSphere = Sphere(position, math.sqrt(3 * size * size))
+
+        #mesh = THREE.Mesh(
+        #    THREE.SphereBufferGeometry(self.boundingSphere.radius, 32,  32),
+        #    THREE.MeshBasicMaterial({'color': self.size * 512, 'wireframe': True})
+        #)
+        #mesh.position = self.boundingSphere.center
+
+        self.leaf = (size == 16)
+        if not self.leaf:
+            self.children = [None for i in range(8)]
+
+        #if size < 256:
+        #    self.children.append(mesh)
+
+    def add(self, obj):
+        if self.leaf:
+            self.children.append(obj)
+            return
+        else:
+            px = 0 if obj.position.x < self.position.x else 1
+            py = 0 if obj.position.y < self.position.y else 1
+            pz = 0 if obj.position.z < self.position.z else 1
+
+            p = int(px + py * 2 + pz * 4)
+            child = self.children[p]
+            if child is None:
+                if px == 0:
+                    px = -1
+                if py == 0:
+                    py = -1
+                if pz == 0:
+                    pz = -1
+
+                center = THREE.Vector3(
+                    self.position.x + px * self.size/2,
+                    self.position.y + py * self.size/2,
+                    self.position.z + pz * self.size/2)
+
+                self.children[p] = child = OcTree(center, self.size / 2)
+
+            child.add(obj)
+
+    def test(self):
+        for child in self.children:
+            if child is None:
+                continue
+
+            d = child.position.distanceTo(self.boundingSphere.center)
+            if d > self.boundingSphere.radius:
+                print("not good")
+
+            if child.my_class(isOctree):
+                child.test()
 
 
 class Params:
@@ -26,6 +93,7 @@ class Params:
         self.light6 = None
         self.counter = 0
         self.s = datetime.now().timestamp()
+        self.octree = OcTree(THREE.Vector3(0, 0, 0), 256)
 
 
 def init(p):
@@ -38,7 +106,7 @@ def init(p):
 
     # CAMERA
 
-    p.camera = THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 300 )
+    p.camera = THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 3000 )
     p.camera.position.set( 0, 15, 150 )
     p.camera.lookAt( THREE.Vector3() )
 
@@ -91,7 +159,7 @@ def init(p):
     #objectGeometry = THREE.SphereGeometry( 1.5, 16, 8 )
     objectGeometry = THREE.TorusGeometry( 1.5, 0.4, 8, 16 )
 
-    for i in range((5000)):
+    for i in range(5000):
         mesh = THREE.Mesh( objectGeometry, objectMaterial )
 
         mesh.position.np[0] = 400 * ( 0.5 - random.random() )
@@ -103,7 +171,10 @@ def init(p):
 
         mesh.matrixAutoUpdate = False
         mesh.updateMatrix()
-        p.scene.add( mesh )
+
+        p.octree.add(mesh)
+
+    p.scene.add(p.octree)
 
     # LIGHTS
 
@@ -166,12 +237,6 @@ def animate(p):
 
 
 def render(p):
-    p.counter += 1
-    if p.counter > 100:
-        e = datetime.now().timestamp()
-        print(e - p.s)
-        sys.exit(0)
-
     timer = datetime.now().timestamp() * 0.5
     z = 20
     d = 150

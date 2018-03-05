@@ -6,7 +6,7 @@
  */
 """
 from THREE.Plane import *
-from THREE.Sphere import *
+from THREE.BoundingSphere import *
 
 
 class Frustum:
@@ -19,7 +19,7 @@ class Frustum:
             p4 if p4 else Plane(),
             p5 if p5 else Plane(),
         ]
-        self._sphere = Sphere()
+        self._sphere = BoundingSphere()
         self.updated = False        # was the frustum updated since the last frame
         self._cache = {}            # if the frusturm was not updated and the object were not updated,
                                     # pick the intersection from the cache
@@ -87,8 +87,41 @@ class Frustum:
 
         return self._cache[object.id]
 
+    def intersectsOctree(self, octree):
+        # only compute the intersection if
+        #   the camera moved
+        #   or the object moved
+        #   or the object is not yet in the cache
+        if self.updated or octree.matrixWorld.updated or octree.id not in self._cache:
+            self._sphere.copy(octree.boundingSphere)
+            self._cache[octree.id] = self.intersectsSphereOctree(self._sphere)
+
+        return self._cache[octree.id]
+
+    def intersectsSphereOctree(self, sphere ):
+        """
+        Optimization based on http://blog.bwhiting.co.uk/?p=355
+        :param sphere:
+        :return:
+        """
+        planes = self.planes
+        center = sphere.center
+        negRadius = - sphere.radius
+
+        for p in range(6):
+
+            plane = planes[p]
+            distance = plane.distanceToPoint( center )
+
+            if distance < negRadius:
+                return -1
+            elif distance < sphere.radius:
+                return 0
+
+        return 1
+
     def intersectsSprite(self, sprite):
-        sphere = Sphere()
+        sphere = self._sphere
 
         sphere.center.set( 0, 0, 0 )
         sphere.radius = 0.7071067811865476
@@ -97,16 +130,33 @@ class Frustum:
         return self.intersectsSphere( sphere )
 
     def intersectsSphere(self, sphere ):
+        """
+        Optimization based on http://blog.bwhiting.co.uk/?p=355
+        :param sphere:
+        :return:
+        """
         planes = self.planes
         center = sphere.center
         negRadius = - sphere.radius
 
-        for p in planes:
-            distance = p.distanceToPoint( center )
-
+        if sphere.cache >= 0:
+            plane = planes[sphere.cache]
+            distance = plane.distanceToPoint(center)
             if distance < negRadius:
                 return False
 
+        for p in range(6):
+            if p == sphere.cache:
+                continue
+
+            plane = planes[p]
+            distance = plane.distanceToPoint( center )
+
+            if distance < negRadius:
+                sphere.cache = p
+                return False
+
+        sphere.cache = -1
         return True
 
     def intersectsBox(self, box):
