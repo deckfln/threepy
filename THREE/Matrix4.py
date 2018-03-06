@@ -148,7 +148,7 @@ class Matrix4(pyOpenGLObject):
 
         te = self.elements
 
-        x = euler.x, y = euler.y, z = euler.z
+        x = euler.x; y = euler.y; z = euler.z
         a = math.cos(x)
         b = math.sin(x)
         c = math.cos(y)

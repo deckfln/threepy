@@ -25,6 +25,7 @@ from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
+from THREE.OcTree import *
 
 
 """
