@@ -16,7 +16,7 @@ class PropertyMixer:
         self.binding = binding
         self.valueSize = int(valueSize)
 
-        bufferType = Float64Array
+        bufferType = Float32Array
 
         if typeName == 'quaternion':
             mixFunction = self._slerp

@@ -59,9 +59,9 @@ def Uint32Array(size):
 
 def Float32Array(size):
     if isinstance(size, list):
-        return np.array(size, 'f')
+        return np.array(size, np.float32)
     else:
-        return np.zeros(int(size), 'f')
+        return np.zeros(int(size), np.float32)
 
 
 def Float64Array(size):

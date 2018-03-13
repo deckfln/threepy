@@ -13,6 +13,8 @@ from THREE.pyOpenGLObject import *
 import numpy as np
 from numpy.linalg import inv
 
+_v1 = Vector3()
+
 
 class Matrix3(pyOpenGLObject):
     isMatrix3 = True
@@ -73,15 +75,16 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def applyToBufferAttribute(self, attribute):
-        v1 = Vector3()
-        for i in range(int(attribute.count)):
-            v1.x = attribute.getX( i )
-            v1.y = attribute.getY( i )
-            v1.z = attribute.getZ( i )
+        for i in range(0, len(attribute.array), 3):
+            _v1.np[0] = attribute.array[i]
+            _v1.np[1] = attribute.array[i + 1]
+            _v1.np[2] = attribute.array[i + 2]
 
-            v1.applyMatrix3( self )
+            _v1.applyMatrix3( self )
 
-            attribute.setXYZ( i, v1.x, v1.y, v1.z )
+            attribute.array[i] = _v1.np[0]
+            attribute.array[i + 1] = _v1.np[1]
+            attribute.array[i + 2] = _v1.np[2]
 
         return attribute
 
@@ -101,11 +104,14 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def multiplyScalar(self, s ):
-        te = self.elements
+        self.elements *= s
 
+        """
+        te = self.elements
         te[ 0 ] *= s; te[ 3 ] *= s; te[ 6 ] *= s
         te[ 1 ] *= s; te[ 4 ] *= s; te[ 7 ] *= s
         te[ 2 ] *= s; te[ 5 ] *= s; te[ 8 ] *= s
+        """
 
         return self
 
@@ -188,16 +194,22 @@ class Matrix3(pyOpenGLObject):
         te = self.elements
         me = matrix.elements
 
+        """
         for i in range(9):
             if te[ i ] != me[ i ]:
                 return False
 
         return True
+        """
+
+        return np.array_equal(te, me)
 
     def fromArray(self, array, offset=0 ):
+        self.elements[0:9] = array[offset:offset + 9]
+        """
         for i in range(9):
             self.elements[ i ] = array[ i + offset ]
-
+        """
         return self
 
     def toArray(self, array=None, offset=0):

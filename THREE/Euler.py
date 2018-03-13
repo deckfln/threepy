@@ -11,6 +11,8 @@ from THREE.Matrix4 import *
 from THREE.Quaternion import *
 from THREE.pyOpenGLObject import *
 
+_matrix4 = Matrix4()
+
 
 class Euler(pyOpenGLObject):
     RotationOrders = [ 'XYZ', 'YZX', 'ZXY', 'XZY', 'YXZ', 'ZYX' ]
@@ -156,8 +158,8 @@ class Euler(pyOpenGLObject):
         return self
 
     def setFromQuaternion(self, q, order, update=True):
-        matrix = Matrix4().makeRotationFromQuaternion(q)
-        return self.setFromRotationMatrix(matrix, order, update)
+        _matrix4.makeRotationFromQuaternion(q)
+        return self.setFromRotationMatrix(_matrix4, order, update)
 
     def setFromVector3(self, v, order):
         return self.set(v.x, v.y, v.z, order or self._order)

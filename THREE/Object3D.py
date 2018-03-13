@@ -57,6 +57,10 @@ class Object3D(pyOpenGLObject):
         self.matrix = Matrix4()
         self.matrixWorld = Matrix4()
 
+        self._old_position = Vector3()
+        self._old_quaternion = Quaternion()
+        self._old_scale = Vector3()
+
         self.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate
         self.matrixWorldNeedsUpdate = False
 
@@ -330,7 +334,17 @@ class Object3D(pyOpenGLObject):
             parent.traverseAncestors(callback)
 
     def updateMatrix(self):
-        self.matrix.compose(self.position, self._quaternion, self.scale)
+        if self._old_position.equals(self.position) and \
+            self._old_quaternion.equals(self._quaternion) and \
+            self._old_scale.equals(self.scale):
+            self.matrix.updated = False
+        else:
+            self._old_position.copy(self.position)
+            self._old_quaternion.copy(self._quaternion)
+            self._old_scale.copy(self.scale)
+
+            self.matrix.compose(self.position, self._quaternion, self.scale)
+            self.matrix.updated = True
 
         self.matrixWorldNeedsUpdate = True
 
@@ -342,8 +356,6 @@ class Object3D(pyOpenGLObject):
 
         if self.matrixAutoUpdate:
             self.updateMatrix()
-
-        self.matrix.is_updated()
 
         self.matrixWorld.updated = False
         if self.matrixWorldNeedsUpdate or force:

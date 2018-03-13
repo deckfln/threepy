@@ -11,6 +11,7 @@ import math
 import THREE
 from THREE.Vector3 import *
 from THREE.Constants import *
+from THREE.cython.cthree import *
 
 
 class Quaternion:
@@ -65,6 +66,9 @@ class Quaternion:
             return qm.copy( qa ).slerp( qb, t )
 
     def slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
+        cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t )
+
+    def _slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
         # // fuzz-free, array-based Quaternion SLERP operation
 
         x0 = src0[ srcOffset0 + 0 ]

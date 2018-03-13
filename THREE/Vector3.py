@@ -15,6 +15,7 @@ from THREE.Quaternion import *
 from THREE.Matrix4 import *
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
+from THREE.cython.cthree import *
 
 
 class Vector3(pyOpenGLObject):
@@ -174,7 +175,11 @@ class Vector3(pyOpenGLObject):
         return self
 
     def applyMatrix4(self, m ):
-        np.put(self.array, (0,1,2), self.np)
+        cVector3_applyMatrix4(self.np, m.elements)
+        return self
+
+    def _applyMatrix4(self, m ):
+        np.put(self.array, (0, 1, 2), self.np)
         c = np.dot(self.array, m.matrix)
 
         if c[3] == 0:
@@ -420,13 +425,10 @@ class Vector3(pyOpenGLObject):
         return self.fromArray( m.elements, index * 4 )
 
     def equals(self, v ):
-        return ( v.x == self.x ) and ( v.y == self.y ) and ( v.z == self.z )
+        return ( v.np[0] == self.np[0] ) and ( v.np[1] == self.np[1] ) and ( v.np[2] == self.np[2] )
 
     def fromArray(self, array, offset=0 ):
-        self.x = array[ offset ]
-        self.y = array[ offset + 1 ]
-        self.z = array[ offset + 2 ]
-
+        self.np[0:2] = array[offset:offset+2]
         return self
 
     def toArray(self, array=None, offset=0 ):

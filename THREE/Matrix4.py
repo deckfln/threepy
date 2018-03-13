@@ -13,10 +13,11 @@
      */
 """
 import math
-import THREE
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
-import numpy as np
+from THREE.cython.cthree import *
+
+_temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
 
 class Matrix4(pyOpenGLObject):
@@ -273,6 +274,13 @@ class Matrix4(pyOpenGLObject):
 
     def makeRotationFromQuaternion(self, q):
         te = self.elements
+        x = q._x; y = q._y; z = q._z; w = q._w
+        c_Matrix4_makeRotationFromQuaternion(te, x, y, z, w)
+
+        return self
+
+    def _makeRotationFromQuaternion(self, q):
+        te = self.elements
 
         x = q._x; y = q._y; z = q._z; w = q._w
         x2 = x + x; y2 = y + y; z2 = z + z
@@ -403,10 +411,10 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def multiplyScalar(self, s):
-        te = self.elements
+        self.elements *= s
 
-        te *= s
         """
+        te = self.elements
         te[0] *= s
         te[4] *= s
         te[8] *= s
@@ -427,15 +435,17 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def applyToBufferAttribute(self, attribute):
-        v1 = THREE.Vector3()
-        for i in range(int(attribute.count)):
-            v1.x = attribute.getX(i)
-            v1.y = attribute.getY(i)
-            v1.z = attribute.getZ(i)
+        _v1 = THREE.Vector3(0, 0, 0)
+        for i in range(0, len(attribute.array), 3):
+            _v1.np[0] = attribute.array[i]
+            _v1.np[1] = attribute.array[i + 1]
+            _v1.np[2] = attribute.array[i + 2]
 
-            v1.applyMatrix4(self)
+            _v1.applyMatrix4(self)
 
-            attribute.setXYZ(i, v1.x, v1.y, v1.z)
+            attribute.array[i] = _v1.np[0]
+            attribute.array[i + 1] = _v1.np[1]
+            attribute.array[i + 2] = _v1.np[2]
 
         return attribute
 
@@ -555,11 +565,12 @@ class Matrix4(pyOpenGLObject):
 
     def scale(self, v):
         te = self.elements
-        x = v.np[0]
-        y = v.np[1]
-        z = v.np[2]
 
-        te *= np.array([x, x, x, 1, y, y, y, 1, z, z, z, 1, 1, 1, 1, 1])
+        _temp[0] = _temp[1] = _temp[2] = v.np[0]
+        _temp[4] = _temp[5] = _temp[6] = v.np[1]
+        _temp[8] = _temp[9] = _temp[10] = v.np[2]
+
+        te *= _temp
         """
         te[0] *= x
         te[4] *= y 
