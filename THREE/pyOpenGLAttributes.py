@@ -27,6 +27,7 @@ class _pyOPenGLAattribute:
         self.type = type
         self.bytesPerElement = bytesPerElement
         self.version = version
+        self.updated = False
 
 
 class pyOpenGLAttributes(pyOpenGLObject):
@@ -35,12 +36,15 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
     def createBuffer(self, attribute, bufferType):
         array = attribute.array
-        usage = GL_DYNAMIC_DRAW if attribute.dynamic else GL_STATIC_DRAW
 
         buffer = glGenBuffers(1)
 
         glBindBuffer(bufferType, buffer)
-        glBufferData(bufferType, array, usage)
+        if attribute.dynamic:
+            glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
+            # glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.dtype.itemsize, array)
+        else:
+            glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
 
         attribute.onUploadCallback()
 
@@ -64,8 +68,12 @@ class pyOpenGLAttributes(pyOpenGLObject):
         if not attribute.dynamic:
             glBufferData(bufferType, array, GL_STATIC_DRAW)
         elif updateRange.count == - 1:
-            # // Not using update ranges
-            glBufferSubData(bufferType, 0, array)
+            if attribute.my_class(isInstancedBufferAttribute):
+                # // Not using update ranges
+                glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
+                glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
+            else:
+                glBufferData(bufferType, array, GL_DYNAMIC_DRAW)
         elif updateRange.count == 0:
             raise RuntimeError('THREE.WebGLObjects.updateBuffer: dynamic THREE.BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.')
         else:
@@ -101,7 +109,11 @@ class pyOpenGLAttributes(pyOpenGLObject):
             if data.version < attribute.version:
                 self.updateBuffer(data.buffer, attribute, bufferType)
                 data.version = attribute.version
+                data.updated = True
+            else:
+                data.updated = False
         else:
             self.buffers[attribute.uuid] = self.createBuffer(attribute, bufferType)
+            self.buffers[attribute.uuid].updated = True
 
         return self.buffers[attribute.uuid]

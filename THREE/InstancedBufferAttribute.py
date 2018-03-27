@@ -12,6 +12,7 @@ class InstancedBufferAttribute(BufferAttribute):
 
         self.set_class(isInstancedBufferAttribute)
         self.meshPerAttribute = meshPerAttribute
+        self.maxInstancedCount = None
 
     def copy(self, source):
         super().copy(source)

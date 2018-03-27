@@ -67,16 +67,25 @@ class pyOpenGLGeometries:
         return buffergeometry
 
     def update(self, geometry):
+        updated = False
         index = geometry.index
         geometryAttributes = geometry.attributes
+        if geometry.my_class(isInstancedBufferGeometry):
+            maxInstancedCount = geometry.maxInstancedCount
 
         if index:
-            self.attributes.update( index, GL_ELEMENT_ARRAY_BUFFER)
+            data = self.attributes.update( index, GL_ELEMENT_ARRAY_BUFFER)
+            if data.updated:
+                updated = True
 
         for name in geometryAttributes.__dict__:
             attribute = geometryAttributes.__dict__[name]
             if attribute is not None:
-                self.attributes.update(attribute , GL_ARRAY_BUFFER)
+                if attribute.my_class(isInstancedBufferAttribute):
+                    attribute.maxInstancedCount = maxInstancedCount
+                data = self.attributes.update(attribute, GL_ARRAY_BUFFER)
+                if data.updated:
+                    updated = True
 
         # // morph targets
         morphAttributes = geometry.morphAttributes
@@ -85,7 +94,11 @@ class pyOpenGLGeometries:
             array = morphAttributes[name]
 
             for i in range(len(array)):
-                self.attributes.update(array[ i ], GL_ARRAY_BUFFER)
+                data = self.attributes.update(array[ i ], GL_ARRAY_BUFFER)
+                if data.updated:
+                    updated = True
+
+        return updated
 
     def getWireframeAttribute(self, geometry):
         if geometry.id in self.wireframeAttributes:

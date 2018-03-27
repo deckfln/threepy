@@ -18,8 +18,9 @@ class Scene(Object3D):
         self.background = None
         self.fog = None
         self.overrideMaterial = None
+        self.instances = []
 
-        self.autoUpdate = True # // checked by the renderer
+        self.autoUpdate = True      # // checked by the renderer
 
     def copy(self, source, recursive=True ):
         super().copy( source, recursive )
@@ -45,3 +46,11 @@ class Scene(Object3D):
             data.object.fog = self.fog.toJSON()
 
         return data
+
+    def add_instance(self, object):
+        if object and object.isObject3D:
+            self.instances.append(object)
+        else:
+            raise RuntimeError("THREE.Object3D.add: object not an instance of THREE.Object3D.", object)
+
+        return self

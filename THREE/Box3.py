@@ -62,7 +62,7 @@ class Box3:
         maxY = float('-inf')
         maxZ = float('-inf')
 
-        for i in range(0, len(attribute.array), attribute.itemSize):
+        for i in range(0, len(attribute.array) - 2, attribute.itemSize):
             x = attribute.array[i]
             y = attribute.array[i + 1]
             z = attribute.array[i + 2]

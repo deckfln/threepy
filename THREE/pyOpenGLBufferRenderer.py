@@ -35,7 +35,6 @@ class pyOpenGLBufferRenderer:
             count = position.data.count
             glDrawArraysInstanced( self.mode, 0, count, geometry.maxInstancedCount )
         else:
-
             glDrawArraysInstanced( self.mode, start, count, geometry.maxInstancedCount )
 
         self.infoRender.calls += 1

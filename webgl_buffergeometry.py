@@ -19,7 +19,7 @@ def init(p):
     p.container = pyOpenGL(p)
 
     p.camera = THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 3500)
-    p.camera.position.z = 2750
+    p.camera.position.z = 1750
 
     p.scene = THREE.Scene()
     p.scene.background = THREE.Color( 0x050505 )
@@ -180,7 +180,7 @@ def animate(p):
 
 
 def render(p):
-    time = datetime.now().timestamp() * 0.1
+    time = datetime.now().timestamp() * 1
 
     p.mesh.rotation.x = time * 0.25
     p.mesh.rotation.y = time * 0.5

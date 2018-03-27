@@ -181,6 +181,7 @@ class InstancedInterleavedBuffer(InterleavedBuffer):
     def __init__(self, array, stride, meshPerAttribute ):
         super().__init__(array, stride )
 
+        self.set_class(isInstancedInterleavedBuffer)
         self.meshPerAttribute = meshPerAttribute or 1
 
 

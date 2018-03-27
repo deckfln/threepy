@@ -82,6 +82,9 @@ class Object3D(pyOpenGLObject):
         self._onBeforeRenderParent = None
         self.customDepthMaterial = None
 
+        self.vao = 0
+        self.update_vao = True
+
     def __iter__(self):
         return iter(self.__dict__)
 
@@ -216,7 +219,7 @@ class Object3D(pyOpenGLObject):
             raise RuntimeError("THREE.Object3D.add: object can't be added as a child of itself.", object)
 
         if object and object.isObject3D:
-            if object.parent is not None :
+            if object.parent is not None:
                 object.parent.remove(object)
 
             object.parent = self

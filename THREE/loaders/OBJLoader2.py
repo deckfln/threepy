@@ -784,7 +784,7 @@ class OBJLoader2:
             # only use parseText if useArrayBuffer is explicitly set to False
             scope.obj = scope.parse(content) if useArrayBuffer is not False else scope.parseText(content)
             if onLoad:
-                onLoad(p)
+                onLoad(scope.obj)
 
         self.fileLoader.load(url, _load, onProgress, onError)
         return self.obj

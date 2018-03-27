@@ -8,6 +8,7 @@ from datetime import datetime
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 
+
 class Params:
     def __init__(self):
         self.camera = None
@@ -15,6 +16,7 @@ class Params:
         self.renderer = None
         self.container = None
         self.mesh = None
+        self.mesh1 = None
 
         
 def init(params):
@@ -31,6 +33,11 @@ def init(params):
 
     params.mesh = THREE.Mesh(geometry, material)
     params.scene.add(params.mesh)
+
+    params.mesh1 = THREE.Mesh(geometry, material)
+    params.mesh1.position.x = 50
+    params.mesh1.position.y = 50
+    params.scene.add(params.mesh1)
 
     params.renderer = params.renderer = THREE.pyOpenGLRenderer({'antialias': True})
     params.renderer.setSize( window.innerWidth, window.innerHeight )

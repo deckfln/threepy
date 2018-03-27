@@ -4,6 +4,8 @@
  */
 """
 from THREE.BufferGeometry import *
+from OpenGL_accelerate import *
+from OpenGL.GL import *
 
 
 class pyOpenGLObjects:
@@ -11,7 +13,7 @@ class pyOpenGLObjects:
         self.updateList = {}
         self.infoRender = infoRender
         self.geometries = geometries
-        
+
     def update(self, object):
         frame = self.infoRender.frame
 
@@ -27,7 +29,19 @@ class pyOpenGLObjects:
             if geometry.my_class(isGeometry):
                 buffergeometry.updateFromObject(object)
 
-            self.geometries.update(buffergeometry)
+            if object.vao == 0:
+                object.vao = glGenVertexArrays(1)
+                object.update_vao = True
+                glBindVertexArray(object.vao)
+
+                self.geometries.update(buffergeometry)
+
+                glBindVertexArray(0)
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+            else:
+                # object.update_vao = self.geometries.update(buffergeometry)
+                self.geometries.update(buffergeometry)
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
 
             self.updateList[buffergeometry.id] = frame
 

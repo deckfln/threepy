@@ -13,9 +13,10 @@ import numpy as np
 
 from THREE.Quaternion import *
 from THREE.Matrix4 import *
+
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
-from THREE.cython.cthree import *
+# from THREE.cython.cthree import *
 
 
 class Vector3(pyOpenGLObject):
@@ -321,7 +322,7 @@ class Vector3(pyOpenGLObject):
         return s1
 
     def length(self):
-        return np.sqrt( self.lengthSq() )
+        return math.sqrt( self.lengthSq() )
 
     def lengthManhattan(self):
         return abs( self.x ) + abs( self.y ) + abs( self.z )
@@ -428,7 +429,7 @@ class Vector3(pyOpenGLObject):
         return ( v.np[0] == self.np[0] ) and ( v.np[1] == self.np[1] ) and ( v.np[2] == self.np[2] )
 
     def fromArray(self, array, offset=0 ):
-        self.np[0:2] = array[offset:offset+2]
+        self.np[0:3] = array[offset:offset+3]
         return self
 
     def toArray(self, array=None, offset=0 ):

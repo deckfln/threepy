@@ -125,9 +125,6 @@ class pyOpenGLRenderer:
         self.onKeyDown = None
         self.animationFrame = None
 
-        # FDE TODO: as all OpenGL tutorial create VAO, so create one, just if really needed
-        self.vaoID = glGenVertexArrays(1)
-
         self.extensions = pyOpenGLExtensions()
         self.extensions.get('WEBGL_depth_texture')
         self.extensions.get('OES_texture_float')
@@ -912,8 +909,6 @@ class pyOpenGLRenderer:
         #    if extensions.get('ANGLE_instanced_arrays') is None:
         #        raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
 
-        self.state.initAttributes()
-
         geometryAttributes = geometry.attributes
         programAttributes = program.getAttributes()
         materialDefaultAttributeValues = material.defaultAttributeValues
@@ -946,12 +941,13 @@ class pyOpenGLRenderer:
 
                 if geometryAttribute.my_class(isBufferAttribute):
                     if geometryAttribute.my_class(isInstancedBufferAttribute):
-                        self.state.enableAttributeAndDivisor(programAttribute, geometryAttribute.meshPerAttribute)
+                        glEnableVertexAttribArray(programAttribute)
+                        glVertexAttribDivisor(programAttribute, geometryAttribute.meshPerAttribute)
 
                         if geometry.maxInstancedCount is None:
                             geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
                     else:
-                        self.state.enableAttribute(programAttribute)
+                        glEnableVertexAttribArray(programAttribute)
 
                     glBindBuffer(GL_ARRAY_BUFFER, buffer)
                     pointer = startIndex * size * bytesPerElement
@@ -967,12 +963,13 @@ class pyOpenGLRenderer:
                     offset = geometryAttribute.offset
 
                     if data and data.my_class(isInstancedInterleavedBuffer):
-                        self.state.enableAttributeAndDivisor(programAttribute, data.meshPerAttribute)
+                        glEnableVertexAttribArray(programAttribute)
+                        glVertexAttribDivisor(programAttribute, data.meshPerAttribute)
 
                         if geometry.maxInstancedCount is None:
                             geometry.maxInstancedCount = data.meshPerAttribute * data.count
                     else:
-                        self.state.enableAttribute(programAttribute)
+                        glEnableVertexAttribArray(programAttribute)
 
                     glBindBuffer(GL_ARRAY_BUFFER, buffer)
                     pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p((startIndex * stride + offset) * bytesPerElement))
@@ -990,7 +987,165 @@ class pyOpenGLRenderer:
                     else:
                         glVertexAttrib1fv(programAttribute, value)
 
-        self.state.disableUnusedAttributes()
+    def renderBufferDirect(self, camera, fog, geometry, material, object, group):
+        """
+
+        :param camera:
+        :param fog:
+        :param geometry:
+        :param material:
+        :param object:
+        :param group:
+        :return:
+        """
+        self.state.setMaterial(material)
+
+        program = self._setProgram(camera, fog, material, object)
+        self.program = program
+        wireframe = material.wireframe
+        geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
+
+        updateBuffers = False
+
+        if geometryProgram != self._currentGeometryProgram:
+            self._currentGeometryProgram = geometryProgram
+            updateBuffers = True
+
+        if hasattr(object, 'morphTargetInfluences'):
+            self.morphtargets.update(object, geometry, material, program)
+            updateBuffers = True
+
+        # //
+
+        index = geometry.index
+        position = geometry.attributes.position
+        rangeFactor = 1
+
+        if wireframe:
+            index = self.geometries.getWireframeAttribute(geometry)
+            rangeFactor = 2
+
+        renderer = self.bufferRenderer
+
+        attribute = None
+        if index:
+            attribute = self.attributes.get(index)
+
+            renderer = self.indexedBufferRenderer
+            renderer.setIndex(attribute)
+
+        if object.update_vao:
+            glBindVertexArray(object.vao)
+            self._setupVertexAttributes(material, program, geometry)
+
+            if index:
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
+
+            glBindVertexArray(0)
+            if index:
+                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            object.update_vao = False
+
+
+        # //
+
+        dataCount = 0
+
+        if index:
+            dataCount = index.count
+        elif position:
+            dataCount = position.count
+
+        rangeStart = geometry.drawRange.start * rangeFactor
+        rangeCount = geometry.drawRange.count * rangeFactor
+
+        groupStart = group.start * rangeFactor if group else 0
+        groupCount = group.count * rangeFactor if group else float("+inf")
+
+        drawStart = max(rangeStart, groupStart)
+        drawEnd = min(dataCount, rangeStart + rangeCount, groupStart + groupCount) - 1
+
+        drawCount = max(0, drawEnd - drawStart + 1)
+
+        if drawCount == 0:
+            return
+
+        # //
+
+        glBindVertexArray(object.vao)
+
+        if object.my_class(isMesh):
+            if not material.wireframe:
+                renderer.setMode(self.drawMode[object.drawMode])
+            else:
+                self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
+                renderer.setMode(GL_LINES)
+
+        elif object.my_class(isLine):
+            lineWidth = material.linewidth
+
+            if lineWidth is None:
+                lineWidth = 1  # // Not using Line*Material
+
+            self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
+
+            if object.my_class(isLineSegments):
+                renderer.setMode(GL_LINES)
+            elif object.my_class(isLineLoop):
+                renderer.setMode(GL_LINE_LOOP)
+            else:
+                renderer.setMode(GL_LINE_STRIP)
+
+        elif object.my_class(isPoints):
+            renderer.setMode(GL_POINTS)
+            # <OpenGL
+            self.state.enable(GL_POINT_SPRITE)
+            self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
+            # OpenGL>
+
+        if geometry and geometry.my_class(isInstancedBufferGeometry):
+            if geometry.maxInstancedCount > 0:
+                renderer.renderInstances(geometry, drawStart, drawCount)
+        else:
+            renderer.render(drawStart, drawCount)
+
+        glBindVertexArray(0)
+
+    def _renderObject(self, object, scene, camera, geometry, material, group):
+        """
+
+        :param object:
+        :param scene:
+        :param camera:
+        :param geometry:
+        :param material:
+        :param group:
+        :return:
+        """
+        object.onBeforeRender(self, scene, camera, geometry, material, group)
+
+        object.modelViewMatrix.updated = object.normalMatrix.updated = False
+
+        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+            object.modelViewMatrix.updated = True
+            object.normalMatrix.updated = True
+
+        if object.my_class(isImmediateRenderObject):
+            self.state.setMaterial(material)
+
+            program = self._setProgram(camera, scene.fog, material, object)
+
+            self._currentGeometryProgram = ''
+
+            self._renderObjectImmediate(object, program, material)
+        else:
+            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group)
+
+        object.onAfterRender(self, scene, camera, geometry, material, group)
 
     def _renderObjects(self, renderList, scene, camera, overrideMaterial=None):
         """
@@ -1029,40 +1184,6 @@ class pyOpenGLRenderer:
             else:
                 self._currentArrayCamera = None
                 self._renderObject(object, scene, camera, geometry, material, group)
-
-    def _renderObject(self, object, scene, camera, geometry, material, group):
-        """
-
-        :param object:
-        :param scene:
-        :param camera:
-        :param geometry:
-        :param material:
-        :param group:
-        :return:
-        """
-        object.onBeforeRender(self, scene, camera, geometry, material, group)
-
-        object.modelViewMatrix.updated = object.normalMatrix.updated = False
-
-        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-            object.modelViewMatrix.updated = True
-            object.normalMatrix.updated = True
-
-        if object.my_class(isImmediateRenderObject):
-            self.state.setMaterial(material)
-
-            program = self._setProgram(camera, scene.fog, material, object)
-
-            self._currentGeometryProgram = ''
-
-            self._renderObjectImmediate(object, program, material)
-        else:
-            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group)
-
-        object.onAfterRender(self, scene, camera, geometry, material, group)
 
     # // Buffer rendering
 
@@ -1160,121 +1281,9 @@ class pyOpenGLRenderer:
         self.state.disableUnusedAttributes()
 
         glDrawArrays(GL_TRIANGLES, 0, object.count)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         object.count = 0
-
-    def renderBufferDirect(self, camera, fog, geometry, material, object, group):
-        """
-
-        :param camera:
-        :param fog:
-        :param geometry:
-        :param material:
-        :param object:
-        :param group:
-        :return:
-        """
-        self.state.setMaterial(material)
-
-        program = self._setProgram(camera, fog, material, object)
-        self.program = program
-        wireframe = material.wireframe
-        geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
-
-        updateBuffers = False
-
-        if geometryProgram != self._currentGeometryProgram:
-            self._currentGeometryProgram = geometryProgram
-            updateBuffers = True
-
-        if hasattr(object, 'morphTargetInfluences'):
-            self.morphtargets.update(object, geometry, material, program)
-            updateBuffers = True
-
-        # //
-
-        index = geometry.index
-        position = geometry.attributes.position
-        rangeFactor = 1
-
-        if wireframe:
-            index = self.geometries.getWireframeAttribute(geometry)
-            rangeFactor = 2
-
-        renderer = self.bufferRenderer
-
-        attribute = None
-        if index:
-            attribute = self.attributes.get(index)
-
-            renderer = self.indexedBufferRenderer
-            renderer.setIndex(attribute)
-
-        if updateBuffers:
-            self._setupVertexAttributes(material, program, geometry)
-
-            if index:
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
-
-        # //
-
-        dataCount = 0
-
-        if index:
-            dataCount = index.count
-        elif position:
-            dataCount = position.count
-
-        rangeStart = geometry.drawRange.start * rangeFactor
-        rangeCount = geometry.drawRange.count * rangeFactor
-
-        groupStart = group.start * rangeFactor if group else 0
-        groupCount = group.count * rangeFactor if group else float("+inf")
-
-        drawStart = max(rangeStart, groupStart)
-        drawEnd = min(dataCount, rangeStart + rangeCount, groupStart + groupCount) - 1
-
-        drawCount = max(0, drawEnd - drawStart + 1)
-
-        if drawCount == 0:
-            return
-
-        # //
-
-        if object.my_class(isMesh):
-            if not material.wireframe:
-                renderer.setMode(self.drawMode[object.drawMode])
-            else:
-                self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
-                renderer.setMode(GL_LINES)
-
-        elif object.my_class(isLine):
-            lineWidth = material.linewidth
-
-            if lineWidth is None:
-                lineWidth = 1  # // Not using Line*Material
-
-            self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
-
-            if object.my_class(isLineSegments):
-                renderer.setMode(GL_LINES)
-            elif object.my_class(isLineLoop):
-                renderer.setMode(GL_LINE_LOOP)
-            else:
-                renderer.setMode(GL_LINE_STRIP)
-
-        elif object.my_class(isPoints):
-            renderer.setMode(GL_POINTS)
-            # <OpenGL
-            self.state.enable(GL_POINT_SPRITE)
-            self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
-            # OpenGL>
-
-        if geometry and geometry.my_class(isInstancedBufferGeometry):
-            if geometry.maxInstancedCount > 0:
-                renderer.renderInstances(geometry, drawStart, drawCount)
-        else:
-            renderer.render(drawStart, drawCount)
 
     def _projectOctree(self, octree, camera, sortObjects, test_culled=True):
         """
@@ -1388,6 +1397,32 @@ class pyOpenGLRenderer:
         for i in children:
             self._projectObject(i, camera, sortObjects)
 
+    def _renderInstances(self, scene, camera):
+        """
+        Render all instances objects in the scene
+        :param scene:
+        :param camera:
+        :return:
+        """
+        _vector3 = self._vector3
+
+        for instance in scene.instances:
+            if instance.geometry.maxInstancedCount > 0:
+                geometry = self.objects.update(instance)
+                material = instance.material
+
+                if isinstance(material, list):
+                    groups = geometry.groups
+
+                    for group in groups:
+                        groupMaterial = material[group.materialIndex]
+
+                        if groupMaterial and groupMaterial.visible:
+                            self.currentRenderList.push(instance, geometry, groupMaterial, _vector3.z, group)
+
+                elif material.visible:
+                    self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
+
     def render(self, scene, camera, renderTarget=None, forceClear=False):
         """
         :param scene:
@@ -1407,9 +1442,6 @@ class pyOpenGLRenderer:
         self._currentGeometryProgram = ''
         self._currentMaterialId = - 1
         self._currentCamera = None
-
-        # TODO FDE: bind the VAO is really needed in opengl
-        glBindVertexArray(self.vaoID)
 
         # // update scene graph
 
@@ -1471,6 +1503,8 @@ class pyOpenGLRenderer:
         self.background.render(self.currentRenderList, scene, camera, forceClear)
 
         # // render scene
+
+        self._renderInstances(scene, camera)
 
         opaqueObjects = self.currentRenderList.opaque
         transparentObjects = self.currentRenderList.transparent

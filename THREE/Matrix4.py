@@ -15,7 +15,7 @@
 import math
 from THREE.Vector3 import *
 from THREE.pyOpenGLObject import *
-from THREE.cython.cthree import *
+#from THREE.cython.cthree import *
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
@@ -566,9 +566,9 @@ class Matrix4(pyOpenGLObject):
     def scale(self, v):
         te = self.elements
 
-        _temp[0] = _temp[1] = _temp[2] = v.np[0]
-        _temp[4] = _temp[5] = _temp[6] = v.np[1]
-        _temp[8] = _temp[9] = _temp[10] = v.np[2]
+        _temp[0] = _temp[1] = _temp[2] = _temp[3] = v.np[0]
+        _temp[4] = _temp[5] = _temp[6] = _temp[7] = v.np[1]
+        _temp[8] = _temp[9] = _temp[10] = _temp[11] = v.np[2]
 
         te *= _temp
         """
@@ -682,12 +682,15 @@ class Matrix4(pyOpenGLObject):
     def decompose(self, position, quaternion, scale):
         vector = THREE.Vector3()
         matrix = Matrix4()
+
         te = self.elements
 
         sx = vector.set(te[0], te[1], te[2]).length()
         sy = vector.set(te[4], te[5], te[6]).length()
         sz = vector.set(te[8], te[9], te[10]).length()
 
+        if sz == 0:
+            print("go")
         # // if determine is negative, we need to invert one scale
         det = self.determinant()
         if det < 0:

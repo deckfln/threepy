@@ -54,6 +54,7 @@ class pyOpenGLBackground:
                     } )
                 )
 
+                self.boxMesh.create_vao()
                 self.boxMesh.geometry.removeAttribute( 'normal' )
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
@@ -90,7 +91,9 @@ class pyOpenGLBackground:
 
             # // TODO Push this to renderList
 
+            glBindVertexArray(self.boxMesh.vao)
             self.renderer.renderBufferDirect( self.planeCamera, None, planeMesh.geometry, planeMesh.material, planeMesh, None )
+            glBindVertexArray(0)
 
     def setClear(self, color, alpha ):
         self.state.buffers.color.setClear( color.r, color.g, color.b, alpha, self.premultipliedAlpha )

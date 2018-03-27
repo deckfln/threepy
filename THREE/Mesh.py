@@ -9,6 +9,8 @@
 import random
 import math
 
+from OpenGL.GL import *
+
 from THREE.Constants import *
 from THREE.Object3D import *
 from THREE.MeshBasicMaterial import *
@@ -103,6 +105,9 @@ class Mesh(Object3D):
 
     def __getitem__(self, item):
         return self.__dict__[item]
+
+    def create_vao(self):
+        self.vao = glGenVertexArrays(1)
 
     def setDrawMode(self, value ):
         self.drawMode = value

@@ -25,7 +25,12 @@ class pyOpenGLIndexedBufferRenderer:
         self._bytesPerElement = value.bytesPerElement
 
     def render(self, start, count):
-        glDrawElements(self.mode, int(count), self._type, c_void_p(start * self._bytesPerElement))
+        if not start:
+            pointer = None
+        else:
+            pointer = c_void_p(start * self._bytesPerElement)
+
+        glDrawElements(self.mode, int(count), self._type, pointer)
 
         self._infoRender.calls += 1
         self._infoRender.vertices += count
@@ -36,7 +41,11 @@ class pyOpenGLIndexedBufferRenderer:
             self._infoRender.points += count
 
     def renderInstances(self, geometry, start, count ):
-        glDrawElementsInstanced(self.mode, int(count), self._type, c_void_p(start * self._bytesPerElement), geometry.maxInstancedCount )
+        if not start:
+            pointer = None
+        else:
+            pointer = c_void_p(start * self._bytesPerElement)
+        glDrawElementsInstanced(self.mode, int(count), self._type, pointer, geometry.maxInstancedCount )
 
         self._infoRender.calls += 1
         self._infoRender.vertices += count * geometry.maxInstancedCount

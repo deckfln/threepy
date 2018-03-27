@@ -366,7 +366,7 @@ class BufferGeometry(pyOpenGLObject):
             # // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
 
             maxRadiusSq = 0
-            for i in range(0, len(position.array), position.itemSize):
+            for i in range(0, len(position.array) - 2, position.itemSize):
                 vector.np[0] = position.array[ i ]
                 vector.np[1] = position.array[ i + 1 ]
                 vector.np[2] = position.array[ i + 2 ]
