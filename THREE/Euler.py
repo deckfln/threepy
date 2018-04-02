@@ -89,6 +89,15 @@ class Euler(pyOpenGLObject):
         return self
 
     def setFromRotationMatrix(self, m, order=None, update=True):
+        self._order = order or self._order
+        cEuler_setFromRotationMatrix(self, m.elements, self._order)
+
+        if update and self.onChangeCallback:
+            self.onChangeCallback(self)
+
+        return self
+
+    def _setFromRotationMatrix(self, m, order=None, update=True):
         clamp = _Math.clamp
 
         # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)

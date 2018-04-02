@@ -19,6 +19,8 @@ from THREE.DirectGeometry import *
 from THREE.DirectGeometry import *
 
 _gIdcount = 0
+_box = Box3()
+_vector = Vector3()
 
 
 def GeometryIdCount():
@@ -352,25 +354,23 @@ class BufferGeometry(pyOpenGLObject):
             print( 'THREE.BufferGeometry.computeBoundingBox: Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', self )
 
     def computeBoundingSphere(self):
-        box = Box3()
-        vector = Vector3()
         if self.boundingSphere is None:
             self.boundingSphere = BoundingSphere()
 
         position = self.attributes.position
         if position:
             center = self.boundingSphere.center
-            box.setFromBufferAttribute( position )
-            box.getCenter( center )
+            _box.setFromBufferAttribute( position )
+            _box.getCenter( center )
             # // hoping to find a boundingSphere with a radius smaller than the
             # // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
 
             maxRadiusSq = 0
             for i in range(0, len(position.array) - 2, position.itemSize):
-                vector.np[0] = position.array[ i ]
-                vector.np[1] = position.array[ i + 1 ]
-                vector.np[2] = position.array[ i + 2 ]
-                maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( vector ) )
+                _vector.np[0] = position.array[ i ]
+                _vector.np[1] = position.array[ i + 1 ]
+                _vector.np[2] = position.array[ i + 2 ]
+                maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( _vector ) )
 
             self.boundingSphere.radius = math.sqrt( maxRadiusSq )
             if math.isnan( self.boundingSphere.radius ):

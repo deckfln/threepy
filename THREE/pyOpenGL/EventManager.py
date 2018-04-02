@@ -20,6 +20,7 @@ class Event:
 class EventManager:
     def __init__(self, events=None):
         self.callbacks = {}
+        self.animationRequest = None
 
         if events:
             for event in events:
@@ -30,6 +31,9 @@ class EventManager:
             self.callbacks[event] = []
 
         self.callbacks[event].append(funct)
+
+        if event == 'animationRequest':
+            self.animationRequest = funct
 
     def removeEventListener(self, event, funct, compatibility=False):
         callbacks = self.callbacks[event]
@@ -46,14 +50,13 @@ class EventManager:
     def removeAllEventListeners(self):
         self.callbacks.clear()
 
+    def animate(self, params):
+        self.animationRequest(params)
+
     def dispatchEvent(self, event=None, params=None):
         type = event['type']
 
-        if type == 'animationRequest':
-            callbacks = self.callbacks[type]
-            callbacks[0](params)
-
-        elif type in self.callbacks:
+        if type in self.callbacks:
             callbacks = self.callbacks[type][:] # get a copy of the list
 
             if len(callbacks) > 0:

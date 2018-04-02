@@ -19,6 +19,12 @@
  *
  * @author tschw
 """
+_forward_scan = 1
+_seek = 2
+_linear_scan = 3
+_validate_interval = 4
+
+from THREE.cython.cInterpolant import *
 
 
 class Interpolant:
@@ -41,6 +47,9 @@ class Interpolant:
         self.afterEnd_ = self.copySampleValue_
 
     def evaluate(self, t ):
+        return cInterpolant_evaluate(self, t)
+
+    def _evaluate(self, t ):
         pp = self.parameterPositions
         len_pp = len(pp)
         i1 = self._cachedIndex
@@ -50,13 +59,12 @@ class Interpolant:
 
         right = None
 
-        goto = ''
+        status = None
         if t1 is None or t >= t1:
             giveUpAt = i1 + 2
             while True:
                 if t1 is None:
                     if t < t0:
-                        goto = 'forward_scan'
                         break
 
                     # after end
@@ -76,19 +84,15 @@ class Interpolant:
 
                 if t < t1:
                     # we have arrived at the sought interval
-                    goto ="seek"
+                    status = _seek
                     break
 
             # prepare binary search on the right side of the index
-            if goto == '':
+            if status is None:
                 right = len_pp
-                goto = "linear_scan"
+                status = _linear_scan
 
-        if goto == 'forward_scan':
-            goto = ''
-
-        if goto == '' and (t0 is None or t < t0):
-            got = ''
+        if status is None and (t0 is None or t < t0):
             # looping?
             t1global = pp[1]
 
@@ -113,24 +117,24 @@ class Interpolant:
 
                 if t >= t0:
                     # we have arrived at the sought interval
-                    goto = "seek"
+                    status = _seek
                     break
 
             # prepare binary search on the left side of the index
-            if goto == '':
+            if status is None:
                 right = i1
                 i1 = 0
-                goto = "linear_scan"
+                status = _linear_scan
 
         # the interval is valid
-        if goto == '':
-            goto = "validate_interval"
+        if status is None:
+            status = _validate_interval
 
-        if goto == 'linear_scan':
-            goto = ''
+        if status == _linear_scan:
+            status = None
 
         # binary search
-        if goto == '':
+        if status is None:
             while i1 < right:
                 mid = (i1 + right) >> 1
 
@@ -152,7 +156,7 @@ class Interpolant:
                 self._cachedIndex = i1
                 return self.afterEnd_(i1 - 1, t0, t)
 
-        if goto == "" or goto == "seek":
+        if status is None or status == _seek:
             self._cachedIndex = i1
             self.intervalChanged_(i1, t0, t1)
 

@@ -28,10 +28,12 @@ class pyOpenGLIndexedBufferRenderer:
         if not start:
             pointer = None
         else:
-            pointer = c_void_p(start * self._bytesPerElement)
+            pointer = int(start * self._bytesPerElement)
 
-        glDrawElements(self.mode, int(count), self._type, pointer)
-
+        try:
+            glDrawElements(self.mode, int(count), self._type, pointer)
+        except:
+            print("down")
         self._infoRender.calls += 1
         self._infoRender.vertices += count
 

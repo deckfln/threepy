@@ -3,6 +3,8 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
+
+import THREE.pyOpenGL as pyOpenGL
 from OpenGL import *
 from OpenGL_accelerate import *
 from OpenGL.GL import *
@@ -41,10 +43,10 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         glBindBuffer(bufferType, buffer)
         if attribute.dynamic:
-            glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
+            pyOpenGL.OpenGL.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
             # glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.dtype.itemsize, array)
         else:
-            glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
+            pyOpenGL.OpenGL.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
 
         attribute.onUploadCallback()
 
@@ -70,8 +72,8 @@ class pyOpenGLAttributes(pyOpenGLObject):
         elif updateRange.count == - 1:
             if attribute.my_class(isInstancedBufferAttribute):
                 # // Not using update ranges
-                glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
-                glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
+                # pyOpenGL.OpenGL.glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
+                pyOpenGL.OpenGL.glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
             else:
                 glBufferData(bufferType, array, GL_DYNAMIC_DRAW)
         elif updateRange.count == 0:

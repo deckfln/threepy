@@ -13,11 +13,13 @@
      */
 """
 import math
-from THREE.Vector3 import *
+import THREE
 from THREE.pyOpenGLObject import *
-#from THREE.cython.cthree import *
+from THREE.cython.cthree import *
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0])
+_vector = None
+_matrix = None
 
 
 class Matrix4(pyOpenGLObject):
@@ -359,6 +361,9 @@ class Matrix4(pyOpenGLObject):
         return self.multiplyMatrices(m, self)
 
     def multiplyMatrices(self, a, b):
+        cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
+
+    def _multiplyMatrices(self, a, b):
         amatrix = a.elements.reshape(4, 4)
         bmatrix = b.elements.reshape(4, 4)
 
@@ -509,6 +514,10 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def setPosition(self, v):
+        cMatrix4_setPosition(self.elements, v.np)
+        return self
+
+    def _setPosition(self, v):
         te = self.elements
 
         te[12] = v.np[0]
@@ -564,6 +573,10 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def scale(self, v):
+        cMatrix4_scale(self.elements, v.np)
+        return self
+
+    def _scale(self, v):
         te = self.elements
 
         _temp[0] = _temp[1] = _temp[2] = _temp[3] = v.np[0]
@@ -571,20 +584,6 @@ class Matrix4(pyOpenGLObject):
         _temp[8] = _temp[9] = _temp[10] = _temp[11] = v.np[2]
 
         te *= _temp
-        """
-        te[0] *= x
-        te[4] *= y 
-        te[8] *= z
-        te[1] *= x 
-        te[5] *= y 
-        te[9] *= z
-        te[2] *= x 
-        te[6] *= y 
-        te[10] *= z
-        te[3] *= x 
-        te[7] *= y 
-        te[11] *= z
-        """
         return self
 
     def getMaxScaleOnAxis(self):
@@ -673,6 +672,11 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def compose(self, position, quaternion, scale):
+        te = self.elements
+        x = quaternion._x; y = quaternion._y; z = quaternion._z; w = quaternion._w
+        cMatrix4_compose(te, position.np, scale.np, x, y, z, w)
+
+    def _compose(self, position, quaternion, scale):
         self.makeRotationFromQuaternion(quaternion)
         self.scale(scale)
         self.setPosition(position)
@@ -680,14 +684,18 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def decompose(self, position, quaternion, scale):
-        vector = THREE.Vector3()
-        matrix = Matrix4()
+        global _vector
+        global _matrix
+
+        if _vector is None:
+            _vector = THREE.Vector3()
+            _matrix = Matrix4()
 
         te = self.elements
 
-        sx = vector.set(te[0], te[1], te[2]).length()
-        sy = vector.set(te[4], te[5], te[6]).length()
-        sz = vector.set(te[8], te[9], te[10]).length()
+        sx = _vector.set(te[0], te[1], te[2]).length()
+        sy = _vector.set(te[4], te[5], te[6]).length()
+        sz = _vector.set(te[8], te[9], te[10]).length()
 
         if sz == 0:
             print("go")
@@ -701,25 +709,25 @@ class Matrix4(pyOpenGLObject):
         position.z = te[14]
 
         # // scale the rotation part
-        matrix.copy(self)
+        _matrix.copy(self)
 
         invSX = 1 / sx
         invSY = 1 / sy
         invSZ = 1 / sz
 
-        matrix.elements[0] *= invSX
-        matrix.elements[1] *= invSX
-        matrix.elements[2] *= invSX
+        _matrix.elements[0] *= invSX
+        _matrix.elements[1] *= invSX
+        _matrix.elements[2] *= invSX
 
-        matrix.elements[4] *= invSY
-        matrix.elements[5] *= invSY
-        matrix.elements[6] *= invSY
+        _matrix.elements[4] *= invSY
+        _matrix.elements[5] *= invSY
+        _matrix.elements[6] *= invSY
 
-        matrix.elements[8] *= invSZ
-        matrix.elements[9] *= invSZ
-        matrix.elements[10] *= invSZ
+        _matrix.elements[8] *= invSZ
+        _matrix.elements[9] *= invSZ
+        _matrix.elements[10] *= invSZ
 
-        quaternion.setFromRotationMatrix(matrix)
+        quaternion.setFromRotationMatrix(_matrix)
 
         scale.x = sx
         scale.y = sy

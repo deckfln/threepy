@@ -1034,7 +1034,8 @@ class pyOpenGLRenderer:
             renderer = self.indexedBufferRenderer
             renderer.setIndex(attribute)
 
-        if object.update_vao:
+        if object.vao == 0:
+            object.vao = glGenVertexArrays(1)
             glBindVertexArray(object.vao)
             self._setupVertexAttributes(material, program, geometry)
 
@@ -1472,6 +1473,7 @@ class pyOpenGLRenderer:
         self.currentRenderList.init()
 
         self._projectObject(scene, camera, self.sortObjects)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if self.sortObjects:
             self.currentRenderList.sort()

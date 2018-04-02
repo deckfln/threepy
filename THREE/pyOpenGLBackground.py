@@ -54,7 +54,6 @@ class pyOpenGLBackground:
                     } )
                 )
 
-                self.boxMesh.create_vao()
                 self.boxMesh.geometry.removeAttribute( 'normal' )
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 

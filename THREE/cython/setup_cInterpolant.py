@@ -5,8 +5,8 @@ import numpy
 
 setup(
     ext_modules = [
-        Extension("cthree",
-                  sources=["cthree.pyx"],
+        Extension("cInterpolant",
+                  sources=["cInterpolant.pyx"],
                 extra_compile_args=["/openmp"],
                 include_dirs=[numpy.get_include()]
                   )

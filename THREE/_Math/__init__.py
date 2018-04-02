@@ -1,9 +1,13 @@
 import math
 import array
+import sys
 import random
+
+from THREE.cython.cthree import *
 
 DEG2RAD= math.pi / 180
 RAD2DEG= 180 / math.pi
+
 
 def generateUUID():
     # // http://www.broofa.com/Tools/Math.uuid.htm
@@ -30,8 +34,12 @@ def generateUUID():
     return ''.join(uuid)
 
 
-def clamp( value, mi, mx ):
+def _clamp( value, mi, mx ):
     return max( mi, min( mx, value ) )
+
+
+def clamp( value, mi, mx ):
+    return cMath_clamp( value, mi, mx )
 
 
 # // compute euclidian modulo of m % n

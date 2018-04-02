@@ -16,7 +16,7 @@ from THREE.Matrix4 import *
 
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
-# from THREE.cython.cthree import *
+from THREE.cython.cthree import *
 
 
 class Vector3(pyOpenGLObject):

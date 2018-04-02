@@ -29,19 +29,7 @@ class pyOpenGLObjects:
             if geometry.my_class(isGeometry):
                 buffergeometry.updateFromObject(object)
 
-            if object.vao == 0:
-                object.vao = glGenVertexArrays(1)
-                object.update_vao = True
-                glBindVertexArray(object.vao)
-
-                self.geometries.update(buffergeometry)
-
-                glBindVertexArray(0)
-                glBindBuffer(GL_ARRAY_BUFFER, 0)
-            else:
-                # object.update_vao = self.geometries.update(buffergeometry)
-                self.geometries.update(buffergeometry)
-                glBindBuffer(GL_ARRAY_BUFFER, 0)
+            self.geometries.update(buffergeometry)
 
             self.updateList[buffergeometry.id] = frame
 
