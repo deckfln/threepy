@@ -67,6 +67,9 @@ isObject3D = np.uint64(18014398509481984)
 isLineCurve = np.uint64(36028797018963968)
 isHemisphereLight = np.uint64(72057594037927936)
 
+isViewRenderer = np.uint64(1)
+isShadowMapRenderer = np.uint64(2)
+
 
 class pyOpenGLObject:
     """

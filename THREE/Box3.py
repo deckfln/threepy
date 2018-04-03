@@ -83,8 +83,8 @@ class Box3:
     def setFromPoints(self, points ):
         self.makeEmpty()
 
-        for i in range(len(points)):
-            self.expandByPoint( points[ i ] )
+        for point in points:
+            self.expandByPoint( point )
 
         return self
 
@@ -164,8 +164,8 @@ class Box3:
             if geometry is not None:
                 if geometry.my_class(isGeometry):
                     vertices = geometry.vertices
-                    for i in range(len(vertices)):
-                        v1.copy(vertices[i])
+                    for vertice in vertices:
+                        v1.copy(vertice)
                         v1.applyMatrix4(node.matrixWorld)
                         scope.expandByPoint(v1)
                 elif geometry.my_class(isBufferGeometry):

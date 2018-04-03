@@ -587,6 +587,9 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def getMaxScaleOnAxis(self):
+        return cMatrix4_getMaxScaleOnAxis(self.elements)
+
+    def _getMaxScaleOnAxis(self):
         te = self.elements
 
         scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]

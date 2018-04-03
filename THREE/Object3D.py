@@ -82,8 +82,8 @@ class Object3D(pyOpenGLObject):
         self._onBeforeRenderParent = None
         self.customDepthMaterial = None
 
-        self.vao = 0
-        self.update_vao = True
+        self.vao = [0, 0, 0]
+        self.update_vao = [True, True, True]
 
     def __iter__(self):
         return iter(self.__dict__)
@@ -246,8 +246,7 @@ class Object3D(pyOpenGLObject):
         if self.name == value:
             return self
 
-        for i in range(len(self.children)):
-            child = self.children[ i]
+        for child in self.children:
             object = child.getObjectByProperty(name, value)
 
             if object is not None:
@@ -434,8 +433,8 @@ class Object3D(pyOpenGLObject):
         if self.material is not None:
             if isinstance(self.material, list):
                 uuids = []
-                for i in range(len(self.material)):
-                    uuids.append(serialize(meta['materials'], self.material[ i ]))
+                for material in self.material:
+                    uuids.append(serialize(meta['materials'], material))
 
                 object['material'] = uuids
             else:

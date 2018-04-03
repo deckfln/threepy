@@ -91,7 +91,7 @@ class pyOpenGLBackground:
             # // TODO Push this to renderList
 
             glBindVertexArray(self.boxMesh.vao)
-            self.renderer.renderBufferDirect( self.planeCamera, None, planeMesh.geometry, planeMesh.material, planeMesh, None )
+            self.renderer.renderBufferDirect( self.planeCamera, None, planeMesh.geometry, planeMesh.material, planeMesh, None, isViewRenderer)
             glBindVertexArray(0)
 
     def setClear(self, color, alpha ):

@@ -987,7 +987,7 @@ class pyOpenGLRenderer:
                     else:
                         glVertexAttrib1fv(programAttribute, value)
 
-    def renderBufferDirect(self, camera, fog, geometry, material, object, group):
+    def renderBufferDirect(self, camera, fog, geometry, material, object, group, renderer_id):
         """
 
         :param camera:
@@ -1034,9 +1034,9 @@ class pyOpenGLRenderer:
             renderer = self.indexedBufferRenderer
             renderer.setIndex(attribute)
 
-        if object.vao == 0:
-            object.vao = glGenVertexArrays(1)
-            glBindVertexArray(object.vao)
+        if object.vao[renderer_id] == 0:
+            object.vao[renderer_id] = glGenVertexArrays(1)
+            glBindVertexArray(object.vao[renderer_id])
             self._setupVertexAttributes(material, program, geometry)
 
             if index:
@@ -1047,7 +1047,7 @@ class pyOpenGLRenderer:
                  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-            object.update_vao = False
+            object.update_vao[renderer_id] = False
 
 
         # //
@@ -1075,7 +1075,7 @@ class pyOpenGLRenderer:
 
         # //
 
-        glBindVertexArray(object.vao)
+        glBindVertexArray(object.vao[renderer_id])
 
         if object.my_class(isMesh):
             if not material.wireframe:
@@ -1144,7 +1144,7 @@ class pyOpenGLRenderer:
 
             self._renderObjectImmediate(object, program, material)
         else:
-            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group)
+            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group, isViewRenderer)
 
         object.onAfterRender(self, scene, camera, geometry, material, group)
 
@@ -1345,9 +1345,8 @@ class pyOpenGLRenderer:
             return
 
         _vector3 = self._vector3
-        visible = object.layers.test(camera.layers)
 
-        if visible:
+        if object.layers.test(camera.layers):
             if object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
@@ -1394,8 +1393,7 @@ class pyOpenGLRenderer:
                 self._projectOctree(object, camera, sortObjects)
                 return
 
-        children = object.children
-        for i in children:
+        for i in object.children:
             self._projectObject(i, camera, sortObjects)
 
     def _renderInstances(self, scene, camera):
@@ -1474,6 +1472,7 @@ class pyOpenGLRenderer:
 
         self._projectObject(scene, camera, self.sortObjects)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
         if self.sortObjects:
             self.currentRenderList.sort()

@@ -102,9 +102,7 @@ class PropertyBinding:
         # search into skeleton bones.
         if root.skeleton:
             def searchSkeleton( skeleton ):
-                for i in range(len(skeleton.bones)):
-                    bone = skeleton.bones[ i ]
-
+                for bone in skeleton.bones:
                     if bone.name == nodeName:
                         return bone
 
@@ -118,9 +116,7 @@ class PropertyBinding:
         # search into node subtree.
         if root.children:
             def searchNodeSubtree( children ):
-                for i in range(len(children)):
-                    childNode = children[ i ]
-
+                for childNode in children:
                     if childNode.name == nodeName or childNode.uuid == nodeName:
                         return childNode
 
@@ -351,9 +347,9 @@ class PropertyBinding:
     def getValue_array(self, buffer, offset):
         source = self.resolvedProperty
 
-        for i in range(len(source)):
-            buffer[offset] = source[i]
-            offset += 1,
+        for s in source:
+            buffer[offset] = s
+            offset += 1
 
     def getValue_arrayElement(self, buffer, offset):
         buffer[offset] = self.resolvedProperty[self.propertyIndex]

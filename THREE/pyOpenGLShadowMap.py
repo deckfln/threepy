@@ -346,11 +346,11 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
                         if groupMaterial and groupMaterial.visible:
                             depthMaterial = self.getDepthMaterial( object, groupMaterial, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
-                            self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, group )
+                            self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, group, isShadowMapRenderer)
 
                 elif material.visible:
                     depthMaterial = self.getDepthMaterial( object, material, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
-                    self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, None )
+                    self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, None, isShadowMapRenderer)
 
         for child in object.children:
             self.renderObject( child, camera, shadowCamera, is_PointLight )

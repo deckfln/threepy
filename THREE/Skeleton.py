@@ -35,11 +35,11 @@ class Skeleton:
     def calculateInverses(self):
         self.boneInverses = []
 
-        for i in range(len(self.bones)):
+        for bone in self.bones:
             inverse = Matrix4()
 
-            if self.bones[ i ]:
-                inverse.getInverse( self.bones[ i ].matrixWorld )
+            if bone:
+                inverse.getInverse( bone.matrixWorld )
 
             self.boneInverses.append( inverse )
 
@@ -52,9 +52,7 @@ class Skeleton:
                 bone.matrixWorld.getInverse( self.boneInverses[ i ] )
 
         # compute the local matrices, positions, rotations and scales
-        for i in range(len(self.bones)):
-            bone = self.bones[ i ]
-
+        for bone in self.bones:
             if bone:
                 if bone.parent and bone.parent.isBone:
                     bone.matrix.getInverse( bone.parent.matrixWorld )

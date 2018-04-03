@@ -131,7 +131,7 @@ class Points(Object3D):
             attributes = geometry.attributes
             positions = attributes.position.array
 
-            if index != None:
+            if index is not None:
                 indices = index.array
 
                 for i in range(len(indices)):

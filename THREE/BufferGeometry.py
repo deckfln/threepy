@@ -315,8 +315,7 @@ class BufferGeometry(pyOpenGLObject):
         for name in geometry.morphTargets:
             array = []
             morphTargets = geometry.morphTargets[ name ]
-            for i in range(len(morphTargets)):
-                morphTarget = morphTargets[ i ]
+            for morphTarget in morphTargets:
                 attribute = Float32BufferAttribute( len(morphTarget) * 3, 3 )
                 array.append( attribute.copyVector3sArray( morphTarget ) )
 
@@ -597,15 +596,14 @@ class BufferGeometry(pyOpenGLObject):
             array = []
             morphAttribute = morphAttributes[ name ]; # // morphAttribute: array of Float32BufferAttributes
 
-            for i in range(len(morphAttribute)):
-                array.append( morphAttribute[ i ].clone() )
+            for morphAttribut in morphAttribute:
+                array.append( morphAttribut.clone() )
 
             self.morphAttributes[ name ] = array
 
         # // groups
         groups = source.groups
-        for i in range(len(groups)):
-            group = groups[ i ]
+        for group in groups:
             self.addGroup( group.start, group.count, group.materialIndex )
 
         # // bounding box

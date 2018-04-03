@@ -28,6 +28,9 @@ def cinterpolate_(np.ndarray[float, ndim=1] result, np.ndarray[float, ndim=1] va
 
     return result
 
+"""
+Matrix4
+"""
 def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x, double y, double z, double w):
     cdef double x2 = x + x
     cdef double y2 = y + y
@@ -182,6 +185,16 @@ def cMatrix4_compose(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] p
     te[13] = position[1]
     te[14] = position[2]
 
+def cMatrix4_getMaxScaleOnAxis(np.ndarray[double, ndim=1] te):
+    cdef double scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]
+    cdef double scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
+    cdef double scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10]
+
+    return sqrt(max(scaleXSq, scaleYSq, scaleZSq))
+
+"""
+Quaternion
+"""
 @cython.cdivision(True)
 def cQuaternion_slerpFlat(np.ndarray[float, ndim=1] dst, int dstOffset, np.ndarray[float, ndim=1] src0, int srcOffset0, np.ndarray[float, ndim=1] src1, int srcOffset1, float  t ):
     # // fuzz-free, array-based Quaternion SLERP operation
@@ -255,15 +268,15 @@ Vector3
 """
 @cython.cdivision(True)
 def cVector3_applyMatrix4(np.ndarray[double, ndim=1] vector3, np.ndarray[double, ndim=1] matrix4):
-        cdef double x = vector3[0]
-        cdef double y = vector3[1]
-        cdef double z = vector3[2]
+    cdef double x = vector3[0]
+    cdef double y = vector3[1]
+    cdef double z = vector3[2]
 
-        cdef double w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
+    cdef double w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
 
-        vector3[0] = ( matrix4[ 0 ] * x + matrix4[ 4 ] * y + matrix4[ 8 ]  * z + matrix4[ 12 ] ) * w;
-        vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
-        vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
+    vector3[0] = ( matrix4[ 0 ] * x + matrix4[ 4 ] * y + matrix4[ 8 ]  * z + matrix4[ 12 ] ) * w;
+    vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
+    vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
 
 """
 Euler

@@ -93,8 +93,8 @@ class pyOpenGLGeometries:
         for name in morphAttributes:
             array = morphAttributes[name]
 
-            for i in range(len(array)):
-                data = self.attributes.update(array[ i ], GL_ARRAY_BUFFER)
+            for morphAttribute in array:
+                data = self.attributes.update(morphAttribute, GL_ARRAY_BUFFER)
                 if data.updated:
                     updated = True
 

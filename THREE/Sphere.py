@@ -34,8 +34,8 @@ class Sphere:
 
         maxRadiusSq = 0    
 
-        for i in range(len(points)):
-            maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( points[ i ] ) )
+        for point in points:
+            maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( point ) )
 
         self.radius = math.sqrt( maxRadiusSq )    
 
