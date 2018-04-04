@@ -7,6 +7,8 @@
  * @author David Sarno / http:#lighthaus.us/
  * @author tschw
 """
+import numpy as np
+
 from THREE.pyOpenGL.EventManager import *
 from THREE.javascriparray import *
 from THREE.AnimationClip import *
@@ -487,13 +489,7 @@ class AnimationMixer(EventManager):
 
         self.time += deltaTime
         time = self.time
-        if deltaTime < 0:
-            timeDirection = -1
-        elif deltaTime > 0:
-            timeDirection = 1
-        else:
-            timeDirection = 0
-        #timeDirection = math.copysign(1, deltaTime )
+        timeDirection = np.sign(deltaTime)
 
         self._accuIndex ^= 1
         accuIndex = self._accuIndex

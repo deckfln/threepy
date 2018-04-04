@@ -2,7 +2,7 @@
  * @author tschw
 """
 from THREE.Interpolant import *
-from THREE.cython.cthree import *
+from THREE.cython.cInterpolant import *
 
 
 class LinearInterpolant(Interpolant):
@@ -10,7 +10,7 @@ class LinearInterpolant(Interpolant):
         super().__init__(parameterPositions, sampleValues, sampleSize, resultBuffer )
 
     def interpolate_(self, i1, t0, t, t1 ):
-        return cinterpolate_(self.resultBuffer, self.sampleValues, self.valueSize, i1, t0, t, t1)
+        return cLinearInterpolant_interpolate_(self.resultBuffer, self.sampleValues, self.valueSize, i1, t0, t, t1)
 
     def _interpolate_(self, i1, t0, t, t1 ):
         result = self.resultBuffer

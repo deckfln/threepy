@@ -91,7 +91,10 @@ class Sphere:
 
         return box    
 
-    def applyMatrix4(self, matrix ):
+    def applyMatrix4(self, matrix):
+        cSphere_applyMatrix4(self, matrix)
+
+    def _applyMatrix4(self, matrix ):
         self.center.applyMatrix4( matrix )    
         self.radius = self.radius * matrix.getMaxScaleOnAxis()    
 

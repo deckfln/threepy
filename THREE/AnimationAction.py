@@ -260,9 +260,11 @@ class AnimationAction:
             interpolants = self._interpolants
             propertyMixers = self._propertyBindings
 
-            for j in range(len(interpolants)):
-                interpolants[ j ].evaluate( clipTime )
+            j = 0
+            for interpolant in interpolants:
+                interpolant.evaluate( clipTime )
                 propertyMixers[ j ].accumulate( accuIndex, weight )
+                j += 1
 
     def _updateWeight(self, time ):
         weight = 0

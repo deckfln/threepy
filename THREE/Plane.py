@@ -62,7 +62,10 @@ class Plane:
 
         return self
 
-    def distanceToPoint(self, point ):
+    def distanceToPoint(self, point):
+        return cPlane_distanceToPoint(self.normal.np, point.np, self.constant)
+
+    def _distanceToPoint(self, point ):
         return self.normal.dot( point ) + self.constant
 
     def distanceToSphere(self, sphere ):

@@ -8,25 +8,6 @@ import numpy as np
 cimport numpy as np
 from libc.math cimport sqrt, atan2, sin, asin
 
-"""
-"""
-@cython.cdivision(True)
-def cinterpolate_(np.ndarray[float, ndim=1] result, np.ndarray[float, ndim=1] values, int stride, int i1, double t0, double t, double t1 ):
-    cdef int offset1 = i1 * stride
-    cdef int offset0 = offset1 - stride
-
-    cdef double weight1 = ( t - t0 ) / ( t1 - t0 )
-    cdef double weight0 = 1 - weight1
-    cdef float a
-    cdef float b
-    cdef int i
-
-    for i in range(stride):
-        a = values[ offset0 + i ]
-        b = values[ offset1 + i ]
-        result[ i ] = a * weight0 + b * weight1
-
-    return result
 
 """
 Matrix4
@@ -347,3 +328,55 @@ def cEuler_setFromRotationMatrix(self, np.ndarray[double, ndim=1] te , str order
             self._y = 0
     else:
         print('THREE.Euler: .setFromRotationMatrix() given unsupported order: ' + order)
+
+"""
+Plane
+"""
+def cPlane_distanceToPoint(np.ndarray[double, ndim=1] normal, np.ndarray[double, ndim=1] point, double constant ):
+    return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
+
+"""
+Sphere
+"""
+def cSphere_applyMatrix4(object self, object matrix ):
+    cdef np.ndarray[double, ndim=1] center = self.center.np
+    cdef np.ndarray[double, ndim=1] matrix4 = matrix.elements
+    cdef double radius = self.radius
+
+    cVector3_applyMatrix4(center, matrix4)
+    radius = radius * cMatrix4_getMaxScaleOnAxis(matrix4)
+
+    self.radius = radius
+    return self
+
+def cSphere_intersectsSphere(list planes, sphere ):
+    """
+    Optimization based on http://blog.bwhiting.co.uk/?p=355
+    :param sphere:
+    :return:
+    """
+    cdef object center = sphere.center
+    cdef double negRadius = - sphere.radius
+    cdef int p
+    cdef double distance
+
+    if sphere.cache >= 0:
+        plane = planes[sphere.cache]
+        distance = cPlane_distanceToPoint(plane.normal.np, sphere.center.np, plane.constant)
+        if distance < negRadius:
+            return False
+
+    for p in range(6):
+        if p == sphere.cache:
+            continue
+
+        plane = planes[p]
+        distance = cPlane_distanceToPoint(plane.normal.np, sphere.center.np, plane.constant)
+
+        if distance < negRadius:
+            sphere.cache = p
+            return False
+
+    sphere.cache = -1
+    return True
+

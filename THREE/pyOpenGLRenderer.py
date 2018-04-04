@@ -1346,8 +1346,8 @@ class pyOpenGLRenderer:
 
         _vector3 = self._vector3
 
-        if object.layers.test(camera.layers):
-            if object.my_class(isMesh) or object.my_class(isLine) or object.my_class(isPoints):
+        if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints | isLight | isSprite | isLensFlare | isImmediateRenderObject | isOctree):
+            if object.my_class(isMesh | isLine | isPoints):
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 

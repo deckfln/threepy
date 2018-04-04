@@ -69,20 +69,26 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         if not attribute.dynamic:
             glBufferData(bufferType, array, GL_STATIC_DRAW)
-        elif updateRange.count == - 1:
+            return
+
+        if updateRange.count < 0:
             if attribute.my_class(isInstancedBufferAttribute):
                 # // Not using update ranges
                 # pyOpenGL.OpenGL.glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
                 pyOpenGL.OpenGL.glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
             else:
                 glBufferData(bufferType, array, GL_DYNAMIC_DRAW)
-        elif updateRange.count == 0:
-            raise RuntimeError('THREE.WebGLObjects.updateBuffer: dynamic THREE.BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.')
-        else:
+            return
+
+        if updateRange.count > 0:
             glBufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
-                array.subarray(updateRange.offset, updateRange.offset + updateRange.count))
+                            array.subarray(updateRange.offset, updateRange.offset + updateRange.count))
 
             updateRange.count = -1  # // reset range
+
+            return
+
+        raise RuntimeError('THREE.WebGLObjects.updateBuffer: dynamic THREE.BufferAttribute marked as needsUpdate but updateRange.count is 0, ensure you are using set methods or updating manually.')
 
     # //
 

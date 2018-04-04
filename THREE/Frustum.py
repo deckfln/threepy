@@ -84,7 +84,6 @@ class Frustum:
             self._sphere.applyMatrix4( object.matrixWorld )
 
             self._cache[object.id] = self.intersectsSphere( self._sphere)
-
         return self._cache[object.id]
 
     def intersectsOctree(self, octree):
@@ -129,7 +128,10 @@ class Frustum:
 
         return self.intersectsSphere( sphere )
 
-    def intersectsSphere(self, sphere ):
+    def intersectsSphere(self, sphere):
+        return cSphere_intersectsSphere(self.planes, sphere)
+
+    def _intersectsSphere(self, sphere ):
         """
         Optimization based on http://blog.bwhiting.co.uk/?p=355
         :param sphere:

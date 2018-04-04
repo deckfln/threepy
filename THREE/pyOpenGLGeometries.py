@@ -78,24 +78,22 @@ class pyOpenGLGeometries:
             if data.updated:
                 updated = True
 
-        for name in geometryAttributes.__dict__:
-            attribute = geometryAttributes.__dict__[name]
+        for attribute in geometryAttributes.__dict__.values():
             if attribute is not None:
                 if attribute.my_class(isInstancedBufferAttribute):
                     attribute.maxInstancedCount = maxInstancedCount
                 data = self.attributes.update(attribute, GL_ARRAY_BUFFER)
-                if data.updated:
+                if data.updated and not updated:
                     updated = True
 
         # // morph targets
-        morphAttributes = geometry.morphAttributes
-
-        for name in morphAttributes:
-            array = morphAttributes[name]
+        for array in geometry.morphAttributes.__dict__.values():
+            if not len(array):
+                continue
 
             for morphAttribute in array:
                 data = self.attributes.update(morphAttribute, GL_ARRAY_BUFFER)
-                if data.updated:
+                if data.updated and not updated:
                     updated = True
 
         return updated

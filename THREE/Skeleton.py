@@ -7,6 +7,9 @@
 from THREE.javascriparray import *
 from THREE.Matrix4 import *
 
+_offsetMatrix = THREE.Matrix4()
+_identityMatrix = THREE.Matrix4()
+
 
 class Skeleton:
     def __init__(self, bones, boneInverses=None ):
@@ -64,21 +67,22 @@ class Skeleton:
                 bone.matrix.decompose( bone.position, bone.quaternion, bone.scale )
 
     def update(self):
-        offsetMatrix = Matrix4()
-        identityMatrix = Matrix4()
-
         bones = self.bones
         boneInverses = self.boneInverses
         boneMatrices = self.boneMatrices
         boneTexture = self.boneTexture
 
         # flatten bone matrices to array
-        for i in range(len(bones)):
+        i = 0
+        j = 0
+        for bone in bones:
             # compute the offset between the current and the original transform
-            matrix = bones[ i ].matrixWorld if bones[ i ] else identityMatrix
+            matrix = bone.matrixWorld if bone else _identityMatrix
 
-            offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] )
-            offsetMatrix.toArray( boneMatrices, i * 16 )
+            _offsetMatrix.multiplyMatrices(matrix, boneInverses[j])
+            _offsetMatrix.toArray(boneMatrices, i)
+            i += 16
+            j += 1
 
         if boneTexture is not None:
             boneTexture.needsUpdate = True
