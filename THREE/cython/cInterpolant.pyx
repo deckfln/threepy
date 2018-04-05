@@ -25,6 +25,8 @@ _linear_scan = 3
 _validate_interval = 4
 
 @cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cInterpolant_evaluate(self, float t ):
     cdef np.ndarray[float, ndim=1] pp = self.parameterPositions
     cdef int len_pp = len(pp)
@@ -176,6 +178,8 @@ def cInterpolant_evaluate(self, float t ):
 """
 """
 @cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cLinearInterpolant_interpolate_(np.ndarray[float, ndim=1] result, np.ndarray[float, ndim=1] values, int stride, int i1, double t0, double t, double t1 ):
     cdef int offset1 = i1 * stride
     cdef int offset0 = offset1 - stride
@@ -196,6 +200,8 @@ def cLinearInterpolant_interpolate_(np.ndarray[float, ndim=1] result, np.ndarray
 """
 """
 @cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cQuaternionLinearInterpolant_interpolate_(object self, int i1, double t0, double t, double t1 ):
     cdef np.ndarray[float, ndim=1] result = self.resultBuffer
     cdef np.ndarray[float, ndim=1] values = self.sampleValues

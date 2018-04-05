@@ -12,6 +12,8 @@ from libc.math cimport sqrt, atan2, sin, asin
 """
 Matrix4
 """
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x, double y, double z, double w):
     cdef double x2 = x + x
     cdef double y2 = y + y
@@ -50,6 +52,8 @@ def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x
     te[15] = 1
 
 
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] ae, np.ndarray[double, ndim=1] be):
         cdef double a11 = ae[0]
         cdef double  a12 = ae[4]
@@ -105,6 +109,8 @@ def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1] te, np.ndarray[double, 
         te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44
 
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cMatrix4_scale(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] v):
     te[0] *= v[0]
     te[4] *= v[1]
@@ -124,6 +130,8 @@ def cMatrix4_setPosition(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=
     te[13] = v[1]
     te[14] = v[2]
 
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cMatrix4_compose(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] position,np.ndarray[double, ndim=1] scale, double x, double y, double z, double w):
     cdef double x2 = x + x
     cdef double y2 = y + y
@@ -166,6 +174,8 @@ def cMatrix4_compose(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] p
     te[13] = position[1]
     te[14] = position[2]
 
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cMatrix4_getMaxScaleOnAxis(np.ndarray[double, ndim=1] te):
     cdef double scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]
     cdef double scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
@@ -177,6 +187,8 @@ def cMatrix4_getMaxScaleOnAxis(np.ndarray[double, ndim=1] te):
 Quaternion
 """
 @cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cQuaternion_slerpFlat(np.ndarray[float, ndim=1] dst, int dstOffset, np.ndarray[float, ndim=1] src0, int srcOffset0, np.ndarray[float, ndim=1] src1, int srcOffset1, float  t ):
     # // fuzz-free, array-based Quaternion SLERP operation
     cdef float t1 = t
@@ -248,6 +260,8 @@ def cMath_clamp( double value, double mi, double mx ):
 Vector3
 """
 @cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cVector3_applyMatrix4(np.ndarray[double, ndim=1] vector3, np.ndarray[double, ndim=1] matrix4):
     cdef double x = vector3[0]
     cdef double y = vector3[1]
@@ -262,6 +276,8 @@ def cVector3_applyMatrix4(np.ndarray[double, ndim=1] vector3, np.ndarray[double,
 """
 Euler
 """
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cEuler_setFromRotationMatrix(self, np.ndarray[double, ndim=1] te , str order=None):
 
     # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
@@ -332,12 +348,16 @@ def cEuler_setFromRotationMatrix(self, np.ndarray[double, ndim=1] te , str order
 """
 Plane
 """
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cPlane_distanceToPoint(np.ndarray[double, ndim=1] normal, np.ndarray[double, ndim=1] point, double constant ):
     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
 
 """
 Sphere
 """
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cSphere_applyMatrix4(object self, object matrix ):
     cdef np.ndarray[double, ndim=1] center = self.center.np
     cdef np.ndarray[double, ndim=1] matrix4 = matrix.elements

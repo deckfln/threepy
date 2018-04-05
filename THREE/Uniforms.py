@@ -55,6 +55,7 @@ import THREE.pyOpenGL.OpenGL as cOpenGL
 import re
 from THREE.Texture import *
 from THREE.CubeTexture import *
+import OpenGL.raw.GL.VERSION.GL_2_0
 
 
 emptyTexture = Texture()
@@ -269,6 +270,7 @@ class SingleUniform:
         if hasattr(v, 'elements'):
             # p = np.ascontiguousarray(v.elements, np.float32)
             # cOpenGL.glUniformMatrix4fv(self.addr, 1, GL_FALSE, p)
+            # OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
             glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
         else:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
