@@ -9,6 +9,7 @@ from THREE.Matrix4 import *
 
 _offsetMatrix = THREE.Matrix4()
 _identityMatrix = THREE.Matrix4()
+_matrix4 = THREE.Matrix4()
 
 
 class Skeleton:
@@ -39,7 +40,7 @@ class Skeleton:
         self.boneInverses = []
 
         for bone in self.bones:
-            inverse = Matrix4()
+            inverse = _matrix4
 
             if bone:
                 inverse.getInverse( bone.matrixWorld )

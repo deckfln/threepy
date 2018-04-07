@@ -58,67 +58,70 @@ class pyOpenGL(EventManager):
                     target += 0.03333333333333
 
                 self.animate(self.params)
+                c = time.clock() - current
+                if c > 0.0333333333:
+                    print(c)
 
                 if self.flip:
                     # only flip buffer if some drawing actually happened
                     py.display.flip()
 
-                event = py.event.poll()
+            event = py.event.poll()
 
-                if event.type not in self.events:
-                    continue
+            if event.type not in self.events:
+                continue
 
-                if event.type == py.QUIT:
-                    py.quit()
-                    return 0
+            if event.type == py.QUIT:
+                py.quit()
+                return 0
 
-                elif event.type == py.KEYDOWN:
-                    self.dispatchEvent({'type': 'keydown', 'keyCode': event.key}, self.params)
+            elif event.type == py.KEYDOWN:
+                self.dispatchEvent({'type': 'keydown', 'keyCode': event.key}, self.params)
 
-                elif event.type == py.KEYUP:
-                    self.dispatchEvent({'type': 'keyup', 'keyCode': event.key}, self.params)
+            elif event.type == py.KEYUP:
+                self.dispatchEvent({'type': 'keyup', 'keyCode': event.key}, self.params)
 
-                elif event.type == VIDEORESIZE:
-                    window.innerWidth = self.clientWidth = event.w
-                    window.innerHeight = self.clientHeight = event.h
-                    self.dispatchEvent({'type': 'resize',
-                                        'width': self.clientWidth,
-                                        "height": self.clientHeight}, self.params)
-                elif event.type == py.MOUSEBUTTONDOWN:
-                    if event.button == 4:
-                        # wheel up
-                        self.dispatchEvent({'type': 'wheel',
-                                            'button': event.button-1,
-                                            'deltaMode': -1,
-                                            'deltaY': -100}, self.params)
-                    elif event.button == 5:
-                        # wheel down
-                        self.dispatchEvent({'type': 'wheel',
-                                            'deltaMode': -1,
-                                            'deltaY': 100}, self.params)
-                    else:
-                        self.dispatchEvent({'type': 'mousedown',
-                                            'button': event.button-1,
-                                            'pageX': event.pos[0],
-                                            'pageY': event.pos[1],
-                                            'clientX': event.pos[0],
-                                            'clientY': event.pos[1]}, self.params)
-                elif event.type == py.MOUSEBUTTONUP:
-                    if event.button != 4 and event.button != 5:
-                        self.dispatchEvent({'type': 'mouseup',
-                                            'button': event.button-1,
-                                            'pageX': event.pos[0],
-                                            'pageY': event.pos[1],
-                                            'clientX': event.pos[0],
-                                            'clientY': event.pos[1]}, self.params)
-
-                elif event.type == py.MOUSEMOTION:
-                    self.dispatchEvent({'type': 'mousemove',
+            elif event.type == VIDEORESIZE:
+                window.innerWidth = self.clientWidth = event.w
+                window.innerHeight = self.clientHeight = event.h
+                self.dispatchEvent({'type': 'resize',
+                                    'width': self.clientWidth,
+                                    "height": self.clientHeight}, self.params)
+            elif event.type == py.MOUSEBUTTONDOWN:
+                if event.button == 4:
+                    # wheel up
+                    self.dispatchEvent({'type': 'wheel',
+                                        'button': event.button-1,
+                                        'deltaMode': -1,
+                                        'deltaY': -100}, self.params)
+                elif event.button == 5:
+                    # wheel down
+                    self.dispatchEvent({'type': 'wheel',
+                                        'deltaMode': -1,
+                                        'deltaY': 100}, self.params)
+                else:
+                    self.dispatchEvent({'type': 'mousedown',
+                                        'button': event.button-1,
+                                        'pageX': event.pos[0],
+                                        'pageY': event.pos[1],
+                                        'clientX': event.pos[0],
+                                        'clientY': event.pos[1]}, self.params)
+            elif event.type == py.MOUSEBUTTONUP:
+                if event.button != 4 and event.button != 5:
+                    self.dispatchEvent({'type': 'mouseup',
+                                        'button': event.button-1,
                                         'pageX': event.pos[0],
                                         'pageY': event.pos[1],
                                         'clientX': event.pos[0],
                                         'clientY': event.pos[1]}, self.params)
 
-                # elif event.type != 0:
-                #    pass
-                #    #print(event.type)
+            elif event.type == py.MOUSEMOTION:
+                self.dispatchEvent({'type': 'mousemove',
+                                    'pageX': event.pos[0],
+                                    'pageY': event.pos[1],
+                                    'clientX': event.pos[0],
+                                    'clientY': event.pos[1]}, self.params)
+
+            # elif event.type != 0:
+            #    pass
+            #    #print(event.type)

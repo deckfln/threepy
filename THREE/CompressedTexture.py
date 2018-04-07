@@ -25,6 +25,7 @@ class CompressedTexture(Texture):
     def __init__(self, mipmaps=None, width=None, height=None, format=None, type=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, anisotropy=None, encoding=None ):
         super().__init__( None, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy, encoding )
 
+        self.set_class(isCompressedTexture)
         self.image = CompressedImage(width, height)
         self.mipmaps = mipmaps
 

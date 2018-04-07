@@ -12,6 +12,7 @@ import PIL
 from PIL import Image
 import numpy
 from THREE.pyOpenGLObject import *
+import OpenGL.raw.GL.VERSION.GL_1_0
 
 
 def _clampToMaxSize(image, maxSize):
@@ -172,6 +173,9 @@ class pyOpenGLTextures():
             textureProperties.openglTexture = glGenTextures(1)
 
             self.infoMemory.textures += 1
+            new_texture = True
+        else:
+            new_texture = False
 
         self.state.activeTexture(GL_TEXTURE0 + slot)
         self.state.bindTexture(GL_TEXTURE_2D, textureProperties.openglTexture)
@@ -182,18 +186,19 @@ class pyOpenGLTextures():
 
         image = _clampToMaxSize(texture.image, self.capabilities.maxTextureSize)
 
-        if _textureNeedsPowerOfTwo(texture) and _isPowerOfTwo(image) == False:
+        if _textureNeedsPowerOfTwo(texture) and not _isPowerOfTwo(image):
             image = _makePowerOfTwo(image)
 
         isPowerOfTwoImage = _isPowerOfTwo(image)
         glFormat = self.utils.convert(texture.format)
         glType = self.utils.convert(texture.type)
 
-        self.setTextureParameters(GL_TEXTURE_2D, texture, isPowerOfTwoImage)
+        if new_texture:
+            self.setTextureParameters(GL_TEXTURE_2D, texture, isPowerOfTwoImage)
 
         mipmaps = texture.mipmaps
 
-        if hasattr(texture, 'isDepthTexture'):
+        if texture.my_class(isDepthTexture):
             # // populate depth texture with dummy data
 
             internalFormat = GL_DEPTH_COMPONENT
@@ -233,7 +238,7 @@ class pyOpenGLTextures():
 
             self.state.texImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, glFormat, glType, None)
 
-        elif hasattr(texture, 'isDataTexture'):
+        elif texture.my_class(isDataTexture):
             # // use manually created mipmaps if available
             # // if there are no manual mipmaps
             # // set 0 level mipmap and then use GL to generate other mipmap levels
@@ -246,9 +251,10 @@ class pyOpenGLTextures():
                 texture.generateMipmaps = False
 
             else:
-                self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
+                # self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
+                OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
 
-        elif hasattr(texture, 'isCompressedTexture'):
+        elif texture.my_class(isCompressedTexture):
             for i in range(len(mipmaps)):
                 mipmap = mipmaps[i]
 
@@ -269,16 +275,19 @@ class pyOpenGLTextures():
             # // set 0 level mipmap and then use GL to generate other mipmap levels
 
             if len(mipmaps) > 0 and isPowerOfTwoImage:
-                for i in range(len(mipmaps)):
-                    mipmap = mipmaps[i]
+                i = 0
+                for mipmap in mipmaps:
                     self.state.texImage2D(GL_TEXTURE_2D, i, glFormat, image.width, image.height, 0, glFormat, glType, mipmap)
+                    i += 1
 
                 texture.generateMipmaps = False
 
             else:
-                img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
+                if texture.img_data is None:
+                    texture.img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
                 width, height = image.size
-                self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, img_data)
+                # self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, texture.img_data)
+                OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, texture.img_data)
 
         if _textureNeedsGenerateMipmaps(texture, isPowerOfTwoImage):
             glGenerateMipmap(GL_TEXTURE_2D)
@@ -389,13 +398,11 @@ class pyOpenGLTextures():
 
             if image is None:
                 raise RuntimeWarning('THREE.WebGLRenderer: Texture marked for update but image is undefined', texture)
-            else:
-                self.uploadTexture(textureProperties, texture, slot)
-                return
 
-        self.state.activeTexture(GL_TEXTURE0 + slot)
-
-        self.state.bindTexture(GL_TEXTURE_2D, textureProperties.openglTexture)
+            self.uploadTexture(textureProperties, texture, slot)
+        else:
+            self.state.activeTexture(GL_TEXTURE0 + slot)
+            self.state.bindTexture(GL_TEXTURE_2D, textureProperties.openglTexture)
 
     def setTextureCube(self, texture, slot):
         textureProperties = self.properties.get(texture)

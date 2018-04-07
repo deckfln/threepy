@@ -424,20 +424,14 @@ class pyOpenGLRenderer:
             # // load material specific uniforms
             # // (shader material also gets them for the sake of genericity)
 
-            if material.my_class(isShaderMaterial) or \
-                    material.my_class(isMeshPhongMaterial) or \
-                    material.my_class(isMeshStandardMaterial) or \
+            if material.my_class(isShaderMaterial | isMeshPhongMaterial | isMeshStandardMaterial) or \
                     material.envMap is not None:
 
                 if 'cameraPosition' in p_uniforms.map:
                     uCamPos = p_uniforms.map['cameraPosition']
                     uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
 
-            if material.my_class(isMeshPhongMaterial) or \
-                    material.my_class(isMeshLambertMaterial) or \
-                    material.my_class(isMeshBasicMaterial) or \
-                    material.my_class(isMeshStandardMaterial) or \
-                    material.my_class(isShaderMaterial) or \
+            if material.my_class(isMeshPhongMaterial | isMeshLambertMaterial | isMeshBasicMaterial | isMeshStandardMaterial | isShaderMaterial) or \
                     material.skinning:
                 p_uniforms.setValue('viewMatrix', camera.matrixWorldInverse)
 

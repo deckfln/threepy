@@ -22,6 +22,9 @@ from THREE.Constants import *
 
 _object3DId = 0
 
+_matrix4 = Matrix4()
+_vector3 = Vector3()
+
 
 class Object3D(pyOpenGLObject):
     DefaultUp = Vector3(0, 1, 0)
@@ -190,24 +193,21 @@ class Object3D(pyOpenGLObject):
         return vector.applyMatrix4(self.matrixWorld)
 
     def worldToLocal(self, vector):
-        m1 = Matrix4()
-        return vector.applyMatrix4(m1.getInverse(self.matrixWorld))
+        return vector.applyMatrix4(_matrix4.getInverse(self.matrixWorld))
 
     def lookAt(self, x, y=None, z=None):
         # // This method does not support objects with rotated and/or translated parent(s)
-        m1 = Matrix4()
-        vector = Vector3()
         if isinstance(x, float):
-            vector.set(x, y, z)
+            _vector3.set(x, y, z)
         else:
-            vector.copy(x)
+            _vector3.copy(x)
 
         if self.my_class(isCamera):
-            m1.lookAt(self.position, vector, self.up)
+            _matrix4.lookAt(self.position, _vector3, self.up)
         else:
-            m1.lookAt(vector, self.position, self.up)
+            _matrix4.lookAt(_vector3, self.position, self.up)
 
-        self._quaternion.setFromRotationMatrix(m1)
+        self._quaternion.setFromRotationMatrix(_matrix4)
             
     def add(self, object):
         if isinstance(object, list):

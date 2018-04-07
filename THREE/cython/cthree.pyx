@@ -54,7 +54,7 @@ def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x
 
 @cython.boundscheck(False) # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] ae, np.ndarray[double, ndim=1] be):
+def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1, mode='c'] te, np.ndarray[double, ndim=1, mode='c'] ae, np.ndarray[double, ndim=1, mode='c'] be):
         cdef double a11 = ae[0]
         cdef double  a12 = ae[4]
         cdef double  a13 = ae[8]
@@ -272,6 +272,63 @@ def cVector3_applyMatrix4(np.ndarray[double, ndim=1] vector3, np.ndarray[double,
     vector3[0] = ( matrix4[ 0 ] * x + matrix4[ 4 ] * y + matrix4[ 8 ]  * z + matrix4[ 12 ] ) * w;
     vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
     vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
+
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
+def cVector3_applyMatrix3(np.ndarray[double, ndim=1] this, np.ndarray[double, ndim=1] e):
+    cdef double x = this[0]
+    cdef double y = this[1]
+    cdef double z = this[2]
+
+    this[0] = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
+    this[1] = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
+    this[2] = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
+
+@cython.cdivision(True)
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
+def cVector3_getInverse(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] me):
+    cdef double n11 = me[ 0 ]
+    cdef double n21 = me[ 1 ]
+    cdef double n31 = me[ 2 ]
+    cdef double n12 = me[ 3 ]
+    cdef double n22 = me[ 4 ]
+    cdef double n32 = me[ 5 ]
+    cdef double n13 = me[ 6 ]
+    cdef double n23 = me[ 7 ]
+    cdef double n33 = me[ 8 ]
+
+    cdef double t11 = n33 * n22 - n32 * n23
+    cdef double t12 = n32 * n13 - n33 * n12
+    cdef double t13 = n23 * n12 - n22 * n13
+
+    cdef double det = n11 * t11 + n21 * t12 + n31 * t13
+    cdef double detInv = 1 / det
+
+    if det == 0:
+        # raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
+        te[0] = 1
+        te[1] = 0
+        te[2] = 0
+        te[3] = 0
+        te[4] = 1
+        te[5] = 0
+        te[6] = 0
+        te[7] = 0
+        te[8] = 1
+    else:
+        detInv = 1 / det
+        te[ 0 ] = t11 * detInv
+        te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv
+        te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv
+
+        te[ 3 ] = t12 * detInv
+        te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv
+        te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv
+
+        te[ 6 ] = t13 * detInv
+        te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
+        te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
 
 """
 Euler

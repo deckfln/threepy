@@ -10,6 +10,7 @@ from OpenGL.GL import *
 from THREE.Constants import *
 from THREE.Vector4 import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, c_uint16
+import OpenGL.raw.GL.VERSION.GL_1_0
 
 
 class _ColorBuffer:
@@ -518,7 +519,7 @@ class pyOpenGLState:
         glCompressedTexImage2D(target, level, glFormat, width, height, border, data.size, data)
 
     def texImage2D(self, target, level, internalFormat, width, height, border, format, type, data):
-        glTexImage2D( target, level, internalFormat, width, height, border, format, type, data )
+        OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(target, level, internalFormat, width, height, border, format, type, data)
 
     def texImage2Df(self, target, level, internalFormat, border, format, data):
         glTexImage2Df( target, level, internalFormat, border, format, data )

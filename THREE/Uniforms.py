@@ -269,8 +269,7 @@ class SingleUniform:
     def setValue4fm(self, v, renderer=None):
         if hasattr(v, 'elements'):
             # p = np.ascontiguousarray(v.elements, np.float32)
-            # cOpenGL.glUniformMatrix4fv(self.addr, 1, GL_FALSE, p)
-            # OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
+            # OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, p)
             glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
         else:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
@@ -280,7 +279,7 @@ class SingleUniform:
     def setValueT1(self, v, renderer):
         unit = renderer.allocTextureUnit()
         glUniform1i(self.addr, unit)
-        renderer.setTexture2D(v or emptyTexture, unit)
+        renderer.textures.setTexture2D(v or emptyTexture, unit)
 
     def setValueT6(self, v, renderer):
         unit = renderer.allocTextureUnit()

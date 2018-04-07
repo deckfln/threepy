@@ -4,6 +4,7 @@
  */
 """
 import re
+import numpy
 
 from THREE.ImageLoader import *
 from THREE.Texture import *
@@ -33,6 +34,8 @@ class TextureLoader:
         loader.setTarget(texture)
         texture.image = loader.load( url, _onLoad, onProgress, onError )
         texture.format = RGBFormat if texture.image.mode == 'RGB' else RGBAFormat
+        texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
+        texture.name = url
 
         return texture
 

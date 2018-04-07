@@ -27,11 +27,13 @@ class Texture(pyOpenGLObject):
         super().__init__()
         self.set_class(isTexture)
 
+        self.name = None
         self.uuid = _Math.generateUUID()
 
         self.name = ''
 
         self.image = image if image is not None else Texture.DEFAULT_IMAGE
+        self.img_data = None
         self.mipmaps = []
 
         self.mapping = mapping if mapping is not None else Texture.DEFAULT_MAPPING

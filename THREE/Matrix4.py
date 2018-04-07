@@ -16,9 +16,12 @@ import math
 import THREE
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
+from THREE.Vector3 import *
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0])
 _vector = None
+_vector_y = None
+_vector_z = None
 _matrix = None
 
 
@@ -26,6 +29,8 @@ class Matrix4(pyOpenGLObject):
     isMatrix4 = True
 
     def __init__(self):
+        global _vector, _vector_y, _vector_z, _matrix
+
         super().__init__()
         self.set_class(isMatrix4)
 
@@ -123,13 +128,12 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def extractRotation(self, m):
-        v1 = Vector3()
         te = self.elements
         me = m.elements
 
-        scaleX = 1 / v1.setFromMatrixColumn(m, 0).length()
-        scaleY = 1 / v1.setFromMatrixColumn(m, 1).length()
-        scaleZ = 1 / v1.setFromMatrixColumn(m, 2).length()
+        scaleX = 1 / _vector.setFromMatrixColumn(m, 0).length()
+        scaleY = 1 / _vector.setFromMatrixColumn(m, 1).length()
+        scaleZ = 1 / _vector.setFromMatrixColumn(m, 2).length()
 
         te[0] = me[0] * scaleX
         te[1] = me[1] * scaleX
@@ -316,9 +320,16 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def lookAt(self, eye, target, up):
-        x = THREE.Vector3()
-        y = THREE.Vector3()
-        z = THREE.Vector3()
+        global _vector, _matrix, _vector_y, _vector_z
+        if _vector is None:
+            _vector = THREE.Vector3()
+            _vector_y = THREE.Vector3()
+            _vector_z = THREE.Vector3()
+            _matrix = Matrix4()
+
+        x = _vector
+        y = _vector_y
+        z = _vector_z
 
         te = self.elements
 
@@ -363,7 +374,7 @@ class Matrix4(pyOpenGLObject):
     def multiplyMatrices(self, a, b):
         cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
 
-    def _multiplyMatrices(self, a, b):
+    def pmultiplyMatrices(self, a, b):
         amatrix = a.elements.reshape(4, 4)
         bmatrix = b.elements.reshape(4, 4)
 
@@ -440,7 +451,7 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def applyToBufferAttribute(self, attribute):
-        _v1 = THREE.Vector3(0, 0, 0)
+        _v1 = _vector
         for i in range(0, len(attribute.array), 3):
             _v1.np[0] = attribute.array[i]
             _v1.np[1] = attribute.array[i + 1]
@@ -687,12 +698,7 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def decompose(self, position, quaternion, scale):
-        global _vector
-        global _matrix
-
-        if _vector is None:
-            _vector = THREE.Vector3()
-            _matrix = Matrix4()
+        global _vector, _matrix, _vector_y, _vector_z
 
         te = self.elements
 

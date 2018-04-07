@@ -6,7 +6,8 @@
 
 
 class _map:
-    def __init__(self):
+    def __init__(self, object):
+        self.object = object
         self.program = None
         self.shader = None
         self.numClippingPlanes = 0
@@ -19,6 +20,7 @@ class _map:
         self.version = -1
         self.clippingState = None
         self.imageopenglTextureCube = None
+        self.image_powerof2 = None
 
 
 class pyOpenGLProperties:
@@ -30,7 +32,7 @@ class pyOpenGLProperties:
         if uuid in self.properties:
             return self.properties[ uuid ]
 
-        map = _map()
+        map = _map(object)
         self.properties[ uuid ] = map
 
         return map

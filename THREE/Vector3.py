@@ -18,6 +18,8 @@ import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 
+_matrix4 = Matrix4()
+
 
 class Vector3(pyOpenGLObject):
     isVector3 = True
@@ -170,7 +172,11 @@ class Vector3(pyOpenGLObject):
         quaternion = Quaternion()
         return self.applyQuaternion( quaternion.setFromAxisAngle( axis, angle ) )
 
-    def applyMatrix3(self, m ):
+    def applyMatrix3(self, m):
+        cVector3_applyMatrix3(self.np, m.elements)
+        return self
+
+    def _applyMatrix3(self, m ):
         self.np.dot(m.matrix)
 
         return self
@@ -213,14 +219,12 @@ class Vector3(pyOpenGLObject):
         return self
 
     def project(self, camera):
-        matrix = Matrix4()
-        matrix.multiplyMatrices( camera.projectionMatrix, matrix.getInverse( camera.matrixWorld ) )
-        return self.applyMatrix4( matrix )
+        _matrix4.multiplyMatrices( camera.projectionMatrix, matrix.getInverse( camera.matrixWorld ) )
+        return self.applyMatrix4( _matrix4 )
 
     def unproject(self, camera):
-        matrix = Matrix4()
-        matrix.multiplyMatrices( camera.matrixWorld, matrix.getInverse( camera.projectionMatrix ) )
-        return self.applyMatrix4( matrix )
+        _matrix4.multiplyMatrices( camera.matrixWorld, matrix.getInverse( camera.projectionMatrix ) )
+        return self.applyMatrix4( _matrix4 )
 
     def transformDirection(self, m ):
         # // input: THREE.Matrix4 affine matrix
