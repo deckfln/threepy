@@ -1,6 +1,13 @@
+"""
+ * @author mrdoob / http://mrdoob.com/
+ * @author philogb / http://blog.thejit.org/
+ * @author egraether / http://egraether.com/
+ * @author zz85 / http://www.lab4games.net/zz85/blog
+"""
+
 import math
 from THREE.pyOpenGLObject import *
-
+import numpy as np
 
 class Vector2(pyOpenGLObject):
     isVector2 = True
@@ -9,124 +16,146 @@ class Vector2(pyOpenGLObject):
         super().__init__()
         self.set_class(isVector2)
 
-        self.x = x
-        self.y = y
+        self.np = np.zeros(2, np.float64)
+        self.np[0] = x
+        self.np[1] = y
 
     def set(self, x, y ):
-        self.x = x
-        self.y = y
+        self.np[0] = x
+        self.np[1] = y
         return self
 
     def setScalar(self, scalar ):
-        self.x = scalar
-        self.y = scalar
+        self.np[0] = scalar
+        self.np[1] = scalar
         return self
 
-    def setX(self, x ):
-        self.x = x
+    def setX(self, x):
+        self.np[0] = x
         return self
 
-    def setY(self, y ):
-        self.y = y
+    def setY(self, y):
+        self.np[1] = y
         return self
+
+    def getX(self):
+        return self.np[0]
+
+    def getY(self):
+        return self.np[1]
+
+    x = property(getX, setX)
+    y = property(getY, setY)
 
     def setComponent(self, index, value ):
         if index==0:
-            self.x = value
+            self.np[0] = value
         elif index==1:
-            self.y = value
+            self.np[1] = value
         else:
             print( 'index is out of range: ' + index )
         return self
 
     def getComponent(self, index ):
         if index==0:
-            return self.x
+            return self.np[0]
         elif index==1:
-            return self.y
+            return self.np[1]
         print( 'index is out of range: ' + index )
 
     def clone(self):
-        return type(self)( self.x, self.y )
+        return type(self)(self.np[0], self.np[1])
 
-    def copy(self, v ):
-        self.x = v.x
-        self.y = v.y
+    def copy(self, v):
+        self.np[0] = v.np[0]
+        self.np[1] = v.np[1]
         return self
 
-    def add(self, v, w=None ):
-        if w is not None:
-            print( 'THREE.Vector2: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' )
-            return self.addVectors( v, w )
+    def add(self, v):
+        # if w is not None:
+        #    print( 'THREE.Vector2: .add() now only accepts one argument. Use .addVectors( a, b ) instead.' )
+        #    return self.addVectors( v, w )
 
-        self.x += v.x
-        self.y += v.y
+        self.np += v.np
+        # self.x += v.x
+        # self.y += v.y
 
         return self
 
-    def addScalar(self, s ):
-        self.x += s
-        self.y += s
+    def addScalar(self, s):
+        self.np += s
+        # self.x += s
+        # self.y += s
         return self
 
-    def addVectors(self, a, b ):
-        self.x = a.x + b.x
-        self.y = a.y + b.y
+    def addVectors(self, a, b):
+        self.np = a.np + b.np
+        # self.x = a.x + b.x
+        # self.y = a.y + b.y
         return self
 
-    def addScaledVector(self, v, s ):
-        self.x += v.x * s
-        self.y += v.y * s
+    def addScaledVector(self, v, s):
+        self.np += v.np * s
+        # self.x += v.x * s
+        # self.y += v.y * s
         return self
 
-    def sub(self, v, w=None ):
-        if w is not None:
-            print( 'THREE.Vector2: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' )
-            return self.subVectors( v, w )
+    def sub(self, v):
+        # if w is not None:
+        #    print( 'THREE.Vector2: .sub() now only accepts one argument. Use .subVectors( a, b ) instead.' )
+        #    return self.subVectors( v, w )
 
-        self.x -= v.x
-        self.y -= v.y
+        self.np -= v.np
+        # self.x -= v.x
+        # self.y -= v.y
         return self
 
-    def subScalar(self, s ):
-        self.x -= s
-        self.y -= s
+    def subScalar(self, s):
+        self.np -= s
+        # self.x -= s
+        # self.y -= s
         return self
 
     def subVectors(self, a, b ):
-        self.x = a.x - b.x
-        self.y = a.y - b.y
+        self.np = a.np - b.np
+        # self.x = a.x - b.x
+        # self.y = a.y - b.y
         return self
 
-    def multiply(self, v ):
-        self.x *= v.x
-        self.y *= v.y
+    def multiply(self, v):
+        self.np *= v.np
+        # self.x *= v.x
+        # self.y *= v.y
         return self
 
-    def multiplyScalar(self, scalar ):
-        self.x *= scalar
-        self.y *= scalar
+    def multiplyScalar(self, scalar):
+        self.np *= scalar
+        # self.x *= scalar
+        # self.y *= scalar
         return self
 
-    def divide(self, v ):
-        self.x /= v.x
-        self.y /= v.y
+    def divide(self, v):
+        self.np /= v.np
+        # self.x /= v.x
+        # self.y /= v.y
         return self
 
     def divideScalar(self, scalar ):
         return self.multiplyScalar( 1 / scalar )
 
-    def min(self, v ):
-        self.x = min( self.x, v.x )
-        self.y = min( self.y, v.y )
+    def min(self, v):
+        np.minimum(self.np, v.np, self.np)
+        # self.x = min( self.x, v.x )
+        # self.y = min( self.y, v.y )
         return self
 
-    def max(self, v ):
-        self.x = max( self.x, v.x )
-        self.y = max( self.y, v.y )
+    def max(self, v):
+        np.maximum(self.np, v.np, self.np)
+        # self.x = max( self.x, v.x )
+        # self.y = max( self.y, v.y )
         return self
 
-    def clamp(self, min, max ):
+    def clamp(self, min, max):
         # // assumes min < max, componentwise
         self.x = max( min.x, min( max.x, self.x ) )
         self.y = max( min.y, min( max.y, self.y ) )
@@ -146,18 +175,21 @@ class Vector2(pyOpenGLObject):
         return self.divideScalar( length or 1 ).multiplyScalar( max( min, min( max, length ) ) )
 
     def floor(self):
-        self.x = math.floor( self.x )
-        self.y = math.floor( self.y )
+        np.floor(self.np, self.np)
+        # self.x = math.floor( self.x )
+        # self.y = math.floor( self.y )
         return self
 
     def ceil(self):
-        self.x = math.ceil( self.x )
-        self.y = math.ceil( self.y )
+        np.ceil(self.np, self.np)
+        # self.x = math.ceil( self.x )
+        # self.y = math.ceil( self.y )
         return self
 
     def round(self):
-        self.x = round( self.x )
-        self.y = round( self.y )
+        np.round(self.np, self.np)
+        # self.x = round( self.x )
+        # self.y = round( self.y )
         return self
 
     def roundToZero(self):
@@ -171,28 +203,30 @@ class Vector2(pyOpenGLObject):
         return self
 
     def negate(self):
-        self.x = - self.x
-        self.y = - self.y
+        self.np = -self.np
+        # self.x = - self.x
+        # self.y = - self.y
         return self
 
     def dot(self, v ):
-        return self.x * v.x + self.y * v.y
+        return np.dot(self.np, v.np)
+        # return self.x * v.x + self.y * v.y
 
     def lengthSq(self):
-        return self.x * self.x + self.y * self.y
+        return self.np[0] * self.np[0] + self.np[1] * self.np[1]
 
     def length(self):
-        return math.sqrt( self.x * self.x + self.y * self.y )
+        return math.sqrt( self.np[0] * self.np[0] + self.np[1] * self.np[1] )
 
     def lengthManhattan(self):
-        return abs( self.x ) + abs( self.y )
+        return abs( self.np[0] ) + abs( self.np[1] )
 
     def normalize(self):
         return self.divideScalar( self.length() or 1 )
 
     def angle(self):
         # // computes the angle in radians with respect to the positive x-axis
-        angle = math.atan2( self.y, self.x )
+        angle = math.atan2( self.np[1], self.np[0] )
         if angle < 0:
             angle += 2 * math.pi
 
@@ -202,7 +236,8 @@ class Vector2(pyOpenGLObject):
         return math.sqrt( self.distanceToSquared( v ) )
 
     def distanceToSquared(self, v ):
-        dx = self.x - v.x; dy = self.y - v.y
+        dx = self.np[0] - v.np[0]
+        dy = self.np[1] - v.np[1]
         return dx * dx + dy * dy
 
     def distanceToManhattan(self, v ):

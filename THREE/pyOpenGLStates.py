@@ -496,7 +496,7 @@ class pyOpenGLState:
             webglSlot = GL_TEXTURE0 + self.maxTextures - 1
 
         if self.currentTextureSlot != webglSlot:
-            glActiveTexture( webglSlot )
+            OpenGL.raw.GL.VERSION.GL_1_3.glActiveTexture( webglSlot )
             self.currentTextureSlot = webglSlot
 
     def bindTexture(self, webglType, webglTexture ):
@@ -510,7 +510,7 @@ class pyOpenGLState:
             boundTexture = self.currentBoundTextures[ self.currentTextureSlot ]
 
         if boundTexture.type != webglType or boundTexture.texture != webglTexture:
-            glBindTexture( webglType, webglTexture or self.emptyTextures[ webglType ] )
+            OpenGL.raw.GL.VERSION.GL_1_1.glBindTexture( webglType, webglTexture or self.emptyTextures[ webglType ] )
 
             boundTexture.type = webglType
             boundTexture.texture = webglTexture

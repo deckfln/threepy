@@ -1,3 +1,7 @@
+#cython: cdivision=True
+#cython: boundscheck=False
+#cython: wraparound=False
+
 """
     /**
      * @author mrdoob / http://mrdoob.com/
@@ -18,18 +22,12 @@ from libc.math cimport sqrt, atan2, sin
 import THREE.Interpolant
 from THREE.cython.cthree import cQuaternion_slerpFlat
 
-_none = 0
-_forward_scan = 1
-_seek = 2
-_linear_scan = 3
-_validate_interval = 4
 
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cInterpolant_evaluate(self, float t ):
-    cdef np.ndarray[float, ndim=1] pp = self.parameterPositions
-    cdef int len_pp = len(pp)
+    cdef np.ndarray[float, ndim=1, mode="c"] nd_pp = self.parameterPositions
+    cdef float *pp = <float *>&nd_pp[0]
+
+    cdef int len_pp = len(nd_pp)
     cdef int i1 = self._cachedIndex
     cdef int mid
     cdef int right
@@ -40,7 +38,7 @@ def cInterpolant_evaluate(self, float t ):
     cdef float t1global
 
     cdef int t1_defined
-    cdef int t0_status
+    cdef int t0_defined
 
     if i1 < len_pp:
         t1 = pp[   i1   ]
@@ -177,15 +175,18 @@ def cInterpolant_evaluate(self, float t ):
 
 """
 """
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cLinearInterpolant_interpolate_(np.ndarray[float, ndim=1] result, np.ndarray[float, ndim=1] values, int stride, int i1, double t0, double t, double t1 ):
+def cLinearInterpolant_interpolate_(np.ndarray[float, ndim=1] result not None,
+                                    np.ndarray[float, ndim=1] values not None,
+                                    int stride,
+                                    int i1,
+                                    float t0,
+                                    float t,
+                                    float t1 ):
     cdef int offset1 = i1 * stride
     cdef int offset0 = offset1 - stride
 
-    cdef double weight1 = ( t - t0 ) / ( t1 - t0 )
-    cdef double weight0 = 1 - weight1
+    cdef float weight1 = ( t - t0 ) / ( t1 - t0 )
+    cdef float weight0 = 1 - weight1
     cdef float a
     cdef float b
     cdef int i
@@ -199,9 +200,6 @@ def cLinearInterpolant_interpolate_(np.ndarray[float, ndim=1] result, np.ndarray
 
 """
 """
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def cQuaternionLinearInterpolant_interpolate_(object self, int i1, double t0, double t, double t1 ):
     cdef np.ndarray[float, ndim=1] result = self.resultBuffer
     cdef np.ndarray[float, ndim=1] values = self.sampleValues
@@ -209,7 +207,7 @@ def cQuaternionLinearInterpolant_interpolate_(object self, int i1, double t0, do
 
     cdef int offset = i1 * stride
 
-    cdef double alpha = ( t - t0 ) / ( t1 - t0 )
+    cdef float alpha = ( t - t0 ) / ( t1 - t0 )
 
     for offset in range(i1 * stride, offset + stride, 4 ):
         cQuaternion_slerpFlat(result, 0, values, offset - stride, values, offset, alpha )

@@ -24,7 +24,7 @@ class Matrix3(pyOpenGLObject):
             1, 0, 0,
             0, 1, 0,
             0, 0, 1
-        ], dtype=np.float64)
+        ], dtype=np.float32)
 
         self.matrix = self.elements.reshape(3, 3)
 

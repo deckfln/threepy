@@ -47,14 +47,14 @@ def Int32Array(size):
     elif isinstance(size, bytes):
         return np.fromstring(size, np.int32)
     else:
-        return np.zeros(int(size), 'l')
+        return np.zeros(int(size), dtype=np.int32)
 
 
 def Uint32Array(size):
     if isinstance(size, list):
-        return np.array(size, 'L')
+        return np.array(size, dtype=np.uint32)
     else:
-        return np.zeros(int(size), 'L')
+        return np.zeros(int(size), dtype=np.uint32)
 
 
 def Float32Array(size):

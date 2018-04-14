@@ -279,27 +279,27 @@ class Uint16BufferAttribute(BufferAttribute):
 class Int32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'l'), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.int32), itemSize)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'l'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, dtype=np.int32), itemSize)
 
 
 class Uint32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'L'), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.uint32), itemSize)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'L'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, dtype=np.uint32), itemSize)
 
 
 class Float32BufferAttribute(BufferAttribute):
     def __init__(self, arrayx, itemSize):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'f'), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.float32), itemSize)
         elif isinstance(arrayx, int):
-            super().__init__(np.zeros(arrayx, 'f'), itemSize)
+            super().__init__(np.zeros(arrayx, dtype=np.float32), itemSize)
         else:
-            a = np.zeros(arrayx.shape, 'f')
+            a = np.zeros(arrayx.shape, dtype=np.float32)
             super().__init__(a, itemSize)
 
 

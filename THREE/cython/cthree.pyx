@@ -1,7 +1,10 @@
+#cython: cdivision=True
+#cython: boundscheck=False
+#cython: wraparound=False
+
 """
  * @author tschw
 """
-#cython: cdivision=True
 cimport cython
 
 import numpy as np
@@ -12,21 +15,19 @@ from libc.math cimport sqrt, atan2, sin, asin
 """
 Matrix4
 """
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x, double y, double z, double w):
-    cdef double x2 = x + x
-    cdef double y2 = y + y
-    cdef double z2 = z + z
-    cdef double xx = x * x2
-    cdef double xy = x * y2
-    cdef double xz = x * z2
-    cdef double yy = y * y2
-    cdef double yz = y * z2
-    cdef double zz = z * z2
-    cdef double wx = w * x2
-    cdef double wy = w * y2
-    cdef double wz = w * z2
+cpdef c_Matrix4_makeRotationFromQuaternion(np.ndarray[float, ndim=1] te , double x, double y, double z, double w):
+    cdef float x2 = x + x
+    cdef float y2 = y + y
+    cdef float z2 = z + z
+    cdef float xx = x * x2
+    cdef float xy = x * y2
+    cdef float xz = x * z2
+    cdef float yy = y * y2
+    cdef float yz = y * z2
+    cdef float zz = z * z2
+    cdef float wx = w * x2
+    cdef float wy = w * y2
+    cdef float wz = w * z2
 
     te[0] = 1 - (yy + zz)
     te[4] = xy - wz
@@ -52,42 +53,40 @@ def c_Matrix4_makeRotationFromQuaternion(np.ndarray[double, ndim=1] te, double x
     te[15] = 1
 
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1, mode='c'] te, np.ndarray[double, ndim=1, mode='c'] ae, np.ndarray[double, ndim=1, mode='c'] be):
-        cdef double a11 = ae[0]
-        cdef double  a12 = ae[4]
-        cdef double  a13 = ae[8]
-        cdef double  a14 = ae[12]
-        cdef double a21 = ae[1]
-        cdef double  a22 = ae[5]
-        cdef double  a23 = ae[9]
-        cdef double  a24 = ae[13]
-        cdef double a31 = ae[2]
-        cdef double  a32 = ae[6]
-        cdef double  a33 = ae[10]
-        cdef double  a34 = ae[14]
-        cdef double a41 = ae[3]
-        cdef double  a42 = ae[7]
-        cdef double  a43 = ae[11]
-        cdef double  a44 = ae[15]
+cpdef cMatrix4_multiplyMatrices(np.ndarray[float, ndim=1, mode='c'] te , np.ndarray[float, ndim=1, mode='c'] ae , np.ndarray[float, ndim=1, mode='c'] be ):
+        cdef float a11 = ae[0]
+        cdef float a12 = ae[4]
+        cdef float a13 = ae[8]
+        cdef float a14 = ae[12]
+        cdef float a21 = ae[1]
+        cdef float a22 = ae[5]
+        cdef float a23 = ae[9]
+        cdef float a24 = ae[13]
+        cdef float a31 = ae[2]
+        cdef float a32 = ae[6]
+        cdef float a33 = ae[10]
+        cdef float a34 = ae[14]
+        cdef float a41 = ae[3]
+        cdef float a42 = ae[7]
+        cdef float a43 = ae[11]
+        cdef float a44 = ae[15]
 
-        cdef double b11 = be[0]
-        cdef double  b12 = be[4]
-        cdef double  b13 = be[8]
-        cdef double  b14 = be[12]
-        cdef double b21 = be[1]
-        cdef double  b22 = be[5]
-        cdef double  b23 = be[9]
-        cdef double  b24 = be[13]
-        cdef double b31 = be[2]
-        cdef double  b32 = be[6]
-        cdef double  b33 = be[10]
-        cdef double  b34 = be[14]
-        cdef double b41 = be[3]
-        cdef double  b42 = be[7]
-        cdef double  b43 = be[11]
-        cdef double  b44 = be[15]
+        cdef float b11 = be[0]
+        cdef float b12 = be[4]
+        cdef float b13 = be[8]
+        cdef float b14 = be[12]
+        cdef float b21 = be[1]
+        cdef float b22 = be[5]
+        cdef float b23 = be[9]
+        cdef float b24 = be[13]
+        cdef float b31 = be[2]
+        cdef float b32 = be[6]
+        cdef float b33 = be[10]
+        cdef float b34 = be[14]
+        cdef float b41 = be[3]
+        cdef float b42 = be[7]
+        cdef float b43 = be[11]
+        cdef float b44 = be[15]
 
         te[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41
         te[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42
@@ -109,9 +108,7 @@ def cMatrix4_multiplyMatrices(np.ndarray[double, ndim=1, mode='c'] te, np.ndarra
         te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cMatrix4_scale(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] v):
+cpdef cMatrix4_scale(np.ndarray[float, ndim=1] te , np.ndarray[float, ndim=1] v ):
     te[0] *= v[0]
     te[4] *= v[1]
     te[8] *= v[2]
@@ -125,14 +122,17 @@ def cMatrix4_scale(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] v):
     te[7] *= v[1]
     te[11] *= v[2]
 
-def cMatrix4_setPosition(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] v):
+cpdef cMatrix4_setPosition(np.ndarray[float, ndim=1] te , np.ndarray[float, ndim=1] v ):
     te[12] = v[0]
     te[13] = v[1]
     te[14] = v[2]
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cMatrix4_compose(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] position,np.ndarray[double, ndim=1] scale, double x, double y, double z, double w):
+cpdef cMatrix4_compose(np.ndarray[float, ndim=1] te, np.ndarray[float, ndim=1] position ,
+                        np.ndarray[float, ndim=1] scale ,
+                        double x,
+                        double y,
+                        double z,
+                        double w):
     cdef double x2 = x + x
     cdef double y2 = y + y
     cdef double z2 = z + z
@@ -174,22 +174,23 @@ def cMatrix4_compose(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] p
     te[13] = position[1]
     te[14] = position[2]
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cMatrix4_getMaxScaleOnAxis(np.ndarray[double, ndim=1] te):
-    cdef double scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]
-    cdef double scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
-    cdef double scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10]
+cpdef cMatrix4_getMaxScaleOnAxis(np.ndarray[float, ndim=1] te ):
+    cdef float scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]
+    cdef float scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
+    cdef float scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10]
 
     return sqrt(max(scaleXSq, scaleYSq, scaleZSq))
 
 """
 Quaternion
 """
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cQuaternion_slerpFlat(np.ndarray[float, ndim=1] dst, int dstOffset, np.ndarray[float, ndim=1] src0, int srcOffset0, np.ndarray[float, ndim=1] src1, int srcOffset1, float  t ):
+cpdef cQuaternion_slerpFlat(np.ndarray[float, ndim=1] dst ,
+                        int dstOffset,
+                        np.ndarray[float, ndim=1] src0 ,
+                        int srcOffset0,
+                        np.ndarray[float, ndim=1] src1 ,
+                        int srcOffset1,
+                        float  t ):
     # // fuzz-free, array-based Quaternion SLERP operation
     cdef float t1 = t
     cdef float x0 = src0[ srcOffset0 + 0 ]
@@ -249,7 +250,7 @@ def cQuaternion_slerpFlat(np.ndarray[float, ndim=1] dst, int dstOffset, np.ndarr
     dst[ dstOffset + 3 ] = w0
 
 
-def cMath_clamp( double value, double mi, double mx ):
+cpdef cMath_clamp( double value, double mi, double mx ):
     if value < mi:
         return mi
     if value > mx:
@@ -259,51 +260,46 @@ def cMath_clamp( double value, double mi, double mx ):
 """
 Vector3
 """
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cVector3_applyMatrix4(np.ndarray[double, ndim=1] vector3, np.ndarray[double, ndim=1] matrix4):
-    cdef double x = vector3[0]
-    cdef double y = vector3[1]
-    cdef double z = vector3[2]
+cpdef cVector3_applyMatrix4(np.ndarray[float, ndim=1] vector3 ,
+                                np.ndarray[float, ndim=1] matrix4 ):
+    cdef float x = vector3[0]
+    cdef float y = vector3[1]
+    cdef float z = vector3[2]
 
-    cdef double w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
+    cdef float w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
 
     vector3[0] = ( matrix4[ 0 ] * x + matrix4[ 4 ] * y + matrix4[ 8 ]  * z + matrix4[ 12 ] ) * w;
     vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
     vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cVector3_applyMatrix3(np.ndarray[double, ndim=1] this, np.ndarray[double, ndim=1] e):
-    cdef double x = this[0]
-    cdef double y = this[1]
-    cdef double z = this[2]
+cpdef cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
+                            np.ndarray[float, ndim=1] e ):
+    cdef float x = this[0]
+    cdef float y = this[1]
+    cdef float z = this[2]
 
     this[0] = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
     this[1] = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
     this[2] = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
 
-@cython.cdivision(True)
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cVector3_getInverse(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1] me):
-    cdef double n11 = me[ 0 ]
-    cdef double n21 = me[ 1 ]
-    cdef double n31 = me[ 2 ]
-    cdef double n12 = me[ 3 ]
-    cdef double n22 = me[ 4 ]
-    cdef double n32 = me[ 5 ]
-    cdef double n13 = me[ 6 ]
-    cdef double n23 = me[ 7 ]
-    cdef double n33 = me[ 8 ]
+cpdef cVector3_getInverse(np.ndarray[float, ndim=1] te ,
+                        np.ndarray[float, ndim=1] me ):
+    cdef float n11 = me[ 0 ]
+    cdef float n21 = me[ 1 ]
+    cdef float n31 = me[ 2 ]
+    cdef float n12 = me[ 3 ]
+    cdef float n22 = me[ 4 ]
+    cdef float n32 = me[ 5 ]
+    cdef float n13 = me[ 6 ]
+    cdef float n23 = me[ 7 ]
+    cdef float n33 = me[ 8 ]
 
-    cdef double t11 = n33 * n22 - n32 * n23
-    cdef double t12 = n32 * n13 - n33 * n12
-    cdef double t13 = n23 * n12 - n22 * n13
+    cdef float t11 = n33 * n22 - n32 * n23
+    cdef float t12 = n32 * n13 - n33 * n12
+    cdef float t13 = n23 * n12 - n22 * n13
 
-    cdef double det = n11 * t11 + n21 * t12 + n31 * t13
-    cdef double detInv = 1 / det
+    cdef float det = n11 * t11 + n21 * t12 + n31 * t13
+    cdef float detInv = 1 / det
 
     if det == 0:
         # raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
@@ -330,24 +326,38 @@ def cVector3_getInverse(np.ndarray[double, ndim=1] te, np.ndarray[double, ndim=1
         te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
         te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
 
+cpdef cVector3_lerp(np.ndarray[float, ndim=1] self ,
+                np.ndarray[float, ndim=1] v ,
+                float alpha ):
+    self[0] += ( v[0] - self[0] ) * alpha
+    self[1] += ( v[1] - self[1] ) * alpha
+    self[2] += ( v[2] - self[2] ) * alpha
+
+cpdef cVector3_copy(np.ndarray[float, ndim=1] self ,
+                np.ndarray[float, ndim=1] v ):
+    self[0] = v[0]
+    self[1] = v[1]
+    self[2] = v[2]
+    return self
+
 """
 Euler
 """
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cEuler_setFromRotationMatrix(self, np.ndarray[double, ndim=1] te , str order=None):
+cpdef cEuler_setFromRotationMatrix(self,
+                                np.ndarray[float, ndim=1] te ,
+                                str order=None):
 
     # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
 
-    cdef double m11 = te[ 0 ]
-    cdef double m12 = te[ 4 ]
-    cdef double m13 = te[ 8 ]
-    cdef double m21 = te[ 1 ]
-    cdef double m22 = te[ 5 ]
-    cdef double m23 = te[ 9 ]
-    cdef double m31 = te[ 2 ]
-    cdef double m32 = te[ 6 ]
-    cdef double  m33 = te[ 10 ]
+    cdef float m11 = te[ 0 ]
+    cdef float m12 = te[ 4 ]
+    cdef float m13 = te[ 8 ]
+    cdef float m21 = te[ 1 ]
+    cdef float m22 = te[ 5 ]
+    cdef float m23 = te[ 9 ]
+    cdef float m31 = te[ 2 ]
+    cdef float m32 = te[ 6 ]
+    cdef float  m33 = te[ 10 ]
 
     order = order or self._order
 
@@ -405,19 +415,17 @@ def cEuler_setFromRotationMatrix(self, np.ndarray[double, ndim=1] te , str order
 """
 Plane
 """
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cPlane_distanceToPoint(np.ndarray[double, ndim=1] normal, np.ndarray[double, ndim=1] point, double constant ):
+cpdef cPlane_distanceToPoint(np.ndarray[float, ndim=1] normal ,
+                            np.ndarray[float, ndim=1] point ,
+                            double constant ):
     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
 
 """
 Sphere
 """
-@cython.boundscheck(False) # turn off bounds-checking for entire function
-@cython.wraparound(False)  # turn off negative index wrapping for entire function
-def cSphere_applyMatrix4(object self, object matrix ):
-    cdef np.ndarray[double, ndim=1] center = self.center.np
-    cdef np.ndarray[double, ndim=1] matrix4 = matrix.elements
+cpdef cSphere_applyMatrix4(object self, object matrix ):
+    cdef np.ndarray[float, ndim=1] center = self.center.np
+    cdef np.ndarray[float, ndim=1] matrix4 = matrix.elements
     cdef double radius = self.radius
 
     cVector3_applyMatrix4(center, matrix4)
@@ -426,7 +434,7 @@ def cSphere_applyMatrix4(object self, object matrix ):
     self.radius = radius
     return self
 
-def cSphere_intersectsSphere(list planes, sphere ):
+cpdef cSphere_intersectsSphere(list planes, sphere ):
     """
     Optimization based on http://blog.bwhiting.co.uk/?p=355
     :param sphere:

@@ -77,6 +77,8 @@ class _vr:
         return True
 
 
+_vector3 = Vector3()
+
 """
 *
 *
@@ -269,7 +271,6 @@ class pyOpenGLRenderer:
         """
         //
         """
-        self._vector3 = Vector3()
 
     def _getTargetPixelRatio(self):
         return self._pixelRatio if self._currentRenderTarget is None else 1
@@ -1335,10 +1336,9 @@ class pyOpenGLRenderer:
         :param sortObjects:
         :return:
         """
+        global _vector3
         if not object.visible:
             return
-
-        _vector3 = self._vector3
 
         if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints | isLight | isSprite | isLensFlare | isImmediateRenderObject | isOctree):
             if object.my_class(isMesh | isLine | isPoints):
@@ -1388,7 +1388,8 @@ class pyOpenGLRenderer:
                 return
 
         for i in object.children:
-            self._projectObject(i, camera, sortObjects)
+            if i.visible:
+                self._projectObject(i, camera, sortObjects)
 
     def _renderInstances(self, scene, camera):
         """
@@ -1397,7 +1398,7 @@ class pyOpenGLRenderer:
         :param camera:
         :return:
         """
-        _vector3 = self._vector3
+        global _vector3
 
         for instance in scene.instances:
             if instance.geometry.maxInstancedCount > 0:

@@ -18,7 +18,7 @@ from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 from THREE.Vector3 import *
 
-_temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0])
+_temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
 _vector = None
 _vector_y = None
 _vector_z = None
@@ -39,10 +39,10 @@ class Matrix4(pyOpenGLObject):
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
-            ], dtype=np.float64)
+            ], dtype=np.float32)
         self.matrix = self.elements.reshape(4, 4)
 
-        self.old = np.zeros(16, dtype=np.float64)
+        self.old = np.zeros(16, dtype=np.float32)
         self.updated = True
 
     def is_updated(self):

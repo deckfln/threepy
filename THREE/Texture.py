@@ -34,7 +34,7 @@ class Texture(pyOpenGLObject):
 
         self.image = image if image is not None else Texture.DEFAULT_IMAGE
         self.img_data = None
-        self.mipmaps = []
+        self.mipmaps = None
 
         self.mapping = mapping if mapping is not None else Texture.DEFAULT_MAPPING
 

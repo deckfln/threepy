@@ -243,7 +243,7 @@ class SingleUniform:
 
     def setValue3fv(self, v, renderer=None):
         if v.my_class(isVector3):
-            glUniform3f(self.addr, v.x, v.y, v.z)
+            glUniform3f(self.addr, v.np[0], v.np[1], v.np[2])
         elif v.my_class(isColor):
             glUniform3f(self.addr, v.r, v.g, v.b)
         else :
@@ -269,8 +269,8 @@ class SingleUniform:
     def setValue4fm(self, v, renderer=None):
         if hasattr(v, 'elements'):
             # p = np.ascontiguousarray(v.elements, np.float32)
-            # OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, p)
-            glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
+            #glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
         else:
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
 

@@ -27,25 +27,20 @@ class Vector3(pyOpenGLObject):
     def __init__(self, x=0, y=0, z=0):
         super().__init__()
         self.set_class(isVector3)
-        self.np = np.array([x, y, z], np.float64)
-        """
-        self.x = x
-        self.y = y
-        self.z = z
-        """
-        self.array = np.array([0, 0, 0, 1], np.float64)
+        self.np = np.array([x, y, z], np.float32)
+        self.array = np.array([0, 0, 0, 1], np.float32)
 
-    def set(self, x, y, z ):
-        self.np[0] = x
-        self.np[1] = y
-        self.np[2] = z
+    def set(self, x, y, z):
+        np = self.np
+        np[0] = x
+        np[1] = y
+        np[2] = z
 
         return self
 
-    def setScalar(self, scalar ):
-        self.x = scalar
-        self.y = scalar
-        self.z = scalar
+    def setScalar(self, scalar):
+        np = self.np
+        np[0] = np[1] = np[2] = scalar
         return self
 
     def setX(self, x ):
@@ -239,10 +234,10 @@ class Vector3(pyOpenGLObject):
 
         return self.normalize()
 
-    def divide(self, v ):
-        self.x /= v.x
-        self.y /= v.y
-        self.z /= v.z
+    def divide(self, v):
+        self.np[0] /= v.np[0]
+        self.np[1] /= v.np[1]
+        self.np[2] /= v.np[2]
 
         return self
 
@@ -338,9 +333,16 @@ class Vector3(pyOpenGLObject):
         return self.normalize().multiplyScalar( length )
 
     def lerp(self, v, alpha ):
-        self.x += ( v.x - self.x ) * alpha
-        self.y += ( v.y - self.y ) * alpha
-        self.z += ( v.z - self.z ) * alpha
+        cVector3_lerp(self.np, v.np, alpha)
+        return self
+
+    def p_lerp(self, v, alpha ):
+        """
+        self.np[0] += ( v.np[0] - self.np[0] ) * alpha
+        self.np[1] += ( v.np[1] - self.np[1] ) * alpha
+        self.np[2] += ( v.np[2] - self.np[2] ) * alpha
+        """
+        self.np += (v.np - self.np) * alpha
 
         return self
 

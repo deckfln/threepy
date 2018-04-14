@@ -51,7 +51,7 @@ class _renderItem:
 
 class pyOpenGLRenderList:
     def __init__(self):
-        self.renderItems = {}
+        self.renderItems = []
         self.renderItemsIndex = 0
 
         self.opaque = []
@@ -67,7 +67,7 @@ class pyOpenGLRenderList:
         self.transparent.clear()
 
     def push(self, object, geometry, material, z, group):
-        if self.renderItemsIndex in self.renderItems:
+        if len(self.renderItems) > self.renderItemsIndex:
             renderItem = self.renderItems[self.renderItemsIndex]
             renderItem.id = object.id
             renderItem.object = object
@@ -79,7 +79,7 @@ class pyOpenGLRenderList:
             renderItem.group = group
         else:
             renderItem = _renderItem(object.id, object, geometry, material, material.program, object.renderOrder, z, group)
-            self.renderItems[self.renderItemsIndex] = renderItem
+            self.renderItems.append(renderItem)
 
         if material.transparent:
             self.transparent.append(renderItem)

@@ -58,9 +58,9 @@ class pyOpenGL(EventManager):
                     target += 0.03333333333333
 
                 self.animate(self.params)
-                c = time.clock() - current
-                if c > 0.0333333333:
-                    print(c)
+                # c = time.clock() - current
+                # if c > 0.0333333333:
+                #    print(c)
 
                 if self.flip:
                     # only flip buffer if some drawing actually happened

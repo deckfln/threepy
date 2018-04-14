@@ -47,6 +47,7 @@ def _makePowerOfTwo(image):
 
     return im
 
+
 def _textureNeedsPowerOfTwo(texture):
     return (texture.wrapS != ClampToEdgeWrapping or texture.wrapT != ClampToEdgeWrapping) or \
            (texture.minFilter != NearestFilter and texture.minFilter != LinearFilter)
@@ -132,22 +133,22 @@ class pyOpenGLTextures():
 
     def setTextureParameters(self, textureType, texture, isPowerOfTwoImage):
         if isPowerOfTwoImage:
-            glTexParameteri(textureType, GL_TEXTURE_WRAP_S, self.utils.convert(texture.wrapS))
-            glTexParameteri(textureType, GL_TEXTURE_WRAP_T, self.utils.convert(texture.wrapT))
-            glTexParameteri(textureType, GL_TEXTURE_WRAP_R, self.utils.convert(texture.wrapT))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_WRAP_S, self.utils.convert(texture.wrapS))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_WRAP_T, self.utils.convert(texture.wrapT))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_WRAP_R, self.utils.convert(texture.wrapT))
 
-            glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, self.utils.convert(texture.magFilter))
-            glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, self.utils.convert(texture.minFilter))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, self.utils.convert(texture.magFilter))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, self.utils.convert(texture.minFilter))
 
         else:
-            glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
             if texture.wrapS != ClampToEdgeWrapping or texture.wrapT != ClampToEdgeWrapping:
                 raise RuntimeWarning('THREE.WebGLRenderer: Texture is not power of two. Texture.wrapS and Texture.wrapT should be set to THREE.ClampToEdgeWrapping.', texture)
 
-            glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, _filterFallback(texture.magFilter))
-            glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, _filterFallback(texture.minFilter))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, _filterFallback(texture.magFilter))
+            OpenGL.raw.GL.VERSION.GL_1_0.glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, _filterFallback(texture.minFilter))
 
             if texture.minFilter != NearestFilter and texture.minFilter != LinearFilter:
                 raise RuntimeWarning('THREE.WebGLRenderer: Texture is not power of two. Texture.minFilter should be set to THREE.NearestFilter or THREE.LinearFilter.', texture)
@@ -243,7 +244,7 @@ class pyOpenGLTextures():
             # // if there are no manual mipmaps
             # // set 0 level mipmap and then use GL to generate other mipmap levels
 
-            if len(mipmaps) > 0 and isPowerOfTwoImage:
+            if mipmaps and isPowerOfTwoImage:
                 for i in range(len(mipmaps)):
                     mipmap = mipmaps[i]
                     self.state.texImage2D(GL_TEXTURE_2D, i, glFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data)
@@ -274,7 +275,7 @@ class pyOpenGLTextures():
             # // if there are no manual mipmaps
             # // set 0 level mipmap and then use GL to generate other mipmap levels
 
-            if len(mipmaps) > 0 and isPowerOfTwoImage:
+            if mipmaps and isPowerOfTwoImage:
                 i = 0
                 for mipmap in mipmaps:
                     self.state.texImage2D(GL_TEXTURE_2D, i, glFormat, image.width, image.height, 0, glFormat, glType, mipmap)
@@ -290,7 +291,7 @@ class pyOpenGLTextures():
                 OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, texture.img_data)
 
         if _textureNeedsGenerateMipmaps(texture, isPowerOfTwoImage):
-            glGenerateMipmap(GL_TEXTURE_2D)
+            OpenGL.raw.GL.VERSION.GL_3_0.glGenerateMipmap(GL_TEXTURE_2D)
 
         textureProperties.version = texture.version
 
