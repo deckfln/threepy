@@ -99,8 +99,17 @@ class Vector3(pyOpenGLObject):
     def clone(self):
         return type(self)( self.np[0], self.np[1], self.np[2] )
 
+    def _copy(self, v):
+        cVector3_copy(self.np, v.np)
+        return self
+
     def copy(self, v ):
-        np.copyto(self.np, v.np)
+        vnp = v.np
+        snp = self.np
+        snp[0] = vnp[0]
+        snp[1] = vnp[1]
+        snp[2] = vnp[2]
+        # np.copyto(self.np, v.np)
         return self
 
     def add(self, v, w=None ):
@@ -431,8 +440,13 @@ class Vector3(pyOpenGLObject):
     def setFromMatrixColumn(self, m, index ):
         return self.fromArray( m.elements, index * 4 )
 
+    def _equals(self, v ):
+        return cVector_equals(self.np, v.np)
+
     def equals(self, v ):
-        return ( v.np[0] == self.np[0] ) and ( v.np[1] == self.np[1] ) and ( v.np[2] == self.np[2] )
+        vnp = v.np
+        snp = self.np
+        return vnp[0] == snp[0] and vnp[1] == snp[1] and vnp[2] == snp[2]
 
     def fromArray(self, array, offset=0 ):
         self.np[0:3] = array[offset:offset+3]

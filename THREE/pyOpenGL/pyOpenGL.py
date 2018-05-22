@@ -8,6 +8,7 @@ from THREE.pyOpenGL.EventManager import *
 from THREE.Constants import *
 
 import THREE.pyOpenGL.window as window
+from Config import *
 
 
 class pyOpenGL(EventManager):
@@ -33,31 +34,46 @@ class pyOpenGL(EventManager):
         window.innerHeight = self.clientHeight
 
         self.params = params
+        self.run = False
 
         py.init()
-        py.display.set_mode((self.clientWidth , self.clientHeight ),  py.OPENGL | py.RESIZABLE | py.HWSURFACE | py.DOUBLEBUF)
+        # max_msaa = glGetIntegerv(GL_MAX_SAMPLES)  # unfortunately works only AFTER creating a dummy window
+        py.display.gl_set_attribute(GL_MULTISAMPLEBUFFERS, 1)
+        py.display.gl_set_attribute(GL_MULTISAMPLESAMPLES, 2)
+        py.display.set_mode((self.clientWidth , self.clientHeight ),  py.OPENGL | py.RESIZABLE | py.DOUBLEBUF)
 
         self.events = [py.QUIT, py.KEYDOWN, py.KEYUP, VIDEORESIZE, py.MOUSEBUTTONDOWN, py.MOUSEBUTTONUP, py.MOUSEMOTION]
 
-    # TODO FDE: implement antialias
-        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
-        # pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
+    def quit(self):
+        self.run = False
 
     def loop(self):
+        self.run = True
         previous = start = time.clock()
         target = previous + 0.03333333333333
 
-        while True:
+        while self.run:
             current = time.clock()
-            if current - start > 30:
-                print("Frames:%d" % self.params.renderer._infoRender.frame)
-                break
+            #if Config["benchmark"]:
+            #    if current - start > 30:
+            #       print("Frames:%d" % self.params.renderer._infoRender.frame)
+            #       break
 
-            if current >= target:
+            if self.params.frame_by_frame:
+                if not self.params.suspended:
+                    self.animate(self.params)
+                    self.params.renderer.init_shaders()
+                    py.display.flip()
+                    print(self.params.renderer._infoRender.frame)
+                    self.params.suspended = True
+
+            elif current >= target:
                 while target <= current:
                     target += 0.03333333333333
 
                 self.animate(self.params)
+                self.params.renderer.init_shaders()
+
                 # c = time.clock() - current
                 # if c > 0.0333333333:
                 #    print(c)

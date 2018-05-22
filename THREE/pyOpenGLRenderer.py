@@ -26,13 +26,27 @@ from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
+from threading import Thread
+import queue
 
 
-"""
-stubs
-"""
+class pyOpenGLVAO:
+    """
+     VAO stub
+    """
+    def __init__(self, object3d):
+        self.vao = glGenVertexArrays(1)
+        geometry = object3d.geometry
+        self.index = geometry.index.uuid if geometry.index is not None else None
+        attributes = geometry.attributes
+        self.attributes = [ attribute.uuid if attribute is not None else None for attribute in attributes.__dict__.values()]
+
 
 class pyOpenGLFlareRenderer:
+    """
+    stubs
+    """
+
     def __init__(self, renderer, state, textures, capabilities) :
         self.renderer = renderer
 
@@ -79,6 +93,31 @@ class _vr:
 
 _vector3 = Vector3()
 
+
+class _pyOpenGLRendererThread(Thread):
+    """
+    https://skryabiin.wordpress.com/2015/04/25/hello-world/
+    SDL 2.0, OpenGL, and Multithreading (Windows)
+    """
+
+    def __init__(self, renderer, queue):
+        Thread.__init__(self)
+        self.renderer = renderer
+        self.queue = queue
+
+    def run(self):
+        """Code à exécuter pendant l'exécution du thread."""
+        q = self.queue
+        while True:
+            material, fog, object = q.get()
+            # if item is None:
+            #    break
+            self.renderer._initMaterial(material, fog, object)
+            material.needsUpdate = False
+
+            q.task_done()
+
+
 """
 *
 *
@@ -99,6 +138,10 @@ class pyOpenGLRenderer:
         pyOpenGL
         """
         self.name = "pyOpenGL"
+
+        self.queue = queue.Queue()
+        # self.shaders_thread = _pyOpenGLRendererThread(self, self.queue)
+        # self.shaders_thread.start()
 
         """
         """
@@ -383,8 +426,8 @@ class pyOpenGLRenderer:
                 material.needsUpdate = True
 
         if material.needsUpdate:
-            self._initMaterial(material, fog, object)
-            material.needsUpdate = False
+            self.queue.put([material, fog, object])
+            return None
 
         refreshProgram = False
         refreshMaterial = False
@@ -820,7 +863,7 @@ class pyOpenGLRenderer:
         elif program.code != code:
             # // changed glsl or parameters
             self._releaseMaterialProgramReference(material)
-        elif parameters.shaderID:
+        elif parameters['shaderID']:
             # // same glsl and uniform list
             return
         else:
@@ -996,6 +1039,9 @@ class pyOpenGLRenderer:
         self.state.setMaterial(material)
 
         program = self._setProgram(camera, fog, material, object)
+        if program is None:
+            return False    # initialization of the shader was dlegated to the pyOpenGLShader Trhead
+
         self.program = program
         wireframe = material.wireframe
         geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
@@ -1029,9 +1075,12 @@ class pyOpenGLRenderer:
             renderer = self.indexedBufferRenderer
             renderer.setIndex(attribute)
 
-        if object.vao[renderer_id] == 0:
-            object.vao[renderer_id] = glGenVertexArrays(1)
-            glBindVertexArray(object.vao[renderer_id])
+        vao = object.vao[renderer_id]
+        if vao is None:
+            # create the VAO and register all the attributes
+            vao = pyOpenGLVAO(object)
+            object.vao[renderer_id] = vao
+            glBindVertexArray(vao.vao)
             self._setupVertexAttributes(material, program, geometry)
 
             if index:
@@ -1043,7 +1092,14 @@ class pyOpenGLRenderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
             object.update_vao[renderer_id] = False
-
+        else:
+            # if any of the attribute changed, update the vao
+            if index is not None and vao.index != index.uuid:
+                glBindVertexArray(vao.vao)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
+                glBindVertexArray(0)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+                vao.index = index.uuid
 
         # //
 
@@ -1066,11 +1122,11 @@ class pyOpenGLRenderer:
         drawCount = max(0, drawEnd - drawStart + 1)
 
         if drawCount == 0:
-            return
+            return False
 
         # //
 
-        glBindVertexArray(object.vao[renderer_id])
+        glBindVertexArray(vao.vao)
 
         if object.my_class(isMesh):
             if not material.wireframe:
@@ -1108,6 +1164,8 @@ class pyOpenGLRenderer:
             renderer.render(drawStart, drawCount)
 
         glBindVertexArray(0)
+
+        return True
 
     def _renderObject(self, object, scene, camera, geometry, material, group):
         """
@@ -1417,6 +1475,21 @@ class pyOpenGLRenderer:
                 elif material.visible:
                     self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
 
+    def init_shaders(self):
+        while True:
+            q = self.queue
+            try:
+                material, fog, object = q.get(False)
+            except queue.Empty:
+                return
+
+            # if item is None:
+            #    break
+            self._initMaterial(material, fog, object)
+            material.needsUpdate = False
+
+            q.task_done()
+
     def render(self, scene, camera, renderTarget=None, forceClear=False):
         """
         :param scene:
@@ -1473,7 +1546,6 @@ class pyOpenGLRenderer:
             self.currentRenderList.sort()
 
         # //
-
         if self._clippingEnabled:
             self._clipping.beginShadows()
 
@@ -1493,7 +1565,7 @@ class pyOpenGLRenderer:
         self._infoRender.points = 0
 
         self.setRenderTarget(renderTarget)
-
+        self.state.enable(GL_MULTISAMPLE)
         # //
 
         self.background.render(self.currentRenderList, scene, camera, forceClear)

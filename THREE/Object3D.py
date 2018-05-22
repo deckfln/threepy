@@ -85,7 +85,7 @@ class Object3D(pyOpenGLObject):
         self._onBeforeRenderParent = None
         self.customDepthMaterial = None
 
-        self.vao = [0, 0, 0]
+        self.vao = [None, None, None]
         self.update_vao = [True, True, True]
 
     def __iter__(self):

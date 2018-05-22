@@ -502,7 +502,6 @@ def parseMeshGeometry( geometryNode, relationships, deformers ):
  * @returns {THREE.BufferGeometry}
 """
 def genGeometry( geometryNode, deformer ):
-
     geometry = Geometry()
 
     subNodes = geometryNode.subNodes
@@ -512,76 +511,52 @@ def genGeometry( geometryNode, deformer ):
     vertexBuffer = parseFloatArray( subNodes.Vertices.properties.a )
     indexBuffer = parseIntArray( subNodes.PolygonVertexIndex.properties.a )
 
-    if subNodes.LayerElementNormal ):
-
+    if subNodes.LayerElementNormal:
         normalInfo = getNormals( subNodes.LayerElementNormal[ 0 ] )
 
-    }
-
-    if subNodes.LayerElementUV ):
-
+    if subNodes.LayerElementUV:
         uvInfo = getUVs( subNodes.LayerElementUV[ 0 ] )
 
-    }
-
-    if subNodes.LayerElementColor ):
-
+    if subNodes.LayerElementColor:
         colorInfo = getColors( subNodes.LayerElementColor[ 0 ] )
 
-    }
-
-    if subNodes.LayerElementMaterial ):
-
+    if subNodes.LayerElementMaterial:
         materialInfo = getMaterials( subNodes.LayerElementMaterial[ 0 ] )
-
-    }
 
     weightTable = {}
 
-    if deformer ):
-
+    if deformer:
         subDeformers = deformer.map
 
-        for ( key in subDeformers ):
-
+        for key in subDeformers:
             subDeformer = subDeformers[ key ]
             indices = subDeformer.indices
 
-            for ( j = 0; j < indices.length; j ++ ):
-
+            for j in range(len(indices)):
                 index = indices[ j ]
                 weight = subDeformer.weights[ j ]
 
-                if weightTable[ index ] == undefined ) weightTable[ index ] = []
+                if weightTable[ index ] == None:
+                    weightTable[ index ] = []
 
                 weightTable[ index ].append( {
                     id: subDeformer.index,
                     weight: weight
                 } )
 
-            }
-
-        }
-
-    }
-
     faceVertexBuffer = []
     polygonIndex = 0
-    displayedWeightsWarning = false
+    displayedWeightsWarning = False
 
-    for ( polygonVertexIndex = 0; polygonVertexIndex < indexBuffer.length; polygonVertexIndex ++ ):
-
+    for polygonVertexIndex in range(len(indexBuffer)):
         vertexIndex = indexBuffer[ polygonVertexIndex ]
 
-        endOfFace = false
+        endOfFace = False
 
-        if vertexIndex < 0 ):
-
+        if vertexIndex < 0:
             vertexIndex = vertexIndex ^ - 1
             indexBuffer[ polygonVertexIndex ] = vertexIndex
             endOfFace = true
-
-        }
 
         vertex = Vertex()
         weightIndices = []
@@ -589,42 +564,28 @@ def genGeometry( geometryNode, deformer ):
 
         vertex.position.fromArray( vertexBuffer, vertexIndex * 3 )
 
-        if deformer ):
-
-            if weightTable[ vertexIndex ] is not None ):
-
+        if deformer:
+            if weightTable[ vertexIndex ] is not None:
                 array = weightTable[ vertexIndex ]
 
-                for ( j = 0, jl = array.length; j < jl; j ++ ):
-
+                for j in range(len(array)):
                     weights.append( array[ j ].weight )
                     weightIndices.append( array[ j ].id )
 
-                }
-
-            }
-
-            if weights.length > 4 ):
-
-                if ! displayedWeightsWarning ):
-
-                    console.warn( 'THREE.FBXLoader: Vertex has more than 4 skinning weights assigned to vertex. Deleting additional weights.' )
-                    displayedWeightsWarning = true
-
-                }
+            if len(weights) > 4:
+                if not displayedWeightsWarning:
+                    raise.warning( 'THREE.FBXLoader: Vertex has more than 4 skinning weights assigned to vertex. Deleting additional weights.' )
+                    displayedWeightsWarning = True
 
                 WIndex = [ 0, 0, 0, 0 ]
                 Weight = [ 0, 0, 0, 0 ]
 
-                weights.forEach( def ( weight, weightIndex ):
-
+                for weight in weights:
                     currentWeight = weight
                     currentIndex = weightIndices[ weightIndex ]
 
-                    Weight.forEach( def ( comparedWeight, comparedWeightIndex, comparedWeightArray ):
-
-                        if currentWeight > comparedWeight ):
-
+                    for compareWidth in Weigth:
+                        if currentWeight > comparedWeight:
                             comparedWeightArray[ comparedWeightIndex ] = currentWeight
                             currentWeight = comparedWeight
 
@@ -632,76 +593,45 @@ def genGeometry( geometryNode, deformer ):
                             WIndex[ comparedWeightIndex ] = currentIndex
                             currentIndex = tmp
 
-                        }
-
-                    } )
-
-                } )
-
                 weightIndices = WIndex
                 weights = Weight
 
-            }
-
-            for ( i = weights.length; i < 4; ++ i ):
-
+            for i in range(len(weights), 4):
                 weights[ i ] = 0
                 weightIndices[ i ] = 0
-
-            }
 
             vertex.skinWeights.fromArray( weights )
             vertex.skinIndices.fromArray( weightIndices )
 
-        }
-
-        if normalInfo ):
-
+        if normalInfo:
             vertex.normal.fromArray( getData( polygonVertexIndex, polygonIndex, vertexIndex, normalInfo ) )
 
-        }
-
-        if uvInfo ):
-
+        if uvInfo:
             vertex.uv.fromArray( getData( polygonVertexIndex, polygonIndex, vertexIndex, uvInfo ) )
 
-        }
-
-        if colorInfo ):
-
+        if colorInfo:
             vertex.color.fromArray( getData( polygonVertexIndex, polygonIndex, vertexIndex, colorInfo ) )
-
-        }
 
         faceVertexBuffer.append( vertex )
 
-        if endOfFace ):
-
+        if endOfFace:
             face = Face()
             face.genTrianglesFromVertices( faceVertexBuffer )
 
-            if materialInfo is not None ):
-
+            if materialInfo is not None:
                 materials = getData( polygonVertexIndex, polygonIndex, vertexIndex, materialInfo )
                 face.materialIndex = materials[ 0 ]
 
             else:
-
                 # Seems like some models don't have materialInfo(subNodes.LayerElementMaterial).
                 # Set 0 in such a case.
                 face.materialIndex = 0
 
-            }
-
             geometry.faces.append( face )
             faceVertexBuffer = []
-            polygonIndex ++
+            polygonIndex += 1
 
-            endOfFace = false
-
-        }
-
-    }
+            endOfFace = False
 
     """
      * @type {{vertexBuffer: number[], normalBuffer: number[], uvBuffer: number[], skinIndexBuffer: number[], skinWeightBuffer: number[], materialIndexBuffer: number[]}}
@@ -712,54 +642,35 @@ def genGeometry( geometryNode, deformer ):
     geo.name = geometryNode.name
     geo.addAttribute( 'position', THREE.Float32BufferAttribute( bufferInfo.vertexBuffer, 3 ) )
 
-    if bufferInfo.normalBuffer.length > 0 ):
-
+    if bufferInfo.normalBuffer.length > 0:
         geo.addAttribute( 'normal', THREE.Float32BufferAttribute( bufferInfo.normalBuffer, 3 ) )
 
-    }
-    if bufferInfo.uvBuffer.length > 0 ):
-
+    if bufferInfo.uvBuffer.length > 0:
         geo.addAttribute( 'uv', THREE.Float32BufferAttribute( bufferInfo.uvBuffer, 2 ) )
 
-    }
-    if subNodes.LayerElementColor ):
-
+    if subNodes.LayerElementColor:
         geo.addAttribute( 'color', THREE.Float32BufferAttribute( bufferInfo.colorBuffer, 3 ) )
 
-    }
-
-    if deformer ):
-
+    if deformer:
         geo.addAttribute( 'skinIndex', THREE.Float32BufferAttribute( bufferInfo.skinIndexBuffer, 4 ) )
 
         geo.addAttribute( 'skinWeight', THREE.Float32BufferAttribute( bufferInfo.skinWeightBuffer, 4 ) )
 
         geo.FBX_Deformer = deformer
 
-    }
-
     # Convert the material indices of each vertex into rendering groups on the geometry.
-
     materialIndexBuffer = bufferInfo.materialIndexBuffer
     prevMaterialIndex = materialIndexBuffer[ 0 ]
     startIndex = 0
 
-    for ( i = 0; i < materialIndexBuffer.length; ++ i ):
-
-        if materialIndexBuffer[ i ] !== prevMaterialIndex ):
-
+    for i in range(len(materialIndexBuffer)):
+        if materialIndexBuffer[ i ] != prevMaterialIndex:
             geo.addGroup( startIndex, i - startIndex, prevMaterialIndex )
 
             prevMaterialIndex = materialIndexBuffer[ i ]
             startIndex = i
 
-        }
-
-    }
-
     return geo
-
-}
 
 """
  * Parses normal information for geometry.
@@ -767,34 +678,24 @@ def genGeometry( geometryNode, deformer ):
  * @returns {{dataSize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}}
 """
 def getNormals( NormalNode ):
-
     mappingType = NormalNode.properties.MappingInformationType
     referenceType = NormalNode.properties.ReferenceInformationType
     buffer = parseFloatArray( NormalNode.subNodes.Normals.properties.a )
     indexBuffer = []
-    if referenceType == 'IndexToDirect' ):
-
-        if 'NormalIndex' in NormalNode.subNodes ):
-
+    if referenceType == 'IndexToDirect':
+        if 'NormalIndex' in NormalNode.subNodes:
             indexBuffer = parseIntArray( NormalNode.subNodes.NormalIndex.properties.a )
 
-        elif 'NormalsIndex' in NormalNode.subNodes ):
-
+        elif 'NormalsIndex' in NormalNode.subNodes:
             indexBuffer = parseIntArray( NormalNode.subNodes.NormalsIndex.properties.a )
 
-        }
-
-    }
-
     return {
-        dataSize: 3,
-        buffer: buffer,
-        indices: indexBuffer,
-        mappingType: mappingType,
-        referenceType: referenceType
+        'dataSize': 3,
+        'buffer': buffer,
+        'indices': indexBuffer,
+        'mappingType': mappingType,
+        'referenceType': referenceType
     }
-
-}
 
 """
  * Parses UV information for geometry.
@@ -802,26 +703,21 @@ def getNormals( NormalNode ):
  * @returns {{dataSize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}}
 """
 def getUVs( UVNode ):
-
     mappingType = UVNode.properties.MappingInformationType
     referenceType = UVNode.properties.ReferenceInformationType
     buffer = parseFloatArray( UVNode.subNodes.UV.properties.a )
     indexBuffer = []
-    if referenceType == 'IndexToDirect' ):
 
+    if referenceType == 'IndexToDirect':
         indexBuffer = parseIntArray( UVNode.subNodes.UVIndex.properties.a )
 
-    }
-
     return {
-        dataSize: 2,
-        buffer: buffer,
-        indices: indexBuffer,
-        mappingType: mappingType,
-        referenceType: referenceType
+        'dataSize': 2,
+        'buffer': buffer,
+        'indices': indexBuffer,
+        'mappingType': mappingType,
+        'referenceType': referenceType
     }
-
-}
 
 """
  * Parses Vertex Color information for geometry.
@@ -829,26 +725,21 @@ def getUVs( UVNode ):
  * @returns {{dataSize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}}
 """
 def getColors( ColorNode ):
-
     mappingType = ColorNode.properties.MappingInformationType
     referenceType = ColorNode.properties.ReferenceInformationType
     buffer = parseFloatArray( ColorNode.subNodes.Colors.properties.a )
     indexBuffer = []
-    if referenceType == 'IndexToDirect' ):
 
+    if referenceType == 'IndexToDirect':
         indexBuffer = parseFloatArray( ColorNode.subNodes.ColorIndex.properties.a )
 
-    }
-
     return {
-        dataSize: 4,
-        buffer: buffer,
-        indices: indexBuffer,
-        mappingType: mappingType,
-        referenceType: referenceType
+        'dataSize': 4,
+        'buffer': buffer,
+        'indices': indexBuffer,
+        'mappingType': mappingType,
+        'referenceType': referenceType
     }
-
-}
 
 """
  * Parses material application information for geometry.
@@ -856,21 +747,17 @@ def getColors( ColorNode ):
  * @returns {{dataSize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}}
 """
 def getMaterials( MaterialNode ):
-
     mappingType = MaterialNode.properties.MappingInformationType
     referenceType = MaterialNode.properties.ReferenceInformationType
 
-    if mappingType == 'NoMappingInformation' ):
-
+    if mappingType == 'NoMappingInformation':
         return {
-            dataSize: 1,
-            buffer: [ 0 ],
-            indices: [ 0 ],
-            mappingType: 'AllSame',
-            referenceType: referenceType
+            'dataSize': 1,
+            'buffer': [ 0 ],
+            'indices': [ 0 ],
+            'mappingType': 'AllSame',
+            'referenceType': referenceType
         }
-
-    }
 
     materialIndexBuffer = parseIntArray( MaterialNode.subNodes.Materials.properties.a )
 
@@ -879,21 +766,17 @@ def getMaterials( MaterialNode ):
     # for conforming with the other functions we've written for other data.
     materialIndices = []
 
-    for ( materialIndexBufferIndex = 0, materialIndexBufferLength = materialIndexBuffer.length; materialIndexBufferIndex < materialIndexBufferLength; ++ materialIndexBufferIndex ):
-
+    materialIndexBufferLength = len(materialIndexBuffer)
+    for materialIndexBufferIndex in range(materialIndexBufferLength):
         materialIndices.append( materialIndexBufferIndex )
 
-    }
-
     return {
-        dataSize: 1,
-        buffer: materialIndexBuffer,
-        indices: materialIndices,
-        mappingType: mappingType,
-        referenceType: referenceType
+        'dataSize': 1,
+        'buffer: materialIndexBuffer,
+        'indices': materialIndices,
+        'mappingType': mappingType,
+        'referenceType': referenceType
     }
-
-}
 
 """
  * def uses the infoObject and given indices to return value array of object.
@@ -906,10 +789,8 @@ def getMaterials( MaterialNode ):
 
 dataArray = []
 
-GetData = {
-
-    ByPolygonVertex: {
-
+def GetData():
+    def ByPolygonVertex():
         """
          * def uses the infoObject and given indices to return value array of object.
          * @param {number} polygonVertexIndex - Index of vertex in draw order (which index of the index buffer refers to this vertex).
@@ -918,15 +799,12 @@ GetData = {
          * @param {{datasize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}} infoObject - Object containing data and how to access data.
          * @returns {number[]}
         """
-        Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
-            from = ( polygonVertexIndex * infoObject.dataSize )
+        def Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
+            frm = ( polygonVertexIndex * infoObject.dataSize )
             to = ( polygonVertexIndex * infoObject.dataSize ) + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
-
-        },
+            return slice( dataArray, infoObject.buffer, frm, to )
 
         """
          * def uses the infoObject and given indices to return value array of object.
@@ -936,21 +814,15 @@ GetData = {
          * @param {{datasize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}} infoObject - Object containing data and how to access data.
          * @returns {number[]}
         """
-        IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
+        def IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
             index = infoObject.indices[ polygonVertexIndex ]
-            from = ( index * infoObject.dataSize )
+            frm = ( index * infoObject.dataSize )
             to = ( index * infoObject.dataSize ) + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
+            return slice( dataArray, infoObject.buffer, frm, to )
 
-        }
-
-    },
-
-    ByPolygon: {
-
+    def ByPolygon():
         """
          * def uses the infoObject and given indices to return value array of object.
          * @param {number} polygonVertexIndex - Index of vertex in draw order (which index of the index buffer refers to this vertex).
@@ -959,15 +831,12 @@ GetData = {
          * @param {{datasize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}} infoObject - Object containing data and how to access data.
          * @returns {number[]}
         """
-        Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
-            from = polygonIndex * infoObject.dataSize
+        def Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
+            frm = polygonIndex * infoObject.dataSize
             to = polygonIndex * infoObject.dataSize + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
-
-        },
+            return slice( dataArray, infoObject.buffer, frm, to )
 
         """
          * def uses the infoObject and given indices to return value array of object.
@@ -977,35 +846,23 @@ GetData = {
          * @param {{datasize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}} infoObject - Object containing data and how to access data.
          * @returns {number[]}
         """
-        IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
+        def IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
             index = infoObject.indices[ polygonIndex ]
-            from = index * infoObject.dataSize
+            frm = index * infoObject.dataSize
             to = index * infoObject.dataSize + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
+            return slice( dataArray, infoObject.buffer, frm, to )
 
-        }
-
-    },
-
-    ByVertice: {
-
-        Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
-            from = ( vertexIndex * infoObject.dataSize )
+    def ByVertice():
+        def Direct(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
+            frm = ( vertexIndex * infoObject.dataSize )
             to = ( vertexIndex * infoObject.dataSize ) + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
+            return slice( dataArray, infoObject.buffer, frm, to )
 
-        }
-
-    },
-
-    AllSame: {
-
+    def AllSame():
         """
          * def uses the infoObject and given indices to return value array of object.
          * @param {number} polygonVertexIndex - Index of vertex in draw order (which index of the index buffer refers to this vertex).
@@ -1014,25 +871,15 @@ GetData = {
          * @param {{datasize: number, buffer: number[], indices: number[], mappingType: string, referenceType: string}} infoObject - Object containing data and how to access data.
          * @returns {number[]}
         """
-        IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
-            from = infoObject.indices[ 0 ] * infoObject.dataSize
+        def IndexToDirect(self, polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
+            frm = infoObject.indices[ 0 ] * infoObject.dataSize
             to = infoObject.indices[ 0 ] * infoObject.dataSize + infoObject.dataSize
 
             # return infoObject.buffer.slice( from, to )
-            return slice( dataArray, infoObject.buffer, from, to )
-
-        }
-
-    }
-
-}
+            return slice( dataArray, infoObject.buffer, frm, to )
 
 def getData( polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
-
     return GetData[ infoObject.mappingType ][ infoObject.referenceType ]( polygonVertexIndex, polygonIndex, vertexIndex, infoObject )
-
-}
 
 """
  * Specialty def for parsing NurbsCurve based Geometry Nodes.
@@ -1041,22 +888,15 @@ def getData( polygonVertexIndex, polygonIndex, vertexIndex, infoObject ):
  * @returns {THREE.BufferGeometry}
 """
 def parseNurbsGeometry( geometryNode ):
-
-    if THREE.NURBSCurve == undefined ):
-
+    if THREE.NURBSCurve == None:
         console.error( 'THREE.FBXLoader: The loader relies on THREE.NURBSCurve for any nurbs present in the model. Nurbs will show up as empty geometry.' )
         return THREE.BufferGeometry()
 
-    }
-
     order = parseInt( geometryNode.properties.Order )
 
-    if isNaN( order ) ):
-
+    if isNaN( order ):
         console.error( 'THREE.FBXLoader: Invalid Order %s given for geometry ID: %s', geometryNode.properties.Order, geometryNode.id )
         return THREE.BufferGeometry()
-
-    }
 
     degree = order - 1
 
@@ -1064,48 +904,33 @@ def parseNurbsGeometry( geometryNode ):
     controlPoints = []
     pointsValues = parseFloatArray( geometryNode.subNodes.Points.properties.a )
 
-    for ( i = 0, l = pointsValues.length; i < l; i += 4 ):
-
+    for i in range(0, len(pointsValues), 4):
         controlPoints.append( THREE.Vector4().fromArray( pointsValues, i ) )
-
-    }
 
     startKnot, endKnot
 
-    if geometryNode.properties.Form == 'Closed' ):
-
+    if geometryNode.properties.Form == 'Closed':
         controlPoints.append( controlPoints[ 0 ] )
 
-    elif geometryNode.properties.Form == 'Periodic' ):
-
+    elif geometryNode.properties.Form == 'Periodic':
         startKnot = degree
         endKnot = knots.length - 1 - startKnot
 
-        for ( i = 0; i < degree; ++ i ):
-
+        for i in range(degree):
             controlPoints.append( controlPoints[ i ] )
-
-        }
-
-    }
 
     curve = THREE.NURBSCurve( degree, knots, controlPoints, startKnot, endKnot )
     vertices = curve.getPoints( controlPoints.length * 7 )
 
     positions = Float32Array( vertices.length * 3 )
 
-    for ( i = 0, l = vertices.length; i < l; ++ i ):
-
+    for i in range(len(vertices)):
         vertices[ i ].toArray( positions, i * 3 )
-
-    }
 
     geometry = THREE.BufferGeometry()
     geometry.addAttribute( 'position', THREE.BufferAttribute( positions, 3 ) )
 
     return geometry
-
-}
 
 """
  * Finally generates Scene graph and Scene graph Objects.
@@ -1132,140 +957,94 @@ def parseScene( FBXTree, connections, deformers, geometryMap, materialMap ):
     """
     modelMap = Map()
 
-    for ( nodeID in ModelNode ):
+    for nodeID in ModelNode:
 
         id = parseInt( nodeID )
         node = ModelNode[ nodeID ]
         conns = connections.get( id )
         model = null
 
-        for ( i = 0; i < conns.parents.length; ++ i ):
-
-            for ( FBX_ID in deformers ):
-
+        for i in range(len(conns.parents)):
+            for FBX_ID in deformers:
                 deformer = deformers[ FBX_ID ]
                 subDeformers = deformer.map
                 subDeformer = subDeformers[ conns.parents[ i ].ID ]
 
-                if subDeformer ):
-
+                if subDeformer:
                     model2 = model
                     model = THREE.Bone()
                     deformer.bones[ subDeformer.index ] = model
 
                     # seems like we need this not to make non-connected bone, maybe?
                     # TODO: confirm
-                    if model2 !== null ) model.add( model2 )
+                    if model2 !== None:
+                        model.add( model2 )
 
-                }
+        if not model:
+            if node.attrType == 'Mesh':
+                """
+                 * @type {?THREE.BufferGeometry}
+                """
+                geometry = None
 
-            }
+                """
+                 * @type {THREE.MultiMaterial|THREE.Material}
+                """
+                material = None
 
-        }
+                """
+                 * @type {Array.<THREE.Material>}
+                """
+                materials = []
 
-        if ! model ):
+                for childrenIndex in range(len(conns.children)):
+                    child = conns.children[ childrenIndex ]
 
-            switch ( node.attrType ):
+                    if geometryMap.has( child.ID ):
+                        geometry = geometryMap.get( child.ID )
 
-                case 'Mesh':
-                    """
-                     * @type {?THREE.BufferGeometry}
-                    """
-                    geometry = null
+                    if materialMap.has( child.ID ):
+                        materials.append( materialMap.get( child.ID ) )
 
-                    """
-                     * @type {THREE.MultiMaterial|THREE.Material}
-                    """
-                    material = null
+                if len(materials) > 1:
+                    material = materials
 
-                    """
-                     * @type {Array.<THREE.Material>}
-                    """
-                    materials = []
+                elif len(materials) > 0:
+                    material = materials[ 0 ]
 
-                    for ( childrenIndex = 0, childrenLength = conns.children.length; childrenIndex < childrenLength; ++ childrenIndex ):
+                else:
+                    material = THREE.MeshBasicMaterial( { color: 0x3300ff } )
+                    materials.append( material )
 
-                        child = conns.children[ childrenIndex ]
+                if 'color' in geometry.attributes:
+                    for materialIndex in range(len(materials)):
+                        materials[ materialIndex ].vertexColors = THREE.VertexColors
 
-                        if geometryMap.has( child.ID ) ):
+                if geometry.FBX_Deformer:
+                    for materialsIndex in range(len(materials)):
+                        materials[ materialsIndex ].skinning = true
 
-                            geometry = geometryMap.get( child.ID )
+                    model = THREE.SkinnedMesh( geometry, material )
 
-                        }
+                else:
+                    model = THREE.Mesh( geometry, material )
 
-                        if materialMap.has( child.ID ) ):
+            elif node.attrType == 'NurbsCurve':
+                geometry = None
 
-                            materials.append( materialMap.get( child.ID ) )
+                for childrenIndex in range(len(conns.children)):
+                    child = conns.children[ childrenIndex ]
 
-                        }
+                    if geometryMap.has( child.ID ):
+                        geometry = geometryMap.get( child.ID )
 
-                    }
-                    if materials.length > 1 ):
+                # FBX does not list materials for Nurbs lines, so we'll just put our own in here.
+                material = THREE.LineBasicMaterial( { color: 0x3300ff, linewidth: 5 } )
+                model = THREE.Line( geometry, material )
 
-                        material = materials
+            else::
+                model = THREE.Object3D()
 
-                    elif materials.length > 0 ):
-
-                        material = materials[ 0 ]
-
-                    else:
-
-                        material = THREE.MeshBasicMaterial( { color: 0x3300ff } )
-                        materials.append( material )
-
-                    }
-                    if 'color' in geometry.attributes ):
-
-                        for ( materialIndex = 0, numMaterials = materials.length; materialIndex < numMaterials; ++materialIndex ):
-
-                            materials[ materialIndex ].vertexColors = THREE.VertexColors
-
-                        }
-
-                    }
-                    if geometry.FBX_Deformer ):
-
-                        for ( materialsIndex = 0, materialsLength = materials.length; materialsIndex < materialsLength; ++ materialsIndex ):
-
-                            materials[ materialsIndex ].skinning = true
-
-                        }
-                        model = THREE.SkinnedMesh( geometry, material )
-
-                    else:
-
-                        model = THREE.Mesh( geometry, material )
-
-                    }
-                    break
-
-                case 'NurbsCurve':
-                    geometry = null
-
-                    for ( childrenIndex = 0, childrenLength = conns.children.length; childrenIndex < childrenLength; ++ childrenIndex ):
-
-                        child = conns.children[ childrenIndex ]
-
-                        if geometryMap.has( child.ID ) ):
-
-                            geometry = geometryMap.get( child.ID )
-
-                        }
-
-                    }
-
-                    # FBX does not list materials for Nurbs lines, so we'll just put our own in here.
-                    material = THREE.LineBasicMaterial( { color: 0x3300ff, linewidth: 5 } )
-                    model = THREE.Line( geometry, material )
-                    break
-
-                default:
-                    model = THREE.Object3D()
-                    break
-
-            }
-
-        }
 
         model.name = node.attrName.replace( /:/, '' ).replace( /_/, '' ).replace( /-/, '' )
         model.FBX_ID = id
@@ -1273,108 +1052,68 @@ def parseScene( FBXTree, connections, deformers, geometryMap, materialMap ):
         modelArray.append( model )
         modelMap.set( id, model )
 
-    }
-
-    for ( modelArrayIndex = 0, modelArrayLength = modelArray.length; modelArrayIndex < modelArrayLength; ++ modelArrayIndex ):
-
+    for modelArrayIndex in range(len(modelArray)):
         model = modelArray[ modelArrayIndex ]
 
         node = ModelNode[ model.FBX_ID ]
 
-        if 'Lcl_Translation' in node.properties ):
-
+        if 'Lcl_Translation' in node.properties:
             model.position.fromArray( parseFloatArray( node.properties.Lcl_Translation.value ) )
 
-        }
-
-        if 'Lcl_Rotation' in node.properties ):
-
+        if 'Lcl_Rotation' in node.properties:
             rotation = parseFloatArray( node.properties.Lcl_Rotation.value ).map( degreeToRadian )
             rotation.append( 'ZYX' )
             model.rotation.fromArray( rotation )
 
-        }
-
-        if 'Lcl_Scaling' in node.properties ):
-
+        if 'Lcl_Scaling' in node.properties:
             model.scale.fromArray( parseFloatArray( node.properties.Lcl_Scaling.value ) )
 
-        }
-
-        if 'PreRotation' in node.properties ):
-
+        if 'PreRotation' in node.properties:
             preRotations = THREE.Euler().setFromVector3( parseVector3( node.properties.PreRotation ).multiplyScalar( DEG2RAD ), 'ZYX' )
             preRotations = THREE.Quaternion().setFromEuler( preRotations )
             currentRotation = THREE.Quaternion().setFromEuler( model.rotation )
             preRotations.multiply( currentRotation )
             model.rotation.setFromQuaternion( preRotations, 'ZYX' )
 
-        }
+        def _xxxx(mod):
+            return mod.FBX_ID == conns.parents[parentIndex].ID
 
         conns = connections.get( model.FBX_ID )
-        for ( parentIndex = 0; parentIndex < conns.parents.length; parentIndex ++ ):
-
-            pIndex = findIndex( modelArray, def ( mod ):
-
-                return mod.FBX_ID == conns.parents[ parentIndex ].ID
-
-            } )
-            if pIndex > - 1 ):
-
+        for parentIndex in range(len(conns.parents)):
+            pIndex = findIndex( modelArray, _xxxx)
+            if pIndex > - 1:
                 modelArray[ pIndex ].add( model )
                 break
 
-            }
-
-        }
-        if model.parent is None ):
-
+        if model.parent is None:
             sceneGraph.add( model )
-
-        }
-
-    }
-
 
     # Now with the bones created, we can update the skeletons and bind them to the skinned meshes.
     sceneGraph.updateMatrixWorld( true )
 
     # Put skeleton into bind pose.
     BindPoseNode = FBXTree.Objects.subNodes.Pose
-    for ( nodeID in BindPoseNode ):
-
-        if BindPoseNode[ nodeID ].attrType == 'BindPose' ):
-
+    for nodeID in BindPoseNode:
+        if BindPoseNode[ nodeID ].attrType == 'BindPose':
             BindPoseNode = BindPoseNode[ nodeID ]
             break
 
-        }
-
-    }
-    if BindPoseNode ):
-
+    if BindPoseNode:
         PoseNode = BindPoseNode.subNodes.PoseNode
         worldMatrices = Map()
 
-        for ( PoseNodeIndex = 0, PoseNodeLength = PoseNode.length; PoseNodeIndex < PoseNodeLength; ++ PoseNodeIndex ):
-
+        for PoseNodeIndex in range(len(PoseNode)):
             node = PoseNode[ PoseNodeIndex ]
 
             rawMatWrd = parseMatrixArray( node.subNodes.Matrix.properties.a )
 
             worldMatrices.set( parseInt( node.id ), rawMatWrd )
 
-        }
-
-    }
-
-    for ( FBX_ID in deformers ):
-
+    for FBX_ID in deformers:
         deformer = deformers[ FBX_ID ]
         subDeformers = deformer.map
 
-        for ( key in subDeformers ):
-
+        for key in subDeformers:
             subDeformer = subDeformers[ key ]
             subDeformerIndex = subDeformer.index
 
@@ -1382,15 +1121,11 @@ def parseScene( FBXTree, connections, deformers, geometryMap, materialMap ):
              * @type {THREE.Bone}
             """
             bone = deformer.bones[ subDeformerIndex ]
-            if ! worldMatrices.has( bone.FBX_ID ) ):
-
+            if not worldMatrices.has( bone.FBX_ID ):
                 break
 
-            }
             mat = worldMatrices.get( bone.FBX_ID )
             bone.matrixWorld.copy( mat )
-
-        }
 
         # Now that skeleton is in bind pose, bind to model.
         deformer.skeleton = THREE.Skeleton( deformer.bones )
@@ -1398,43 +1133,29 @@ def parseScene( FBXTree, connections, deformers, geometryMap, materialMap ):
         conns = connections.get( deformer.FBX_ID )
         parents = conns.parents
 
-        for ( parentsIndex = 0, parentsLength = parents.length; parentsIndex < parentsLength; ++ parentsIndex ):
-
+        for parentsIndex in rnage(len(parents)):
             parent = parents[ parentsIndex ]
 
-            if geometryMap.has( parent.ID ) ):
-
+            if geometryMap.has( parent.ID ):
                 geoID = parent.ID
                 geoConns = connections.get( geoID )
 
-                for ( i = 0; i < geoConns.parents.length; ++ i ):
-
-                    if modelMap.has( geoConns.parents[ i ].ID ) ):
-
+                for i in range(len(geoConns.parents)):
+                    if modelMap.has( geoConns.parents[ i ].ID ):
                         model = modelMap.get( geoConns.parents[ i ].ID )
                         #ASSERT model typeof SkinnedMesh
                         model.bind( deformer.skeleton, model.matrixWorld )
                         break
 
-                    }
-
-                }
-
-            }
-
-        }
-
-    }
-
     #Skeleton is now bound, return objects to starting
     #world positions.
-    sceneGraph.updateMatrixWorld( true )
+    sceneGraph.updateMatrixWorld( True )
 
     # Silly hack with the animation parsing.  We're gonna pretend the scene graph has a skeleton
     # to attach animations to, since FBXs treat animations as animations for the entire scene,
     # not just for individual objects.
     sceneGraph.skeleton = {
-        bones: modelArray
+        'bones': modelArray
     }
 
     animations = parseAnimations( FBXTree, connections, sceneGraph )
@@ -1442,8 +1163,6 @@ def parseScene( FBXTree, connections, deformers, geometryMap, materialMap ):
     addAnimations( sceneGraph, animations )
 
     return sceneGraph
-
-}
 
 """
  * Parses animation information from FBXTree and generates an AnimationInfoObject.
@@ -1826,12 +1545,12 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
      }}
     """
     returnObject = {
-        curves: Map(),
-        layers: {},
-        stacks: {},
-        length: 0,
-        fps: 30,
-        frames: 0
+        'curves': Map(),
+        'layers': {},
+        'stacks': {},
+        'length': 0,
+        'fps': 30,
+        'frames': 0
     }
 
     """
@@ -1847,16 +1566,11 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
         }>}
     """
     animationCurveNodes = []
-    for ( nodeID in rawNodes ):
+    for nodeID in rawNodes:
 
-        if nodeID.match( /\d+/ ) ):
-
+        if nodeID.match( /\d+/ ):
             animationNode = parseAnimationNode( FBXTree, rawNodes[ nodeID ], connections, sceneGraph )
             animationCurveNodes.append( animationNode )
-
-        }
-
-    }
 
     """
      * @type {Map.<number, {
@@ -1902,14 +1616,10 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
     tmpMap = Map()
     for ( animationCurveNodeIndex = 0; animationCurveNodeIndex < animationCurveNodes.length; ++ animationCurveNodeIndex ):
 
-        if animationCurveNodes[ animationCurveNodeIndex ] is None ):
-
+        if animationCurveNodes[ animationCurveNodeIndex ] is None:
             continue
 
-        }
         tmpMap.set( animationCurveNodes[ animationCurveNodeIndex ].id, animationCurveNodes[ animationCurveNodeIndex ] )
-
-    }
 
 
     """
@@ -1924,14 +1634,13 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
         }[]}
     """
     animationCurves = []
-    for ( nodeID in rawCurves ):
-
-        if nodeID.match( /\d+/ ) ):
-
+    for nodeID in rawCurves:
+        if nodeID.match( /\d+/ ):
             animationCurve = parseAnimationCurve( rawCurves[ nodeID ] )
 
             # seems like this check would be necessary?
-            if ! connections.has( animationCurve.id ) ) continue
+            if not connections.has( animationCurve.id ):
+                continue
 
             animationCurves.append( animationCurve )
 
@@ -1940,89 +1649,64 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
             firstParentRelationship = firstParentConn.relationship
             axis = ''
 
-            if firstParentRelationship.match( /X/ ) ):
-
+            if firstParentRelationship.match( /X/ ):
                 axis = 'x'
 
-            elif firstParentRelationship.match( /Y/ ) ):
-
+            elif firstParentRelationship.match( /Y/ ):
                 axis = 'y'
 
-            elif firstParentRelationship.match( /Z/ ) ):
-
+            elif firstParentRelationship.match( /Z/ ):
                 axis = 'z'
 
             else:
-
                 continue
-
-            }
 
             tmpMap.get( firstParentID ).curves[ axis ] = animationCurve
 
-        }
-
-    }
-
-    tmpMap.forEach( def ( curveNode ):
-
+    for curveNode in tmpMap:
         id = curveNode.containerBoneID
-        if ! returnObject.curves.has( id ) ):
-
+        if not returnObject.curves.has( id ):
             returnObject.curves.set( id, { T: null, R: null, S: null } )
 
-        }
         returnObject.curves.get( id )[ curveNode.attr ] = curveNode
-        if curveNode.attr == 'R' ):
-
+        if curveNode.attr == 'R':
             curves = curveNode.curves
 
             # Seems like some FBX files have AnimationCurveNode
             # which doesn't have any connected AnimationCurve.
             # Setting animation parameter for them here.
 
-            if curves.x is None ):
-
+            if curves.x is None:
                 curves.x = {
-                    version: null,
-                    times: [ 0.0 ],
-                    values: [ 0.0 ]
+                    'version': None,
+                    'times': [ 0.0 ],
+                    'values': [ 0.0 ]
                 }
 
-            }
-
-            if curves.y is None ):
-
+            if curves.y is None:
                 curves.y = {
-                    version: null,
-                    times: [ 0.0 ],
-                    values: [ 0.0 ]
+                    'version': None,
+                    'times': [ 0.0 ],
+                    'values': [ 0.0 ]
                 }
 
-            }
-
-            if curves.z is None ):
-
+            if curves.z is None:
                 curves.z = {
-                    version: null,
-                    times: [ 0.0 ],
-                    values: [ 0.0 ]
+                    'version': None,
+                    'times': [ 0.0 ],
+                    'values': [ 0.0 ]
                 }
-
-            }
 
             curves.x.values = curves.x.values.map( degreeToRadian )
             curves.y.values = curves.y.values.map( degreeToRadian )
             curves.z.values = curves.z.values.map( degreeToRadian )
 
-            if curveNode.preRotations !== null ):
-
+            if curveNode.preRotations !== None:
                 preRotations = THREE.Euler().setFromVector3( curveNode.preRotations, 'ZYX' )
                 preRotations = THREE.Quaternion().setFromEuler( preRotations )
                 frameRotation = THREE.Euler()
                 frameRotationQuaternion = THREE.Quaternion()
-                for ( frame = 0; frame < curves.x.times.length; ++ frame ):
-
+                for frame in range(len(curves.x.times)):
                     frameRotation.set( curves.x.values[ frame ], curves.y.values[ frame ], curves.z.values[ frame ], 'ZYX' )
                     frameRotationQuaternion.setFromEuler( frameRotation ).premultiply( preRotations )
                     frameRotation.setFromQuaternion( frameRotationQuaternion, 'ZYX' )
@@ -2030,16 +1714,7 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
                     curves.y.values[ frame ] = frameRotation.y
                     curves.z.values[ frame ] = frameRotation.z
 
-                }
-
-            }
-
-        }
-
-    } )
-
-    for ( nodeID in rawLayers ):
-
+    for nodeID in rawLayers:
         """
          * @type {{
             T: {
@@ -2164,80 +1839,48 @@ def parseAnimations( FBXTree, connections, sceneGraph ):
         layer = []
         children = connections.get( parseInt( nodeID ) ).children
 
-        for ( childIndex = 0; childIndex < children.length; childIndex ++ ):
-
+        for childIndex in range(len(children)):
             # Skip lockInfluenceWeights
-            if tmpMap.has( children[ childIndex ].ID ) ):
-
+            if tmpMap.has( children[ childIndex ].ID ):
                 curveNode = tmpMap.get( children[ childIndex ].ID )
                 boneID = curveNode.containerBoneID
-                if layer[ boneID ] == undefined ):
-
+                if layer[ boneID ] == None:
                     layer[ boneID ] = {
-                        T: null,
-                        R: null,
-                        S: null
+                        'T': None,
+                        'R': None,
+                        'S': None
                     }
-
-                }
-
                 layer[ boneID ][ curveNode.attr ] = curveNode
-
-            }
-
-        }
 
         returnObject.layers[ nodeID ] = layer
 
-    }
-
-    for ( nodeID in rawStacks ):
-
+    for nodeID in rawStacks:
         layers = []
         children = connections.get( parseInt( nodeID ) ).children
         timestamps = { max: 0, min: Number.MAX_VALUE }
 
-        for ( childIndex = 0; childIndex < children.length; ++ childIndex ):
-
+        for childIndex in range(len(children)):
             currentLayer = returnObject.layers[ children[ childIndex ].ID ]
 
-            if currentLayer is not None ):
-
+            if currentLayer is not None:
                 layers.append( currentLayer )
 
-                for ( currentLayerIndex = 0, currentLayerLength = currentLayer.length; currentLayerIndex < currentLayerLength; ++ currentLayerIndex ):
-
+                for currentLayerIndex in range(len(currentLayer)):
                     layer = currentLayer[ currentLayerIndex ]
 
-                    if layer ):
-
+                    if layer:
                         getCurveNodeMaxMinTimeStamps( layer, timestamps )
 
-                    }
-
-                }
-
-            }
-
-        }
-
         # Do we have an animation clip with actual length?
-        if timestamps.max > timestamps.min ):
-
+        if timestamps.max > timestamps.min:
             returnObject.stacks[ nodeID ] = {
-                name: rawStacks[ nodeID ].attrName,
-                layers: layers,
-                length: timestamps.max - timestamps.min,
-                frames: ( timestamps.max - timestamps.min ) * 30
+                'name': rawStacks[ nodeID ].attrName,
+                'layers': layers,
+                'length': timestamps.max - timestamps.min,
+                'frames': ( timestamps.max - timestamps.min ) * 30
             }
-
-        }
-
-    }
 
     return returnObject
-
-}
 
 """
  * @param {Object} FBXTree
@@ -2253,12 +1896,12 @@ def parseAnimationNode( FBXTree, animationCurveNode, connections, sceneGraph ):
         """
          * @type {number}
         """
-        id: animationCurveNode.id,
+        'id': animationCurveNode.id,
 
         """
          * @type {string}
         """
-        attr: animationCurveNode.attrName,
+        'attr': animationCurveNode.attrName,
 
         """
          * @type {number}

@@ -7,6 +7,7 @@ import re
 
 from OpenGL_accelerate import *
 from OpenGL.GL import *
+from OpenGL.raw.GL.VERSION.GL_2_0 import glCreateProgram
 
 from THREE.Constants import *
 from THREE.Uniforms import *
@@ -272,7 +273,7 @@ class pyOpenGLProgram:
 
         # //
 
-        program = glCreateProgram()
+        program = OpenGL.raw.GL.VERSION.GL_2_0.glCreateProgram()
 
         if material.my_class(isRawShaderMaterial):
             prefixVertex = '\n'.join([

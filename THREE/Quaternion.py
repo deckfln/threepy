@@ -133,10 +133,10 @@ class Quaternion:
         return type(self)( self._x, self._y, self._z, self._w )
 
     def copy(self, quaternion ):
-        self._x = quaternion.x
-        self._y = quaternion.y
-        self._z = quaternion.z
-        self._w = quaternion.w
+        self._x = quaternion._x
+        self._y = quaternion._y
+        self._z = quaternion._z
+        self._w = quaternion._w
 
         if self.onChangeCallback:
             self.onChangeCallback(self)

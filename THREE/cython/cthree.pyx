@@ -10,6 +10,7 @@ cimport cython
 import numpy as np
 cimport numpy as np
 from libc.math cimport sqrt, atan2, sin, asin
+from libc.string cimport memcpy, memcmp
 
 
 """
@@ -260,7 +261,7 @@ cpdef cMath_clamp( double value, double mi, double mx ):
 """
 Vector3
 """
-cpdef cVector3_applyMatrix4(np.ndarray[float, ndim=1] vector3 ,
+cpdef void cVector3_applyMatrix4(np.ndarray[float, ndim=1] vector3 ,
                                 np.ndarray[float, ndim=1] matrix4 ):
     cdef float x = vector3[0]
     cdef float y = vector3[1]
@@ -272,7 +273,7 @@ cpdef cVector3_applyMatrix4(np.ndarray[float, ndim=1] vector3 ,
     vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
     vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
 
-cpdef cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
+cpdef void cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
                             np.ndarray[float, ndim=1] e ):
     cdef float x = this[0]
     cdef float y = this[1]
@@ -282,7 +283,7 @@ cpdef cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
     this[1] = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
     this[2] = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
 
-cpdef cVector3_getInverse(np.ndarray[float, ndim=1] te ,
+cpdef void cVector3_getInverse(np.ndarray[float, ndim=1] te ,
                         np.ndarray[float, ndim=1] me ):
     cdef float n11 = me[ 0 ]
     cdef float n21 = me[ 1 ]
@@ -326,19 +327,26 @@ cpdef cVector3_getInverse(np.ndarray[float, ndim=1] te ,
         te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
         te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
 
-cpdef cVector3_lerp(np.ndarray[float, ndim=1] self ,
+cpdef void cVector3_lerp(np.ndarray[float, ndim=1] self ,
                 np.ndarray[float, ndim=1] v ,
                 float alpha ):
     self[0] += ( v[0] - self[0] ) * alpha
     self[1] += ( v[1] - self[1] ) * alpha
     self[2] += ( v[2] - self[2] ) * alpha
 
-cpdef cVector3_copy(np.ndarray[float, ndim=1] self ,
+cpdef void cVector3_copy(np.ndarray[float, ndim=1] self ,
                 np.ndarray[float, ndim=1] v ):
-    self[0] = v[0]
-    self[1] = v[1]
-    self[2] = v[2]
-    return self
+    cdef void *source = <void *>&self[0]
+    cdef void *dest = <void *>&v[0]
+
+    memcpy(dest, source, 3*sizeof(float))
+
+cpdef int cVector_equals(np.ndarray[float, ndim=1] self ,
+                np.ndarray[float, ndim=1] v ):
+    cdef void *dest = <void *>&self[0]
+    cdef void *source = <void *>&v[0]
+
+    return memcmp(source, dest, 3*sizeof(float))
 
 """
 Euler

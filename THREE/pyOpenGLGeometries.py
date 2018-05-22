@@ -99,6 +99,10 @@ class pyOpenGLGeometries:
         return updated
 
     def getWireframeAttribute(self, geometry):
+        index = geometry.index
+        if index is not None and index.uuid in self.wireframeAttributes:
+            return self.wireframeAttributes[index.uuid]
+
         if geometry.id in self.wireframeAttributes:
             return self.wireframeAttributes[geometry.id]
 
@@ -136,6 +140,9 @@ class pyOpenGLGeometries:
 
         self.attributes.update(attribute, GL_ELEMENT_ARRAY_BUFFER)
 
-        self.wireframeAttributes[geometry.id] = attribute
+        if index is not None:
+            self.wireframeAttributes[index.uuid] = attribute
+        else:
+            self.wireframeAttributes[geometry.id] = attribute
 
         return attribute
