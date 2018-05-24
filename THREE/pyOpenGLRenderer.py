@@ -37,9 +37,10 @@ class pyOpenGLVAO:
     def __init__(self, object3d):
         self.vao = glGenVertexArrays(1)
         geometry = object3d.geometry
-        self.index = geometry.index.uuid if geometry.index is not None else None
-        attributes = geometry.attributes
-        self.attributes = [ attribute.uuid if attribute is not None else None for attribute in attributes.__dict__.values()]
+        self.index = geometry.index.uuid if hasattr(geometry, 'index') and hasattr(geometry.index, "uuid") else None
+        if hasattr(geometry, 'attributes'):
+            attributes = geometry.attributes
+            self.attributes = [ attribute.uuid if attribute is not None else None for attribute in attributes.__dict__.values()]
 
 
 class pyOpenGLFlareRenderer:

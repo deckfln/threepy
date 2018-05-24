@@ -102,9 +102,7 @@ def animate(params):
 def render(params):
     rotateAroundWorldAxis(params.mesh, params.position, math.pi / 180)
 
-    profiler.start("render")
     params.renderer.render(params.scene, params.camera)
-    profiler.stop("render")
 
 
 def loadModel (colorMap, numberOfColors, legendLayout):

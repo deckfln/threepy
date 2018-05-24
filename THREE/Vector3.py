@@ -12,13 +12,12 @@ import math
 import numpy as np
 
 from THREE.Quaternion import *
-from THREE.Matrix4 import *
 
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 
-_matrix4 = Matrix4()
+_matrix4 = None
 
 
 class Vector3(pyOpenGLObject):
@@ -223,11 +222,19 @@ class Vector3(pyOpenGLObject):
         return self
 
     def project(self, camera):
-        _matrix4.multiplyMatrices( camera.projectionMatrix, matrix.getInverse( camera.matrixWorld ) )
+        global _matrix4
+        if _matrix4 is None:
+            _matrix4 = Matrix4()
+
+        _matrix4.multiplyMatrices( camera.projectionMatrix, _matrix4.getInverse( camera.matrixWorld ) )
         return self.applyMatrix4( _matrix4 )
 
     def unproject(self, camera):
-        _matrix4.multiplyMatrices( camera.matrixWorld, matrix.getInverse( camera.projectionMatrix ) )
+        global _matrix4
+        if _matrix4 is None:
+            _matrix4 = Matrix4()
+
+        _matrix4.multiplyMatrices( camera.matrixWorld, _matrix4.getInverse( camera.projectionMatrix ) )
         return self.applyMatrix4( _matrix4 )
 
     def transformDirection(self, m ):
@@ -471,3 +478,6 @@ class Vector3(pyOpenGLObject):
         self.z = attribute.getZ( index )
 
         return self
+
+
+from THREE.Matrix4 import *

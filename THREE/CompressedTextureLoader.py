@@ -14,7 +14,7 @@ class CompressedTextureLoader:
 
         # override in sub classes
         self._parser = None
-        self.path = ''
+        self.path = None
 
     def load(self, url, onLoad=None, onProgress=None, onError=None ):
         scope = self

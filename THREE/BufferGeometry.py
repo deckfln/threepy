@@ -106,7 +106,8 @@ class BufferGeometry(pyOpenGLObject):
         return self.attributes.__dict__[name]
 
     def removeAttribute(self, name ):
-        del self.attributes.__dict__[name]
+        if hasattr(self.attributes, name):
+            del self.attributes.__dict__[name]
         return self
         
     def addGroup(self, start, count, materialIndex=0 ):

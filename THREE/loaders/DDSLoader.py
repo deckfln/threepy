@@ -12,7 +12,7 @@ class DDSLoader(CompressedTextureLoader):
     def __init__(self):
         self._parser = self.parse
         self.manager = None
-        self.path=''
+        self.path = None
 
     def parse(self, buffer, loadMipmaps ):
         dds = { 'mipmaps': [], 'width': 0, 'height': 0, 'format': None, 'mipmapCount': 1 }

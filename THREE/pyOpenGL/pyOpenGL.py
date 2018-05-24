@@ -8,8 +8,6 @@ from THREE.pyOpenGL.EventManager import *
 from THREE.Constants import *
 
 import THREE.pyOpenGL.window as window
-from Config import *
-
 
 class pyOpenGL(EventManager):
     def __init__(self, params=None):
@@ -59,7 +57,7 @@ class pyOpenGL(EventManager):
             #       print("Frames:%d" % self.params.renderer._infoRender.frame)
             #       break
 
-            if self.params.frame_by_frame:
+            if hasattr(self.params, 'frame_by_frame'):
                 if not self.params.suspended:
                     self.animate(self.params)
                     self.params.renderer.init_shaders()

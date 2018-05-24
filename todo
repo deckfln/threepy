@@ -2,4 +2,11 @@ TODO    13/01/2018  wegl_custom_attributes          crashing
 TODO    13/01/2018  webgl_geometry_dynamic          display nothing
 TODO    13/01/2018  webgl_camera                    first camera shows nothing
 TODO    13/01/2018  webgl_clipping_intersection     the sphere doesn't rotate
-TODO    26/03/2018  webgl_camera                    display nothing
+TODO    26/03/2018  webgl_camera_cinematic          display nothing
+TODO    24/05/2018  webgl_clipping                  display nothing
+TODO    24/05/2018  webgl_clipping_advanced         display nothing
+TODO    24/05/2018  webgl_clipping_intersection     display nothing
+TODO    24/05/2018  webgl_geometry_blender          display nothing
+TODO    24/05/2018  webgl_clipping_colors_lookuptable display nothing
+TODO    24/05/2018  webgl_geometry_convex           missing edges
+TODO    24/05/2018  webgl_material                  crash python

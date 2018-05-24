@@ -13,16 +13,15 @@
      */
 """
 import math
-import THREE
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 from THREE.Vector3 import *
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
-_vector = None
-_vector_y = None
-_vector_z = None
-_matrix = None
+
+_vector = Vector3()
+_vector_y = Vector3()
+_vector_z = Vector3()
 
 
 class Matrix4(pyOpenGLObject):
@@ -321,11 +320,6 @@ class Matrix4(pyOpenGLObject):
 
     def lookAt(self, eye, target, up):
         global _vector, _matrix, _vector_y, _vector_z
-        if _vector is None:
-            _vector = THREE.Vector3()
-            _vector_y = THREE.Vector3()
-            _vector_z = THREE.Vector3()
-            _matrix = Matrix4()
 
         x = _vector
         y = _vector_y
@@ -823,3 +817,5 @@ class Matrix4(pyOpenGLObject):
         # array[offset + 15] = float(te[15])
 
         return array
+
+_matrix = Matrix4()

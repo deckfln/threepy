@@ -81,6 +81,8 @@ class pyOpenGLGeometries:
         for attribute in geometryAttributes.__dict__.values():
             if attribute is not None:
                 if attribute.my_class(isInstancedBufferAttribute):
+                    if maxInstancedCount is None:
+                        maxInstancedCount = attribute.count * attribute.meshPerAttribute
                     attribute.maxInstancedCount = maxInstancedCount
                 data = self.attributes.update(attribute, GL_ARRAY_BUFFER)
                 if data.updated and not updated:
