@@ -280,12 +280,25 @@ class Vector2(pyOpenGLObject):
         return self
 
     def rotateAround(self, center, angle ):
-        c = math.cos( angle ); s = math.sin( angle )
+        c = math.cos( angle )
+        s = math.sin( angle )
 
         x = self.x - center.x
         y = self.y - center.y
 
         self.x = x * c - y * s + center.x
         self.y = x * s + y * c + center.y
+
+        return self
+
+    def rotate(self, angle ):
+        c = math.cos( angle )
+        s = math.sin( angle )
+
+        x = self.x
+        y = self.y
+
+        self.x = x * c - y * s
+        self.y = x * s + y * c
 
         return self

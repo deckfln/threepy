@@ -96,7 +96,7 @@ class pyOpenGLAttributes(pyOpenGLObject):
         if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
-        return self.buffers[attribute.uuid]
+        return self.buffers[attribute.uuid] if attribute.uuid in self.buffers else None
 
     def remove(self, attribute):
         if attribute.my_class(isInterleavedBufferAttribute):

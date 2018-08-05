@@ -243,17 +243,19 @@ class RawObject:
         if faceIndexU:
             indexU = int(int(faceIndexU) - self.globalUvOffset) * 2
             uvs = self.rawObjectDescriptionInUse.uvs
-            uvs.append(self.uvs[indexU])
-            uvs.append(self.uvs[indexU + 1])
-            indexU += 1
+            if indexU >= 0:
+                uvs.append(self.uvs[indexU])
+                uvs.append(self.uvs[indexU + 1])
+                indexU += 1
 
         if faceIndexN:
             indexN = int(int(faceIndexN) - self.globalNormalOffset) * 3
             normals = self.rawObjectDescriptionInUse.normals
-            normals.append(self.normals[indexN])
-            normals.append(self.normals[indexN + 1])
-            normals.append(self.normals[indexN + 2])
-            indexN += 2
+            if indexN >= 0:
+                normals.append(self.normals[indexN])
+                normals.append(self.normals[indexN + 1])
+                normals.append(self.normals[indexN + 2])
+                indexN += 2
 
     def buildLineVvt(self, lineArray, length):
         """

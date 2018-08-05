@@ -20,12 +20,15 @@ class pyOpenGLBackground:
         self.planeCamera = None
         self.planeMesh = None
         self.boxMesh = None
+        self.boxMesh_vertex = ShaderLib['cube'].vertexShader
+        self.boxMesh_fragment = ShaderLib['cube'].fragmentShader
+        self.boxMesh_uniforms = ShaderLib['cube'].uniforms
 
         self.renderer = renderer
         self.state = state
         self.geometries = geometries
         self.premultipliedAlpha = premultipliedAlpha
-        
+
     def render( self, renderList, scene, camera, forceClear ):
         background = scene.background
 
@@ -43,9 +46,9 @@ class pyOpenGLBackground:
                 self.boxMesh = Mesh(
                     BoxBufferGeometry( 1, 1, 1 ),
                     ShaderMaterial( {
-                        'uniforms': ShaderLib['cube'].uniforms,
-                        'vertexShader': ShaderLib['cube'].vertexShader,
-                        'fragmentShader': ShaderLib['cube'].fragmentShader,
+                        'uniforms': self.boxMesh_uniforms,
+                        'vertexShader': self.boxMesh_vertex,
+                        'fragmentShader': self.boxMesh_fragment,
                         'side': BackSide,
                         'depthTest': True,
                         'depthWrite': False,

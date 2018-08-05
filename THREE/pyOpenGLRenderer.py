@@ -22,6 +22,7 @@ from THREE.ShaderLib import *
 from THREE.Javascript import *
 from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
+from THREE.pyOpenGLGuiRenderer import *
 from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
@@ -286,6 +287,7 @@ class pyOpenGLRenderer:
 
         self.flareRenderer = pyOpenGLFlareRenderer(self, self.state, self.textures, self.capabilities)
         self.spriteRenderer = pyOpenGLSpriteRenderer(self, self.state, self.textures, self.capabilities)
+        self.guiRenderer = pyOpenGLGuiRenderer(self, self.state, self.textures, self.capabilities) if 'gui' in self.parameters else None
 
         self.info.programs = self.programCache.programs
 
@@ -368,6 +370,7 @@ class pyOpenGLRenderer:
         if stencil:
             bits |= GL_STENCIL_BUFFER_BIT
 
+        #FIXME
         glClear(bits)
 
     def clearColor(self):
@@ -427,8 +430,10 @@ class pyOpenGLRenderer:
                 material.needsUpdate = True
 
         if material.needsUpdate:
-            self.queue.put([material, fog, object])
-            return None
+            self._initMaterial(material, fog, object)
+            material.needsUpdate = False
+            #self.queue.put([material, fog, object])
+            #return None
 
         refreshProgram = False
         refreshMaterial = False
@@ -1476,20 +1481,8 @@ class pyOpenGLRenderer:
                 elif material.visible:
                     self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
 
-    def init_shaders(self):
-        while True:
-            q = self.queue
-            try:
-                material, fog, object = q.get(False)
-            except queue.Empty:
-                return
-
-            # if item is None:
-            #    break
-            self._initMaterial(material, fog, object)
-            material.needsUpdate = False
-
-            q.task_done()
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
     def render(self, scene, camera, renderTarget=None, forceClear=False):
         """
@@ -1571,7 +1564,7 @@ class pyOpenGLRenderer:
 
         self.background.render(self.currentRenderList, scene, camera, forceClear)
 
-        # // render scene
+        # render scene
 
         self._renderInstances(scene, camera)
 
@@ -1595,10 +1588,12 @@ class pyOpenGLRenderer:
             if len(transparentObjects) > 0:
                 self._renderObjects(transparentObjects, scene, camera)
 
-        # // custom renderers
+        # custom renderers
 
         self.spriteRenderer.render(self.spritesArray, scene, camera)
         self.flareRenderer.render(self.flaresArray, scene, camera, self._currentViewport)
+        if self.guiRenderer:
+            self.guiRenderer.render()
 
         # // Generate mipmap if we're using any kind of mipmap filtering
 

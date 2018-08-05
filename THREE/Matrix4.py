@@ -700,8 +700,6 @@ class Matrix4(pyOpenGLObject):
         sy = _vector.set(te[4], te[5], te[6]).length()
         sz = _vector.set(te[8], te[9], te[10]).length()
 
-        if sz == 0:
-            print("go")
         # // if determine is negative, we need to invert one scale
         det = self.determinant()
         if det < 0:

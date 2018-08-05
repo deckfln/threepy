@@ -41,28 +41,36 @@ class pyOpenGL(EventManager):
         py.display.set_mode((self.clientWidth , self.clientHeight ),  py.OPENGL | py.RESIZABLE | py.DOUBLEBUF)
 
         self.events = [py.QUIT, py.KEYDOWN, py.KEYUP, VIDEORESIZE, py.MOUSEBUTTONDOWN, py.MOUSEBUTTONUP, py.MOUSEMOTION]
+        self.start = None
+        self.previous = None
+        self.start_frame = 0
+
+    def start_benchmark(self):
+        self.start = time.clock()
+        self.start_frame = self.params.renderer._infoRender.frame
 
     def quit(self):
         self.run = False
 
     def loop(self):
         self.run = True
-        previous = start = time.clock()
+        previous = time.clock()
         target = previous + 0.03333333333333
 
         while self.run:
             current = time.clock()
-            #if Config["benchmark"]:
-            #    if current - start > 30:
-            #       print("Frames:%d" % self.params.renderer._infoRender.frame)
-            #       break
 
-            if hasattr(self.params, 'frame_by_frame'):
+            if self.start is not None:
+                if current - self.start > 30:
+                   print("Frames:%d" % (self.params.renderer._infoRender.frame - self.start_frame))
+                   break
+
+            if hasattr(self.params, 'frame_by_frame') and self.params.frame_by_frame:
                 if not self.params.suspended:
                     self.animate(self.params)
                     self.params.renderer.init_shaders()
                     py.display.flip()
-                    print(self.params.renderer._infoRender.frame)
+                    print("loop", self.params.renderer._infoRender.frame)
                     self.params.suspended = True
 
             elif current >= target:
@@ -70,7 +78,6 @@ class pyOpenGL(EventManager):
                     target += 0.03333333333333
 
                 self.animate(self.params)
-                self.params.renderer.init_shaders()
 
                 # c = time.clock() - current
                 # if c > 0.0333333333:
