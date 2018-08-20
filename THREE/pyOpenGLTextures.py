@@ -89,6 +89,20 @@ class pyOpenGLTextures():
 
         # //
 
+    def dispose(self, texture=None):
+        if texture is None:
+            for property in self.properties.properties:
+                obj = property.object
+                if obj.my_class(isTexture):
+                    self.deallocateTexture(obj)
+                elif obj.my_class(isWebGLRenderTarget):
+                    self.deallocateRenderTarget(obj)
+        else:
+            if texture.my_class(isTexture):
+                self.deallocateTexture(texture)
+            elif texture.my_class(isWebGLRenderTarget):
+                self.deallocateRenderTarget(texture)
+
     def deallocateTexture(self, texture):
         textureProperties = self.properties.get(texture)
 
@@ -168,8 +182,6 @@ class pyOpenGLTextures():
     def uploadTexture(self, textureProperties, texture, slot):
         if not textureProperties.openglInit:
             textureProperties.openglInit = True
-
-            texture.onDispose(self.onTextureDispose)
 
             textureProperties.openglTexture = glGenTextures(1)
 

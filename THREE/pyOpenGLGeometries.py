@@ -9,6 +9,12 @@ from THREE.BufferGeometry import *
 import THREE
 
 
+class _pyOpenGLGeometryReference:
+    def __init__(self, bufferGeometry, uuid):
+        self.bufferGeometry = bufferGeometry
+        self.objects = {uuid: True}
+
+
 class pyOpenGLGeometries:
     def __init__( self, attributes, infoMemory):
         self.geometries = {}
@@ -16,41 +22,48 @@ class pyOpenGLGeometries:
         self.attributes = attributes
         self.infoMemory = infoMemory
 
-    def onGeometryDispose(self, event):
-        geometry = event.target
-        buffergeometry = self.geometries[geometry.id]
+    def dispose(self, object, geometry):
+        if object is None:
+            return
 
-        if buffergeometry.index:
-            self.attributes.remove(buffergeometry.index)
+        if geometry.id not in self.geometries:
+            return
 
-        for name in buffergeometry.attributes:
-            self.attributes.remove(buffergeometry.attributes[name])
+        reference = self.geometries[geometry.id]
 
-        del self.geometries[geometry.id]
+        # decrease references
+        if object.uuid in reference.objects:
+            del reference.objects[object.uuid]
 
-        # // TODO Remove duplicate code
-        attribute = self.wireframeAttributes[geometry.id]
+            if len(reference.objects) == 0:
+                buffergeometry = reference.bufferGeometry
+                if buffergeometry.index:
+                    self.attributes.dispose(buffergeometry.index, buffergeometry)
 
-        if attribute:
-            self.attributes.remove(attribute)
-            del self.wireframeAttributes[geometry.id]
+                for name in buffergeometry.attributes.__dict__:
+                    attribute = buffergeometry.attributes.__dict__[name]
+                    if attribute:
+                        self.attributes.dispose(attribute, buffergeometry)
 
-        attribute = self.wireframeAttributes[buffergeometry.id]
+                del self.geometries[geometry.id]
 
-        if attribute:
-            self.attributes.remove(attribute)
-            del self.wireframeAttributes[buffergeometry.id]
+                if geometry.id in self.wireframeAttributes:
+                    attribute = self.wireframeAttributes[geometry.id]
+                    if attribute:
+                        self.attributes.dispose(attribute, buffergeometry)
+                        del self.wireframeAttributes[geometry.id]
 
-        # //
-
-        self.infoMemory.geometries -= 1
+                self.infoMemory.geometries -= 1
 
     def get(self, object, geometry):
         if geometry.id in self.geometries:
-            buffergeometry = self.geometries[geometry.id]
-            return buffergeometry
+            geometry_reference = self.geometries[geometry.id]
+            uuid = object.uuid
+            if uuid not in geometry_reference.objects:
+                geometry_reference.objects[uuid] = True
 
-        geometry.onDispose(self.onGeometryDispose)
+            buffergeometry = geometry_reference.bufferGeometry
+            return buffergeometry
 
         if geometry.my_class(isBufferGeometry):
             buffergeometry = geometry
@@ -60,7 +73,7 @@ class pyOpenGLGeometries:
 
             buffergeometry = geometry._bufferGeometry
 
-        self.geometries[geometry.id] = buffergeometry
+        self.geometries[geometry.id] = _pyOpenGLGeometryReference(buffergeometry, object.uuid)
 
         self.infoMemory.geometries += 1
 
@@ -74,7 +87,7 @@ class pyOpenGLGeometries:
             maxInstancedCount = geometry.maxInstancedCount
 
         if index:
-            data = self.attributes.update( index, GL_ELEMENT_ARRAY_BUFFER)
+            data = self.attributes.update( index, GL_ELEMENT_ARRAY_BUFFER, geometry)
             if data.updated:
                 updated = True
 
@@ -84,7 +97,7 @@ class pyOpenGLGeometries:
                     if maxInstancedCount is None:
                         maxInstancedCount = attribute.count * attribute.meshPerAttribute
                     attribute.maxInstancedCount = maxInstancedCount
-                data = self.attributes.update(attribute, GL_ARRAY_BUFFER)
+                data = self.attributes.update(attribute, GL_ARRAY_BUFFER, geometry)
                 if data.updated and not updated:
                     updated = True
 
@@ -94,7 +107,7 @@ class pyOpenGLGeometries:
                 continue
 
             for morphAttribute in array:
-                data = self.attributes.update(morphAttribute, GL_ARRAY_BUFFER)
+                data = self.attributes.update(morphAttribute, GL_ARRAY_BUFFER, geometry)
                 if data.updated and not updated:
                     updated = True
 
@@ -140,7 +153,7 @@ class pyOpenGLGeometries:
         else:
             attribute = Uint16BufferAttribute( indices, 1)
 
-        self.attributes.update(attribute, GL_ELEMENT_ARRAY_BUFFER)
+        self.attributes.update(attribute, GL_ELEMENT_ARRAY_BUFFER, geometry)
 
         if index is not None:
             self.wireframeAttributes[index.uuid] = attribute

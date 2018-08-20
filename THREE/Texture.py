@@ -9,6 +9,7 @@ import THREE._Math as _Math
 from THREE.Constants import *
 from THREE.pyOpenGLObject import *
 from THREE.Vector2 import *
+import pyOpenGLProperties as pyOGLproperties
 
 
 _textureId = 0
@@ -155,12 +156,8 @@ class Texture(pyOpenGLObject):
 
         return output
 
-    def onDispose(self, callback):
-        self.callback = callback
-
     def dispose(self):
-        if self.callback:
-            self.callback(self)
+        pyOGLproperties.dispose_queue.append(self)
 
     def transformUv(self, uv ):
         if self.mapping != UVMapping:

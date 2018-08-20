@@ -77,6 +77,9 @@ class BufferGeometry(pyOpenGLObject):
         self.callback = None
         self.bones = None
 
+    def dispose(self):
+        return
+
     def getIndex(self):
         return self.index
         

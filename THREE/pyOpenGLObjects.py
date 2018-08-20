@@ -7,6 +7,8 @@ from THREE.BufferGeometry import *
 from OpenGL_accelerate import *
 from OpenGL.GL import *
 
+dispose_queue = []
+
 
 class pyOpenGLObjects:
     def __init__(self, geometries, infoRender):
@@ -35,5 +37,9 @@ class pyOpenGLObjects:
 
         return buffergeometry
 
+    def dispose(self, object):
+        geometry = object.geometry
+        self.geometries.dispose(object, geometry)
+
     def clear(self):
-        self.updateList = {}
+        self.updateList.clear()

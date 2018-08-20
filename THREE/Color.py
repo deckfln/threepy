@@ -343,6 +343,13 @@ class Color(pyOpenGLObject):
 
         return self
 
+    def subColors(self, color1, color2):
+        self.r = color1.r - color2.r
+        self.g = color1.g - color2.g
+        self.b = color1.b - color2.b
+
+        return self
+
     def multiply(self, color ):
         self.r *= color.r
         self.g *= color.g

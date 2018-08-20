@@ -22,6 +22,7 @@ from THREE.Sphere import *
 from THREE.BufferGeometry import *
 from THREE.Face3 import *
 from THREE.Ray import *
+import pyOpenGLObjects
 
 
 def _uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ):
@@ -105,6 +106,10 @@ class Mesh(Object3D):
 
     def __getitem__(self, item):
         return self.__dict__[item]
+
+    def dispose(self):
+        pyOpenGLObjects.dispose_queue.append(self)
+        self.geometry.dispose()
 
     def create_vao(self):
         self.vao = glGenVertexArrays(1)

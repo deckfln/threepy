@@ -23,6 +23,10 @@ class _map:
         self.image_powerof2 = None
 
 
+# global clean up
+dispose_queue = []
+
+
 class pyOpenGLProperties:
     def __init__(self):
         self.properties = {}
@@ -37,8 +41,11 @@ class pyOpenGLProperties:
 
         return map
 
-    def remove(self, object ):
-        del self.properties[ object.uuid ]
+    def remove(self, object):
+        property = self.properties[object.uuid]
+        property.object.dispose()
+
+        del self.properties[object.uuid]
 
     def clear(self):
         self.properties = {}

@@ -481,3 +481,4 @@ class Vector3(pyOpenGLObject):
 
 
 from THREE.Matrix4 import *
+from THREE.Quaternion import *

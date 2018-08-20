@@ -12,6 +12,8 @@ import time
 import pygame
 from pygame.locals import *
 from ctypes import c_void_p
+from threading import Thread
+import queue
 
 from OpenGL_accelerate import *
 import THREE.pyOpenGL.OpenGL as cOpenGL
@@ -27,8 +29,9 @@ from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
-from threading import Thread
-import queue
+
+import pyOpenGLObjects as pyOGLobjects
+import pyOpenGLProperties as pyOGLproperties
 
 
 class pyOpenGLVAO:
@@ -389,6 +392,8 @@ class pyOpenGLRenderer:
     def dispose(self):
         self.renderLists.dispose()
         self.vr.dispose()
+        self.attributes.dispose()
+        self.textures.dispose()
 
     def prepare(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -1503,6 +1508,15 @@ class pyOpenGLRenderer:
         self._currentGeometryProgram = ''
         self._currentMaterialId = - 1
         self._currentCamera = None
+
+        # clean up old objects
+        for mesh in pyOGLobjects.dispose_queue:
+            self.objects.dispose(mesh)
+        pyOGLobjects.dispose_queue.clear()
+
+        for texture in pyOGLproperties.dispose_queue:
+            self.textures.dispose(texture)
+        pyOGLproperties.dispose_queue.clear()
 
         # // update scene graph
 

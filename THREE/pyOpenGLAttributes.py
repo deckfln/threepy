@@ -24,19 +24,20 @@ _conv = {
 
 
 class _pyOPenGLAattribute:
-    def __init__(self, buffer, type, bytesPerElement, version):
+    def __init__(self, buffer, type, bytesPerElement, version, parent_uuid):
         self.buffer = buffer
         self.type = type
         self.bytesPerElement = bytesPerElement
         self.version = version
         self.updated = False
+        self.references = {parent_uuid: True}
 
 
 class pyOpenGLAttributes(pyOpenGLObject):
     def __init__(self):
         self.buffers = {}
 
-    def createBuffer(self, attribute, bufferType):
+    def createBuffer(self, attribute, bufferType, parent_uuid):
         array = attribute.array
 
         buffer = glGenBuffers(1)
@@ -59,7 +60,7 @@ class pyOpenGLAttributes(pyOpenGLObject):
         if ta is None:
             raise RuntimeError('THREE.WebGLAttributes: Unsupported data buffer format: Float64Array.')
 
-        return _pyOPenGLAattribute(buffer, type, array.dtype.itemsize, attribute.version)
+        return _pyOPenGLAattribute(buffer, type, array.dtype.itemsize, attribute.version, parent_uuid)
 
     def updateBuffer(self, buffer, attribute, bufferType):
         array = attribute.array
@@ -98,21 +99,38 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         return self.buffers[attribute.uuid] if attribute.uuid in self.buffers else None
 
-    def remove(self, attribute):
+    def dispose(self, attribute=None, parent=None):
+        if attribute is None:
+            # delete all attributes
+            for data in self.buffers:
+                glDeleteBuffers(data.buffer)
+            return
+
         if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
         if attribute.uuid in self.buffers:
             data = self.buffers[attribute.uuid]
-            glDeleteBuffers(data.buffer)
-            del self.buffers[attribute.uuid]
+            parent_uuid = parent.uuid
+            if parent_uuid in data.references:
+                del data.references[parent_uuid]
 
-    def update(self, attribute, bufferType):
+                if len(data.references) == 0:
+                    glDeleteBuffers(1, [data.buffer])
+                    del self.buffers[attribute.uuid]
+
+    def update(self, attribute, bufferType, parent):
         if attribute.my_class(isInterleavedBufferAttribute):
             attribute = attribute.data
 
+        uuid = attribute.uuid
+        parent_uuid = parent.uuid
+
         if attribute.uuid in self.buffers:
             data = self.buffers[attribute.uuid]
+
+            if parent_uuid not in data.references:
+                data.references[parent_uuid] = True
 
             if data.version < attribute.version:
                 self.updateBuffer(data.buffer, attribute, bufferType)
@@ -121,7 +139,7 @@ class pyOpenGLAttributes(pyOpenGLObject):
             else:
                 data.updated = False
         else:
-            self.buffers[attribute.uuid] = self.createBuffer(attribute, bufferType)
-            self.buffers[attribute.uuid].updated = True
+            self.buffers[uuid] = self.createBuffer(attribute, bufferType, parent_uuid)
+            self.buffers[uuid].updated = True
 
         return self.buffers[attribute.uuid]

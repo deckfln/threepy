@@ -16,7 +16,7 @@ class Vector2(pyOpenGLObject):
         super().__init__()
         self.set_class(isVector2)
 
-        self.np = np.zeros(2, np.float64)
+        self.np = np.zeros(2, np.float32)
         self.np[0] = x
         self.np[1] = y
 

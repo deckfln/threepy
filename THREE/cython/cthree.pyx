@@ -336,8 +336,8 @@ cpdef void cVector3_lerp(np.ndarray[float, ndim=1] self ,
 
 cpdef void cVector3_copy(np.ndarray[float, ndim=1] self ,
                 np.ndarray[float, ndim=1] v ):
-    cdef void *source = <void *>&self[0]
-    cdef void *dest = <void *>&v[0]
+    cdef void *source = <void *>&v[0]
+    cdef void *dest = <void *>&self[0]
 
     memcpy(dest, source, 3*sizeof(float))
 
