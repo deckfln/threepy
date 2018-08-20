@@ -8,6 +8,10 @@
 from THREE.Plane import *
 from THREE.BoundingSphere import *
 
+cython = True
+
+_p = Vector3()
+
 
 class Frustum:
     def __init__(self, p0=None, p1=None, p2=None, p3=None, p4=None, p5=None ):
@@ -129,7 +133,10 @@ class Frustum:
         return self.intersectsSphere( sphere )
 
     def intersectsSphere(self, sphere):
-        return cSphere_intersectsSphere(self.planes, sphere)
+        if cython:
+            return cSphere_intersectsSphere(self.planes, sphere)
+        else:
+            return self._intersectsSphere(sphere)
 
     def _intersectsSphere(self, sphere ):
         """
@@ -162,27 +169,17 @@ class Frustum:
         return True
 
     def intersectsBox(self, box):
-        p1 = Vector3()
-        p2 = Vector3()
-
         planes = self.planes
 
         for i in range(6):
             plane = planes[ i ]
 
-            p1.x = box.min.x if plane.normal.x > 0 else box.max.x
-            p2.x = box.max.x if plane.normal.x > 0 else box.min.x
-            p1.y = box.min.y if plane.normal.y > 0 else box.max.y
-            p2.y = box.max.y if plane.normal.y > 0 else box.min.y
-            p1.z = box.min.z if plane.normal.z > 0 else box.max.z
-            p2.z = box.max.z if plane.normal.z > 0 else box.min.z
+            # corner at max distance
+            _p.x = box.max.x if plane.normal.x > 0 else box.min.x
+            _p.y = box.max.y if plane.normal.y > 0 else box.min.y
+            _p.z = box.max.z if plane.normal.z > 0 else box.min.z
 
-            d1 = plane.distanceToPoint( p1 )
-            d2 = plane.distanceToPoint( p2 )
-
-            # // if both outside plane, no intersection
-
-            if d1 < 0 and d2 < 0:
+            if plane.distanceToPoint( _p ) < 0:
                 return False
 
         return True

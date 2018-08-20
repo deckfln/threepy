@@ -23,10 +23,6 @@ class _map:
         self.image_powerof2 = None
 
 
-# global clean up
-dispose_queue = []
-
-
 class pyOpenGLProperties:
     def __init__(self):
         self.properties = {}

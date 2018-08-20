@@ -121,17 +121,15 @@ class Box3:
         # // self is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
         return ( self.max.x < self.min.x ) or ( self.max.y < self.min.y ) or ( self.max.z < self.min.z )
 
-    def getCenter(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
+    def getCenter(self, target):
         if self.isEmpty():
-            return result.set( 0, 0, 0 )
-        return result.addVectors( self.min, self.max ).multiplyScalar( 0.5 )
+            return target.set( 0, 0, 0 )
+        return target.addVectors( self.min, self.max ).multiplyScalar( 0.5 )
 
-    def getSize(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
+    def getSize(self, target):
         if self.isEmpty():
-            return result.set( 0, 0, 0 )            
-        return result.subVectors( self.max, self.min )
+            return target.set( 0, 0, 0 )
+        return target.subVectors( self.max, self.min )
 
     def expandByPoint(self, point ):
         self.min.min( point )
@@ -190,13 +188,11 @@ class Box3:
                 self.min.y <= box.min.y and box.max.y <= self.max.y and\
                 self.min.z <= box.min.z and box.max.z <= self.max.z
 
-    def getParameter(self, point, optionalTarget=None ):
+    def getParameter(self, point, target):
         # // This can potentially have a divide by zero if the box
         # // has a size dimension of 0.
 
-        result = optionalTarget or Vector3()
-
-        return result.set(
+        return target.set(
             ( point.x - self.min.x ) / ( self.max.x - self.min.x ),
             ( point.y - self.min.y ) / ( self.max.y - self.min.y ),
             ( point.z - self.min.z ) / ( self.max.z - self.min.z )
@@ -244,6 +240,81 @@ class Box3:
 
         return ( min <= plane.constant and max >= plane.constant )
 
+    def intersectsTriangle( self, triangle):
+        # triangle centered vertices
+        v0 = Vector3()
+        v1 = Vector3()
+        v2 = Vector3()
+
+        # triangle edge vectors
+        f0 = Vector3()
+        f1 = Vector3()
+        f2 = Vector3()
+
+        testAxis = Vector3()
+
+        center = Vector3()
+        extents = Vector3()
+
+        triangleNormal = Vector3()
+
+        def satForAxes( axes ):
+            j = axes.length - 3
+            for i in range(0, j, 3):
+                testAxis.fromArray( axes, i )
+                # project the aabb onto the seperating axis
+                r = extents.x * abs( testAxis.x ) + extents.y * abs( testAxis.y ) + extents.z * abs( testAxis.z )
+                # project all 3 vertices of the triangle onto the seperating axis
+                p0 = v0.dot( testAxis )
+                p1 = v1.dot( testAxis )
+                p2 = v2.dot( testAxis )
+                # actual test, basically see if either of the most extreme of the triangle points intersects r
+                if max( - max( p0, p1, p2 ), min( p0, p1, p2 ) ) > r:
+                    # points of the projected triangle are outside the projected half-length of the aabb
+                    # the axis is seperating and we can exit
+                    return False
+
+                return True
+
+        if self.isEmpty():
+            return False
+
+        # compute box center and extents
+        self.getCenter( center )
+        extents.subVectors( self.max, center )
+
+        # translate triangle to aabb origin
+        v0.subVectors( triangle.a, center )
+        v1.subVectors( triangle.b, center )
+        v2.subVectors( triangle.c, center )
+
+        # compute edge vectors for triangle
+        f0.subVectors( v1, v0 )
+        f1.subVectors( v2, v1 )
+        f2.subVectors( v0, v2 )
+
+        # test against axes that are given by cross product combinations of the edges of the triangle and the edges of the aabb
+        # make an axis testing of each of the 3 sides of the aabb against each of the 3 sides of the triangle = 9 axis of separation
+        # axis_ij = u_i x f_j (u0, u1, u2 = face normals of aabb = x,y,z axes vectors since aabb is axis aligned)
+        axes = [
+            0, - f0.z, f0.y, 0, - f1.z, f1.y, 0, - f2.z, f2.y,
+            f0.z, 0, - f0.x, f1.z, 0, - f1.x, f2.z, 0, - f2.x,
+            - f0.y, f0.x, 0, - f1.y, f1.x, 0, - f2.y, f2.x, 0
+        ]
+        if not satForAxes( axes ):
+            return False
+
+        # test 3 face normals from the aabb
+        axes = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]
+        if not satForAxes( axes ):
+            return False
+
+        # finally testing the face normal of the triangle
+        # use already existing triangle edge vectors here
+        triangleNormal.crossVectors( f0, f1 )
+        axes = [ triangleNormal.x, triangleNormal.y, triangleNormal.z ]
+        return satForAxes( axes )
+
     def clampPoint(self, point, optionalTarget=None ):
         result = optionalTarget or Vector3()
         return result.copy( point ).clamp( self.min, self.max )
@@ -253,12 +324,11 @@ class Box3:
         clampedPoint = v1.copy( point ).clamp( self.min, self.max )
         return clampedPoint.sub( point ).length()
 
-    def getBoundingSphere(self, optionalTarget=None):
+    def getBoundingSphere(self, target):
         v1 = Vector3()
-        result = optionalTarget or Sphere()
-        self.getCenter( result.center )
-        result.radius = self.getSize( v1 ).length() * 0.5
-        return result
+        self.getCenter( target.center )
+        target.radius = self.getSize( v1 ).length() * 0.5
+        return target
 
     def intersect(self, box ):
         self.min.max( box.min )
@@ -277,32 +347,37 @@ class Box3:
         return self
 
     def applyMatrix4(self, matrix):
-        points = [
-            Vector3(),
-            Vector3(),
-            Vector3(),
-            Vector3(),
-            Vector3(),
-            Vector3(),
-            Vector3(),
-            Vector3()
-        ]
-
         # // transform of empty box is an empty box.
         if self.isEmpty():
             return self
-                                          
-        # // NOTE: I am using a binary pattern to specify all 2^3 combinations below
-        points[ 0 ].set( self.min.x, self.min.y, self.min.z ).applyMatrix4( matrix ) #// 000
-        points[ 1 ].set( self.min.x, self.min.y, self.max.z ).applyMatrix4( matrix ) #// 001
-        points[ 2 ].set( self.min.x, self.max.y, self.min.z ).applyMatrix4( matrix ) #// 010
-        points[ 3 ].set( self.min.x, self.max.y, self.max.z ).applyMatrix4( matrix ) #// 011
-        points[ 4 ].set( self.max.x, self.min.y, self.min.z ).applyMatrix4( matrix ) #// 100
-        points[ 5 ].set( self.max.x, self.min.y, self.max.z ).applyMatrix4( matrix ) #// 101
-        points[ 6 ].set( self.max.x, self.max.y, self.min.z ).applyMatrix4( matrix ) #// 110
-        points[ 7 ].set( self.max.x, self.max.y, self.max.z ).applyMatrix4( matrix ) #// 111
 
-        self.setFromPoints( points )
+        m = matrix.elements
+
+        xax = m[0] * self.min.x
+        xay = m[1] * self.min.x
+        xaz = m[2] * self.min.x
+        xbx = m[0] * self.max.x
+        xby = m[1] * self.max.x
+        xbz = m[2] * self.max.x
+        yax = m[4] * self.min.y
+        yay = m[5] * self.min.y
+        yaz = m[6] * self.min.y
+        ybx = m[4] * self.max.y
+        yby = m[5] * self.max.y
+        ybz = m[6] * self.max.y
+        zax = m[8] * self.min.z
+        zay = m[9] * self.min.z
+        zaz = m[10] * self.min.z
+        zbx = m[8] * self.max.z
+        zby = m[9] * self.max.z
+        zbz = m[10] * self.max.z
+
+        self.min.x = min(xax, xbx) + min(yax, ybx) + min(zax, zbx) + m[12]
+        self.min.y = min(xay, xby) + min(yay, yby) + min(zay, zby) + m[13]
+        self.min.z = min(xaz, xbz) + min(yaz, ybz) + min(zaz, zbz) + m[14]
+        self.max.x = max(xax, xbx) + max(yax, ybx) + max(zax, zbx) + m[12]
+        self.max.y = max(xay, xby) + max(yay, yby) + max(zay, zby) + m[13]
+        self.max.z = max(xaz, xbz) + max(yaz, ybz) + max(zaz, zbz) + m[14]
 
         return self
 

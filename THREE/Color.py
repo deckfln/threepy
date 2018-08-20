@@ -50,7 +50,14 @@ def _handleAlpha( string=None ):
     if float( string ) < 1:
         print( 'THREE.Color: Alpha component of %s will be ignored.' % string)
 
-            
+
+class HSL:
+    def __init__(self):
+        self.h = 0
+        self.s = 0
+        self.l = 0
+
+
 class Color(pyOpenGLObject):
     isColor = True
 
@@ -235,20 +242,40 @@ class Color(pyOpenGLObject):
 
         return self
 
-    def convertGammaToLinear(self):
-        r = self.r, g = self.g, b = self.b
+    def convertGammaToLinear(self, gammaFactor):
+        self.copyGammaToLinear(self, gammaFactor)
+        return self
 
-        self.r = r * r
-        self.g = g * g
-        self.b = b * b
+    def convertLinearToGamma(self, gammaFactor):
+        self.copyLinearToGamma( self, gammaFactor )
+        return self
+
+    def copySRGBToLinear(self, color):
+        def SRGBToLinear( c ):
+            return c * 0.0773993808 if (c < 0.04045 ) else math.pow( c * 0.9478672986 + 0.0521327014, 2.4 )
+
+        self.r = SRGBToLinear( color.r )
+        self.g = SRGBToLinear( color.g )
+        self.b = SRGBToLinear( color.b )
 
         return self
 
-    def convertLinearToGamma(self):
-        self.r = math.sqrt( self.r )
-        self.g = math.sqrt( self.g )
-        self.b = math.sqrt( self.b )
+    def copyLinearToSRGB(self, color):
+        def LinearToSRGB( c ):
+            return c * 12.92 if ( c < 0.0031308 ) else 1.055 * ( math.pow( c, 0.41666 ) ) - 0.055
 
+        self.r = LinearToSRGB( color.r )
+        self.g = LinearToSRGB( color.g )
+        self.b = LinearToSRGB( color.b )
+
+        return self
+
+    def convertSRGBToLinear(self):
+        self.copySRGBToLinear( self )
+        return self
+
+    def convertLinearToSRGB(self):
+        self.copyLinearToSRGB( self)
         return self
 
     def getHex(self):
@@ -258,17 +285,11 @@ class Color(pyOpenGLObject):
         hx = str(self.getHex())
         return ( '000000' + hx[:- 6] )
 
-    def getHSL(self, optionalTarget=None ):
-        class _hsl:
-            def __init__(self):
-                self.h = 0
-                self.s = 0
-                self.l = 0
-
+    def getHSL(self, target):
         # // h,s,l ranges are in 0.0 - 1.0
-        hsl = optionalTarget or _hsl()
-
-        r = self.r; g = self.g; b = self.b
+        r = self.r
+        g = self.g
+        b = self.b
 
         mx = max( r, g, b )
         mn = min( r, g, b )
@@ -297,21 +318,22 @@ class Color(pyOpenGLObject):
 
             hue /= 6
 
-        hsl.h = hue
-        hsl.s = saturation
-        hsl.l = lightness
+        target.h = hue
+        target.s = saturation
+        target.l = lightness
 
-        return hsl
+        return target
 
     def getStyle(self):
         return 'rgb(%d,%d,%d)' % (int( self.r * 255 ) | 0 , int(self.g * 255 ) | 0, int( self.b * 255 ) | 0 )
 
     def offsetHSL(self, h, s, l ):
-        hsl = self.getHSL()
-
-        hsl.h += h; hsl.s += s; hsl.l += l
-
-        self.setHSL( hsl.h, hsl.s, hsl.l )
+        hsl = HSL()
+        self.getHSL(hsl)
+        hsl.h += h
+        hsl.s += s
+        hsl.l += l
+        self.setHSL(hsl.h, hsl.s, hsl.l)
 
         return self
 

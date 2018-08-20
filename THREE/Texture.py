@@ -9,7 +9,7 @@ import THREE._Math as _Math
 from THREE.Constants import *
 from THREE.pyOpenGLObject import *
 from THREE.Vector2 import *
-import pyOpenGLProperties as pyOGLproperties
+import THREE.pyOpenGLProperties as pyOGLproperties
 
 
 _textureId = 0

@@ -17,6 +17,8 @@ from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 from THREE.Vector3 import *
 
+cython = True
+
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
 
 _vector = Vector3()
@@ -127,6 +129,7 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def extractRotation(self, m):
+        # this method does not support reflection matrices
         te = self.elements
         me = m.elements
 
@@ -137,14 +140,22 @@ class Matrix4(pyOpenGLObject):
         te[0] = me[0] * scaleX
         te[1] = me[1] * scaleX
         te[2] = me[2] * scaleX
+        te[3] = 0
 
         te[4] = me[4] * scaleY
         te[5] = me[5] * scaleY
         te[6] = me[6] * scaleY
+        te[73] = 0
 
         te[8] = me[8] * scaleZ
         te[9] = me[9] * scaleZ
         te[10] = me[10] * scaleZ
+        te[11] = 0
+
+        te[12] = 0
+        te[13] = 0
+        te[14] = 0
+        te[15] = 1
 
         return self
 
@@ -264,12 +275,12 @@ class Matrix4(pyOpenGLObject):
             te[6] = b * e
             te[10] = bd * f + ac
 
-        # // last column
+        # // bottom row
         te[3] = 0
         te[7] = 0
         te[11] = 0
 
-        # // bottom row
+        # // last column
         te[12] = 0
         te[13] = 0
         te[14] = 0
@@ -279,44 +290,24 @@ class Matrix4(pyOpenGLObject):
 
     def makeRotationFromQuaternion(self, q):
         te = self.elements
-        x = q._x; y = q._y; z = q._z; w = q._w
-        c_Matrix4_makeRotationFromQuaternion(te, x, y, z, w)
+        x = q._x
+        y = q._y
+        z = q._z
+        w = q._w
+
+        if cython:
+            c_Matrix4_makeRotationFromQuaternion(te, x, y, z, w)
+        else:
+            self._makeRotationFromQuaternion(q)
 
         return self
 
+    #TODO backport to cython
     def _makeRotationFromQuaternion(self, q):
-        te = self.elements
+        zero = Vector3(0, 0, 0)
+        one = Vector3(1, 1, 1)
 
-        x = q._x; y = q._y; z = q._z; w = q._w
-        x2 = x + x; y2 = y + y; z2 = z + z
-        xx = x * x2; xy = x * y2; xz = x * z2
-        yy = y * y2; yz = y * z2; zz = z * z2
-        wx = w * x2; wy = w * y2; wz = w * z2
-
-        te[0] = 1 - (yy + zz)
-        te[4] = xy - wz
-        te[8] = xz + wy
-
-        te[1] = xy + wz
-        te[5] = 1 - (xx + zz)
-        te[9] = yz - wx
-
-        te[2] = xz - wy
-        te[6] = yz + wx
-        te[10] = 1 - (xx + yy)
-
-        # // last column
-        te[3] = 0
-        te[7] = 0
-        te[11] = 0
-
-        # // bottom row
-        te[12] = 0
-        te[13] = 0
-        te[14] = 0
-        te[15] = 1
-
-        return self
+        return self.compose(zero, q, one)
 
     def lookAt(self, eye, target, up):
         global _vector, _matrix, _vector_y, _vector_z
@@ -592,7 +583,10 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def getMaxScaleOnAxis(self):
-        return cMatrix4_getMaxScaleOnAxis(self.elements)
+        if cython:
+            return cMatrix4_getMaxScaleOnAxis(self.elements)
+        else:
+            return self._getMaxScaleOnAxis()
 
     def _getMaxScaleOnAxis(self):
         te = self.elements
@@ -680,14 +674,62 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def compose(self, position, quaternion, scale):
-        te = self.elements
-        x = quaternion._x; y = quaternion._y; z = quaternion._z; w = quaternion._w
-        cMatrix4_compose(te, position.np, scale.np, x, y, z, w)
+        x = quaternion._x
+        y = quaternion._y
+        z = quaternion._z
+        w = quaternion._w
 
+        if cython:
+            cMatrix4_compose(self.elements, position.np, scale.np, x, y, z, w)
+        else:
+            self._compose(position, quaternion, scale)
+
+        return self
+
+    #TODO backport to cython
     def _compose(self, position, quaternion, scale):
-        self.makeRotationFromQuaternion(quaternion)
-        self.scale(scale)
-        self.setPosition(position)
+        te = self.elements
+
+        x = quaternion._x
+        y = quaternion._y
+        z = quaternion._z
+        w = quaternion._w
+        x2 = x + x
+        y2 = y + y
+        z2 = z + z
+        xx = x * x2
+        xy = x * y2
+        xz = x * z2
+        yy = y * y2
+        yz = y * z2
+        zz = z * z2
+        wx = w * x2
+        wy = w * y2
+        wz = w * z2
+
+        sx = scale.x
+        sy = scale.y
+        sz = scale.z
+
+        te[ 0 ] = ( 1 - ( yy + zz ) ) * sx
+        te[ 1 ] = ( xy + wz ) * sx
+        te[ 2 ] = ( xz - wy ) * sx
+        te[ 3 ] = 0
+
+        te[ 4 ] = ( xy - wz ) * sy
+        te[ 5 ] = ( 1 - ( xx + zz ) ) * sy
+        te[ 6 ] = ( yz + wx ) * sy
+        te[ 7 ] = 0
+
+        te[ 8 ] = ( xz + wy ) * sz
+        te[ 9 ] = ( yz - wx ) * sz
+        te[ 10 ] = ( 1 - ( xx + yy ) ) * sz
+        te[ 11 ] = 0
+
+        te[ 12 ] = position.x
+        te[ 13 ] = position.y
+        te[ 14 ] = position.z
+        te[ 15 ] = 1
 
         return self
 

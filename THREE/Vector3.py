@@ -17,6 +17,8 @@ import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 
+cython = True
+
 _matrix4 = None
 
 
@@ -339,7 +341,7 @@ class Vector3(pyOpenGLObject):
     def length(self):
         return math.sqrt( self.lengthSq() )
 
-    def lengthManhattan(self):
+    def manhattanLength(self):
         return abs( self.x ) + abs( self.y ) + abs( self.z )
 
     def normalize(self):
@@ -349,10 +351,13 @@ class Vector3(pyOpenGLObject):
         return self.normalize().multiplyScalar( length )
 
     def lerp(self, v, alpha ):
-        cVector3_lerp(self.np, v.np, alpha)
+        if cython:
+            cVector3_lerp(self.np, v.np, alpha)
+        else:
+            self._plerp(v, alpha)
         return self
 
-    def p_lerp(self, v, alpha ):
+    def _plerp(self, v, alpha ):
         """
         self.np[0] += ( v.np[0] - self.np[0] ) * alpha
         self.np[1] += ( v.np[1] - self.np[1] ) * alpha
@@ -366,13 +371,13 @@ class Vector3(pyOpenGLObject):
         return self.subVectors( v2, v1 ).multiplyScalar( alpha ).add( v1 )
 
     def cross(self, v, w=None ):
-            if w is not None:
-                print( 'THREE.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' )
-                return self.crossVectors( v, w )
+        if w is not None:
+            print( 'THREE.Vector3: .cross() now only accepts one argument. Use .crossVectors( a, b ) instead.' )
+            return self.crossVectors( v, w )
 
-            self.np = np.cross(self.np, v.np)
+        self.np = np.cross(self.np, v.np)
 
-            return self
+        return self
 
     def crossVectors(self, a, b ):
         self.np = np.cross(a.np, b.np)
@@ -410,7 +415,7 @@ class Vector3(pyOpenGLObject):
         d = np.dot(dm, dm)
         return d
 
-    def distanceToManhattan(self, v ):
+    def manhattanDistanceTo(self, v ):
         return abs( self.x - v.x ) + abs( self.y - v.y ) + abs( self.z - v.z )
 
     def setFromSpherical(self, s ):

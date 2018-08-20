@@ -28,13 +28,11 @@ class Line3:
 
         return self
 
-    def getCenter(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-        return result.addVectors( self.start, self.end ).multiplyScalar( 0.5 )
+    def getCenter(self, target):
+        return target.addVectors( self.start, self.end ).multiplyScalar( 0.5 )
 
-    def delta(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-        return result.subVectors( self.end, self.start )
+    def delta(self, target):
+        return target.subVectors( self.end, self.start )
 
     def distanceSq(self):
         return self.start.distanceToSquared( self.end )
@@ -42,10 +40,8 @@ class Line3:
     def distance(self):
         return self.start.distanceTo( self.end )
 
-    def at(self, t, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-
-        return self.delta( result ).multiplyScalar( t ).add( self.start )
+    def at(self, t, target):
+        return self.delta( target).multiplyScalar( t ).add( self.start )
 
     def closestPointToPointParameter(self, point, clampToLine):
         startP = Vector3()
@@ -64,12 +60,10 @@ class Line3:
 
         return t
 
-    def closestPointToPoint(self, point, clampToLine, optionalTarget=None ):
+    def closestPointToPoint(self, point, clampToLine, target):
         t = self.closestPointToPointParameter( point, clampToLine )
 
-        result = optionalTarget or Vector3()
-
-        return self.delta( result ).multiplyScalar( t ).add( self.start )
+        return self.delta( target).multiplyScalar( t ).add( self.start )
 
     def applyMatrix4(self, matrix ):
         self.start.applyMatrix4( matrix )

@@ -6,6 +6,8 @@
 from THREE.Vector3 import *
 from THREE.Matrix3 import *
 
+cython = True
+
 
 class Plane:
     def __init__(self, normal=None, constant=0 ):
@@ -63,23 +65,22 @@ class Plane:
         return self
 
     def distanceToPoint(self, point):
-        return cPlane_distanceToPoint(self.normal.np, point.np, self.constant)
+        if cython:
+            return cPlane_distanceToPoint(self.normal.np, point.np, self.constant)
 
-    def _distanceToPoint(self, point ):
+        return self._pdistanceToPoint(point)
+
+    def _pdistanceToPoint(self, point ):
         return self.normal.dot( point ) + self.constant
 
     def distanceToSphere(self, sphere ):
         return self.distanceToPoint( sphere.center ) - sphere.radius
 
-    def projectPoint(self, point, optionalTarget=None ):
-        result = optionalTarget or Vector3()
+    def projectPoint(self, point, target):
+        return target.copy( self.normal ).multiplyScalar( - self.distanceToPoint( point ) ).add( point )
 
-        return result.copy( self.normal ).multiplyScalar( - self.distanceToPoint( point ) ).add( point )
-
-    def intersectLine(self, line, optionalTarget=None):
+    def intersectLine(self, line, target):
         v1 = Vector3()
-
-        result = optionalTarget or Vector3()
 
         direction = line.delta( v1 )
 
@@ -88,7 +89,7 @@ class Plane:
         if denominator == 0:
             # // line is coplanar, return origin
             if self.distanceToPoint( line.start ) == 0:
-                return result.copy( line.start )
+                return target.copy( line.start )
 
             # // Unsure if self is the correct method to handle self case.
             return None
@@ -98,8 +99,7 @@ class Plane:
         if t < 0 or t > 1:
             return None
 
-
-        return result.copy( direction ).multiplyScalar( t ).add( line.start )
+        return target.copy( direction ).multiplyScalar( t ).add( line.start )
 
     def intersectsLine(self, line ):
         # // Note: self tests if a line intersects the plane, not whether it (or its end-points) are coplanar with it.
@@ -115,10 +115,8 @@ class Plane:
     def intersectsSphere(self, sphere ):
         return sphere.intersectsPlane( self )
 
-    def coplanarPoint(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-
-        return result.copy( self.normal ).multiplyScalar( - self.constant )
+    def coplanarPoint(self, target):
+        return target.copy( self.normal ).multiplyScalar( - self.constant )
 
     def applyMatrix4(self, matrix, optionalNormalMatrix=None):
         v1 = Vector3()

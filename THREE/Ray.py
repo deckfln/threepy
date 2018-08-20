@@ -26,9 +26,8 @@ class Ray:
 
         return self
 
-    def at(self, t, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-        return result.copy( self.direction ).multiplyScalar( t ).add( self.origin )
+    def at(self, t, target):
+        return target.copy( self.direction ).multiplyScalar( t ).add( self.origin )
 
     def lookAt(self, v ):
         self.direction.copy( v ).sub( self.origin ).normalize()
@@ -39,15 +38,14 @@ class Ray:
         v1 = Vector3()
         self.origin.copy( self.at( t, v1 ) )
 
-    def closestPointToPoint(self, point, optionalTarget ):
-        result = optionalTarget or Vector3()
-        result.subVectors( point, self.origin )
-        directionDistance = result.dot( self.direction )
+    def closestPointToPoint(self, point, target):
+        target.subVectors(point, self.origin)
+        directionDistance = target.dot(self.direction)
 
         if directionDistance < 0:
-            return result.copy( self.origin )
+            return target.copy( self.origin )
 
-        return result.copy( self.direction ).multiplyScalar( directionDistance ).add( self.origin )
+        return target.copy( self.direction ).multiplyScalar( directionDistance ).add( self.origin )
 
     def distanceToPoint(self, point ):
         return math.sqrt( self.distanceSqToPoint( point ) )
@@ -144,7 +142,7 @@ class Ray:
 
         return sqrDist
 
-    def intersectSphere(self, sphere, optionalTarget):
+    def intersectSphere(self, sphere, target):
         v1 = Vector3()
 
         v1.subVectors( sphere.center, self.origin )
@@ -171,11 +169,10 @@ class Ray:
         # // if it is, the ray is inside the sphere, so return the second exit point scaled by t1,
         # // in order to always return an intersect point that is in front of the ray.
         if t0 < 0:
-            return self.at( t1, optionalTarget )
+            return self.at( t1, target )
 
         # // else t0 is in front of the ray, so return the first collision point scaled by t0
-        return self.at( t0, optionalTarget )
-
+        return self.at( t0, target )
 
     def intersectsSphere(self, sphere ):
         return self.distanceToPoint( sphere.center ) <= sphere.radius
@@ -196,13 +193,13 @@ class Ray:
         # // Return if the ray never intersects the plane
         return t if t >= 0 else  None
 
-    def intersectPlane(self, plane, optionalTarget ):
+    def intersectPlane(self, plane, target):
         t = self.distanceToPlane( plane )
 
-        if t == None:
+        if t is None:
             return None
 
-        return self.at( t, optionalTarget )
+        return self.at( t, target)
 
     def intersectsPlane(self, plane ):
         # // check if the ray lies on the plane first
@@ -221,7 +218,7 @@ class Ray:
 
         return False
 
-    def intersectBox(self, box, optionalTarget ):
+    def intersectBox(self, box, target):
         invdirx = 1 / self.direction.x
         invdiry = 1 / self.direction.y
         invdirz = 1 / self.direction.z
@@ -275,14 +272,14 @@ class Ray:
         if tmax < 0:
             return None
 
-        return self.at( tmin if tmin >= 0 else tmax, optionalTarget )
+        return self.at( tmin if tmin >= 0 else tmax, target)
 
     def intersectsBox(self, box):
         v = Vector3()
 
         return self.intersectBox( box, v ) != None
 
-    def intersectTriangle(self, a, b, c, backfaceCulling, optionalTarget):
+    def intersectTriangle(self, a, b, c, backfaceCulling, target):
         # // Compute the offset origin, edges, and normal.
         diff = Vector3()
         edge1 = Vector3()
@@ -337,8 +334,7 @@ class Ray:
             return None
 
         # // Ray intersects triangle.
-        return self.at( QdN / DdN, optionalTarget )
-
+        return self.at( QdN / DdN, target)
 
     def applyMatrix4(self, matrix4 ):
         self.origin.applyMatrix4( matrix4 )

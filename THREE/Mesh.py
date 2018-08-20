@@ -22,7 +22,7 @@ from THREE.Sphere import *
 from THREE.BufferGeometry import *
 from THREE.Face3 import *
 from THREE.Ray import *
-import pyOpenGLObjects
+import THREE.pyOpenGLObjects as pyOpenGLObjects
 
 
 def _uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ):

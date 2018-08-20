@@ -91,7 +91,7 @@ class Matrix3(pyOpenGLObject):
     def multiply(self, m ):
         return self.multiplyMatrices( self, m )
 
-    def  premultiply(self, m ):
+    def premultiply(self, m ):
         return self.multiplyMatrices( m, self )
 
     def multiplyMatrices(self, a, b ):
@@ -125,7 +125,10 @@ class Matrix3(pyOpenGLObject):
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
     def getInverse(self, matrix, throwOnDegenerate=None ):
-        cVector3_getInverse(self.elements, matrix.elements)
+        if cython:
+            cVector3_getInverse(self.elements, matrix.elements)
+        else:
+            self._getInverse(matrix)
         return self
 
     def _getInverse(self, matrix, throwOnDegenerate=None ):
@@ -191,6 +194,63 @@ class Matrix3(pyOpenGLObject):
         r[ 6 ] = m[ 2 ]
         r[ 7 ] = m[ 5 ]
         r[ 8 ] = m[ 8 ]
+
+        return self
+
+    def setUvTransform(self, tx, ty, sx, sy, rotation, cx, cy ):
+        c = math.cos( rotation )
+        s = math.sin( rotation )
+
+        self.set(
+            sx * c, sx * s, - sx * ( c * cx + s * cy ) + cx + tx,
+            - sy * s, sy * c, - sy * ( - s * cx + c * cy ) + cy + ty,
+            0, 0, 1
+        )
+
+    def scale(self, sx, sy):
+        te = self.elements
+
+        te[ 0 ] *= sx
+        te[ 3 ] *= sx
+        te[ 6 ] *= sx
+        te[ 1 ] *= sy
+        te[ 4 ] *= sy
+        te[ 7 ] *= sy
+
+        return self
+
+    def rotate(self, theta ):
+        c = math.cos( theta )
+        s = math.sin( theta )
+
+        te = self.elements
+
+        a11 = te[ 0 ]
+        a12 = te[ 3 ]
+        a13 = te[ 6 ]
+        a21 = te[ 1 ]
+        a22 = te[ 4 ]
+        a23 = te[ 7 ]
+
+        te[ 0 ] = c * a11 + s * a21
+        te[ 3 ] = c * a12 + s * a22
+        te[ 6 ] = c * a13 + s * a23
+
+        te[ 1 ] = - s * a11 + c * a21
+        te[ 4 ] = - s * a12 + c * a22
+        te[ 7 ] = - s * a13 + c * a23
+
+        return self
+
+    def translate(self, tx, ty ):
+        te = self.elements
+
+        te[ 0 ] += tx * te[ 2 ]
+        te[ 3 ] += tx * te[ 5 ]
+        te[ 6 ] += tx * te[ 8 ]
+        te[ 1 ] += ty * te[ 2 ]
+        te[ 4 ] += ty * te[ 5 ]
+        te[ 7 ] += ty * te[ 8 ]
 
         return self
 

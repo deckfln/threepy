@@ -7,8 +7,6 @@ from THREE.BufferGeometry import *
 from OpenGL_accelerate import *
 from OpenGL.GL import *
 
-dispose_queue = []
-
 
 class pyOpenGLObjects:
     def __init__(self, geometries, infoRender):

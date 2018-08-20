@@ -30,8 +30,8 @@ from THREE.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
 
-import pyOpenGLObjects as pyOGLobjects
-import pyOpenGLProperties as pyOGLproperties
+import THREE.Global
+import THREE.pyOpenGLProperties as pyOGLproperties
 
 
 class pyOpenGLVAO:
@@ -1510,13 +1510,13 @@ class pyOpenGLRenderer:
         self._currentCamera = None
 
         # clean up old objects
-        for mesh in pyOGLobjects.dispose_queue:
+        for mesh in THREE.Global.dispose_objects_queue:
             self.objects.dispose(mesh)
-        pyOGLobjects.dispose_queue.clear()
+        THREE.Global.dispose_objects_queue.clear()
 
-        for texture in pyOGLproperties.dispose_queue:
+        for texture in THREE.Global.dispose_properties_queue:
             self.textures.dispose(texture)
-        pyOGLproperties.dispose_queue.clear()
+        THREE.Global.dispose_properties_queue.clear()
 
         # // update scene graph
 

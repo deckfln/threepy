@@ -8,6 +8,8 @@ import math
 from THREE.Vector3 import *
 from THREE.Plane import *
 
+_v0 = Vector3()
+
 
 class Triangle:
     def __init__(self, a=None, b=None, c=None ):
@@ -21,31 +23,22 @@ class Triangle:
         self.b = b
         self.c = c
 
-    def normal(self, optionalTarget=None ):
-        a = self.a
-        b = self.b
-        c = self.c
+    def _getNormal(self, a, b, c, target):
+        target.subVectors(c, b)
 
-        v0 = Vector3()
-        result = optionalTarget or Vector3()
+        target.subVectors( c, b )
+        _v0.subVectors( a, b )
+        target.cross( _v0 )
 
-        result.subVectors( c, b )
-        v0.subVectors( a, b )
-        result.cross( v0 )
+        targetLengthSq = target.lengthSq()
+        if targetLengthSq > 0:
+            return target.multiplyScalar( 1 / math.sqrt( targetLengthSq) )
 
-        resultLengthSq = result.lengthSq()
-        if resultLengthSq > 0:
-            return result.multiplyScalar( 1 / math.sqrt( resultLengthSq ) )
+        return target.set( 0, 0, 0 )
 
-        return result.set( 0, 0, 0 )
-
-        # // static/instance method to calculate barycentric coordinates
-        # // based on: http://www.blackpawn.com/texts/pointinpoly/default.html
-    def barycoordFromPoint(self, point, optionalTarget=None ):
-        a = self.a
-        b = self.b
-        c = self.c
-
+    # // static/instance method to calculate barycentric coordinates
+    # // based on: http://www.blackpawn.com/texts/pointinpoly/default.html
+    def _getBarycoord(self, point, a, b, c, target):
         v0 = Vector3()
         v1 = Vector3()
         v2 = Vector3()
@@ -62,26 +55,24 @@ class Triangle:
 
         denom = ( dot00 * dot11 - dot01 * dot01 )
 
-        result = optionalTarget or Vector3()
-
         # // collinear or singular triangle
         if denom == 0:
             # // arbitrary location outside of triangle?
             # // not sure if self is the best idea, maybe should be returning undefined
-            return result.set( - 2, - 1, - 1 )
+            return target.set( - 2, - 1, - 1 )
 
         invDenom = 1 / denom
         u = ( dot11 * dot02 - dot01 * dot12 ) * invDenom
         v = ( dot00 * dot12 - dot01 * dot02 ) * invDenom
 
         # // barycentric coordinates must always sum to 1
-        return result.set( 1 - u - v, v, u )
+        return target.set( 1 - u - v, v, u )
 
-    def containsPoint(self, point):
+    def _containsPoint(self, point, a, b, c):
         v1 = Vector3()
-        result = self.barycoordFromPoint( point, v1 )
+        self.getBarycoord( point, a, b, c, v1 )
 
-        return ( result.x >= 0 ) and ( result.y >= 0 ) and ( ( result.x + result.y ) <= 1 )
+        return ( v1.x >= 0 ) and ( v1.y >= 0 ) and ( ( v1.x + v1.y ) <= 1 )
 
     def set(self, a, b, c ):
         self.a.copy( a )
@@ -107,7 +98,7 @@ class Triangle:
 
         return self
 
-    def area(self):
+    def getArea(self):
         v0 = Vector3()
         v1 = Vector3()
 
@@ -116,56 +107,91 @@ class Triangle:
 
         return v0.cross( v1 ).length() * 0.5
 
-    def midpoint(self, optionalTarget=None ):
-        result = optionalTarget or Vector3()
-        return result.addVectors( self.a, self.b ).add( self.c ).multiplyScalar( 1 / 3 )
+    def getMidpoint(self, target):
+        return target.addVectors( self.a, self.b ).add( self.c ).multiplyScalar( 1 / 3 )
 
-    def plane(self, optionalTarget=None ):
-        result = optionalTarget or Plane()
+    def getNormal(self, target):
+        return self._getNormal(self.a, self.b, self.c, target)
 
-        return result.setFromCoplanarPoints( self.a, self.b, self.c )
+    def getPlane(self, target):
+        return target.setFromCoplanarPoints( self.a, self.b, self.c )
 
-    """
+    def getBarycoord(self, target):
+        return self._getBarycoord(self.a, self.b, self.c, target, target)
+
     def containsPoint(self, point ):
-        return Triangle.containsPoint( point, self.a, self.b, self.c )
-    """
+        return self._containsPoint( point, self.a, self.b, self.c)
 
-    def closestPointToPoint(self, optionalTarget=None):
-        plane = Plane()
-        edgeList = [ Line3(), Line3(), Line3() ]
-        projectedPoint = Vector3()
-        closestPoint = Vector3()
+    def intersectsBox(self, box):
+        return box.intersectsTriangle(self)
 
-        result = optionalTarget or Vector3()
-        minDistance = Infinity
+    def closestPointToPoint(self, target):
+        vab = Vector3()
+        vac = Vector3()
+        vbc = Vector3()
+        vap = Vector3()
+        vbp = Vector3()
+        vcp = Vector3()
 
-        # // project the point onto the plane of the triangle
+        a = self.a
+        b = self.b
+        c = self.c
 
-        plane.setFromCoplanarPoints( self.a, self.b, self.c )
-        plane.projectPoint( point, projectedPoint )
+        """
+        // algorithm thanks to Real-Time Collision Detection by Christer Ericson,
+        // published by Morgan Kaufmann Publishers, (c) 2005 Elsevier Inc.,
+        // under the accompanying license; see chapter 5.1.5 for detailed explanation.
+        // basically, we're distinguishing which of the voronoi regions of the triangle
+        // the point lies in with the minimum amount of redundant computation.
+        """
+        vab.subVectors( b, a )
+        vac.subVectors( c, a )
+        vap.subVectors( p, a )
+        d1 = vab.dot( vap )
+        d2 = vac.dot( vap )
+        if d1 <= 0 and d2 <= 0:
+            # vertex region of A; barycentric coords (1, 0, 0)
+            return target.copy( a )
 
-        # // check if the projection lies within the triangle
+        vbp.subVectors( p, b )
+        d3 = vab.dot( vbp )
+        d4 = vac.dot( vbp )
+        if d3 >= 0 and d4 <= d3:
+            # vertex region of B; barycentric coords (0, 1, 0)
+            return target.copy( b )
 
-        if self.containsPoint( projectedPoint ):
-            # // if so, self is the closest point
-            result.copy( projectedPoint )
-        else:
-            # // if not, the point falls outside the triangle. the result is the closest point to the triangle's edges or vertices
-            edgeList[ 0 ].set( self.a, self.b )
-            edgeList[ 1 ].set( self.b, self.c )
-            edgeList[ 2 ].set( self.c, self.a )
+        vc = d1 * d4 - d3 * d2
+        if vc <= 0 and d1 >= 0 and d3 <= 0:
+            v = d1 / ( d1 - d3 )
+            # edge region of AB; barycentric coords (1-v, v, 0)
+            return target.copy( a ).addScaledVector( vab, v )
 
-            for i in range(edgeList.length):
-                edgeList[ i ].closestPointToPoint( projectedPoint, true, closestPoint )
-                distance = projectedPoint.distanceToSquared( closestPoint )
+        vcp.subVectors( p, c )
+        d5 = vab.dot( vcp )
+        d6 = vac.dot( vcp )
+        if d6 >= 0 and d5 <= d6:
+            # vertex region of C; barycentric coords (0, 0, 1)
+            return target.copy( c )
 
-                if distance < minDistance:
-                    minDistance = distance
+        vb = d5 * d2 - d1 * d6
+        if vb <= 0 and d2 >= 0 and d6 <= 0:
+            w = d2 / ( d2 - d6 )
+            # edge region of AC; barycentric coords (1-w, 0, w)
+            return target.copy( a ).addScaledVector( vac, w )
 
-                    result.copy( closestPoint )
+        va = d3 * d6 - d5 * d4
+        if va <= 0 and ( d4 - d3 ) >= 0 and ( d5 - d6 ) >= 0:
+            vbc.subVectors( c, b )
+            w = ( d4 - d3 ) / ( ( d4 - d3 ) + ( d5 - d6 ) )
+            # edge region of BC; barycentric coords (0, 1-w, w)
+            return target.copy( b ).addScaledVector( vbc, w )   # edge region of BC
 
-        return result
+        # face region
+        denom = 1 / ( va + vb + vc )
+        # u = va * denom
+        v = vb * denom
+        w = vc * denom
+        return target.copy( a ).addScaledVector( vab, v ).addScaledVector( vac, w )
 
-    def    equals(self, triangle ):
+    def equals(self, triangle ):
         return triangle.a.equals( self.a ) and triangle.b.equals( self.b ) and triangle.c.equals( self.c )
-

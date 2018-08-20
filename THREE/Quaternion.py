@@ -13,6 +13,8 @@ from THREE.Vector3 import *
 from THREE.Constants import *
 from THREE.cython.cthree import *
 
+cython = True
+
 
 class Quaternion:
     def __init__(self, x=0, y=0, z=0, w=1 ):
@@ -66,9 +68,12 @@ class Quaternion:
             return qm.copy( qa ).slerp( qb, t )
 
     def slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
-        cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t )
+        if cython:
+            cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t )
+        else:
+            self._pslerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
 
-    def _slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
+    def _pslerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
         # // fuzz-free, array-based Quaternion SLERP operation
 
         x0 = src0[ srcOffset0 + 0 ]
@@ -277,8 +282,24 @@ class Quaternion:
 
         return self.normalize()
 
+    def angleTo(self, q):
+        return 2 * math.acos(abs(_Math.clamp(self.dot(q), - 1, 1)))
+
+    def rotateTowards(self, q, step):
+        angle = self.angleTo(q)
+
+        if angle == 0:
+            return self
+
+        t = math.min(1, step / angle)
+
+        self.slerp(q, t)
+
+        return self
+
     def inverse(self):
-        return self.conjugate().normalize()
+        # quaternion is assumed to have unit  length
+        return self.conjugate()
 
     def conjugate(self):
         self._x *= - 1
@@ -345,7 +366,7 @@ class Quaternion:
 
         return self
 
-    def _slerp(self, qb, t ):
+    def slerp2(self, qb, t ):
         if t == 0:
             return self
         if t == 1:
@@ -375,16 +396,18 @@ class Quaternion:
 
             return self
 
-        sinHalfTheta = math.sqrt( 1.0 - cosHalfTheta * cosHalfTheta )
+        sqrSinHalfTheta = 1.0 - cosHalfTheta * cosHalfTheta
 
-        if abs( sinHalfTheta ) < 0.001:
-            self._w = 0.5 * ( w + self._w )
-            self._x = 0.5 * ( x + self._x )
-            self._y = 0.5 * ( y + self._y )
-            self._z = 0.5 * ( z + self._z )
+        if sqrSinHalfTheta <= Number.EPSILON < 0.001:
+            s = 1 - t
+            self._w = s * w + t * self._w
+            self._x = s * x + t * self._x
+            self._y = s * y + t * self._y
+            self._z = s * z + t * self._z
 
-            return self
+            return self.normalize()
 
+        sinHalfTheta = math.sqrt(sqrSinHalfTheta)
         halfTheta = math.atan2( sinHalfTheta, cosHalfTheta )
         ratioA = math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta
         ratioB = math.sin( t * halfTheta ) / sinHalfTheta

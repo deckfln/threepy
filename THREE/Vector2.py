@@ -9,6 +9,7 @@ import math
 from THREE.pyOpenGLObject import *
 import numpy as np
 
+
 class Vector2(pyOpenGLObject):
     isVector2 = True
 
@@ -143,6 +144,16 @@ class Vector2(pyOpenGLObject):
     def divideScalar(self, scalar ):
         return self.multiplyScalar( 1 / scalar )
 
+    def applyMatrix3(self, m):
+        x = self.np[0]
+        y = self.np[1]
+        e = m.np
+
+        self.np[0] = e[0] * x + e[3] * y + e[6]
+        self.np[1] = e[1] * x + e[4] * y + e[7]
+
+        return self
+
     def min(self, v):
         np.minimum(self.np, v.np, self.np)
         # self.x = min( self.x, v.x )
@@ -212,13 +223,16 @@ class Vector2(pyOpenGLObject):
         return np.dot(self.np, v.np)
         # return self.x * v.x + self.y * v.y
 
+    def cross(self, v):
+        return self.np[0] * v.np[1] - self.np[1] * v.np[0]
+
     def lengthSq(self):
         return self.np[0] * self.np[0] + self.np[1] * self.np[1]
 
     def length(self):
         return math.sqrt( self.np[0] * self.np[0] + self.np[1] * self.np[1] )
 
-    def lengthManhattan(self):
+    def manhattanLength(self):
         return abs( self.np[0] ) + abs( self.np[1] )
 
     def normalize(self):
@@ -240,7 +254,7 @@ class Vector2(pyOpenGLObject):
         dy = self.np[1] - v.np[1]
         return dx * dx + dy * dy
 
-    def distanceToManhattan(self, v ):
+    def manhattanDistanceTo(self, v ):
         return abs( self.x - v.x ) + abs( self.y - v.y )
 
     def setLength(self, length ):

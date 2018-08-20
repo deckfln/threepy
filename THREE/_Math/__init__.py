@@ -5,33 +5,28 @@ import random
 
 from THREE.cython.cthree import *
 
-DEG2RAD= math.pi / 180
-RAD2DEG= 180 / math.pi
+DEG2RAD = math.pi / 180
+RAD2DEG = 180 / math.pi
+
+cython = True
+
+_lut = [('0' if i < 16 else '') + hex(i) for i in range(256)]
 
 
 def generateUUID():
-    # // http://www.broofa.com/Tools/Math.uuid.htm
+    # http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
+    global _lut
+    d0 = int(random.random() * 0xffffffff) | 0
+    d1 = int(random.random() * 0xffffffff) | 0
+    d2 = int(random.random() * 0xffffffff) | 0
+    d3 = int(random.random() * 0xffffffff) | 0
+    uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' + \
+        _lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' + \
+        _lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] + \
+        _lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ]
 
-    chars = '0*1*2*3*4*5*6*7*8*9*A*B*C*D*E*F*G*H*I*J*K*L*M*N*O*P*Q*R*S*T*U*V*W*X*Y*Z*a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z'.split( '*' )
-    uuid = [0 for a in range(36) ]
-    rnd = 0
-
-    for i in range(36):
-        if i == 8 or i == 13 or i == 18 or i == 23:
-            uuid[ i ] = '-'
-        elif i == 14:
-            uuid[ i ] = '4'
-        else:
-            if rnd <= 0x02:
-                rnd = int(0x2000000 + ( random.random() * 0x1000000 )) or 0
-            r = rnd & 0xf
-            rnd = rnd >> 4
-            if i== 19:
-                uuid[ i ] = chars[ (r & 0x3 ) | 0x8]
-            else:
-                uuid[ i ] = chars[ r ]
-
-    return ''.join(uuid)
+    # .toUpperCase() here flattens concatenated strings to save heap memory space.
+    return uuid.upper()
 
 
 def _clamp( value, mi, mx ):
@@ -39,7 +34,10 @@ def _clamp( value, mi, mx ):
 
 
 def clamp( value, mi, mx ):
-    return cMath_clamp( value, mi, mx )
+    if cython:
+        return cMath_clamp( value, mi, mx )
+    else:
+        return _clamp(value, mi, mx)
 
 
 # // compute euclidian modulo of m % n
@@ -60,8 +58,10 @@ def lerp( x, y, t ):
 
 # // http://en.wikipedia.org/wiki/Smoothstep
 def smoothstep( x, min, max ):
-    if x <= min: return 0
-    if x >= max: return 1
+    if x <= min:
+        return 0
+    if x >= max:
+        return 1
 
     x = ( x - min ) / ( max - min )
 
@@ -69,8 +69,10 @@ def smoothstep( x, min, max ):
 
 
 def smootherstep( x, min, max ):
-    if x <= min: return 0
-    if x >= max: return 1
+    if x <= min:
+        return 0
+    if x >= max:
+        return 1
 
     x = ( x - min ) / ( max - min )
 
@@ -106,17 +108,9 @@ def isPowerOfTwo( value ):
     return ( value & ( value - 1 ) ) == 0 and value != 0
 
 
-def nearestPowerOfTwo( value ):
-    return math.pow( 2, round( math.log( value ) / math.log(2) ) )
+def ceilPowerOfTwo( value ):
+    return math.pow( 2, math.ceil( math.log( value ) / math.log(2) ) )
 
 
-def nextPowerOfTwo( value ):
-    value -= 1
-    value |= value >> 1
-    value |= value >> 2
-    value |= value >> 4
-    value |= value >> 8
-    value |= value >> 16
-    value += 1
-
-    return value
+def floorPowerOfTwo( value ):
+    return math.pow(2, math.floor(math.log(value) / math.LN2))

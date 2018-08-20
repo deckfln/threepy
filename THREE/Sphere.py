@@ -70,31 +70,31 @@ class Sphere:
     def intersectsPlane(self, plane ):
         return abs( plane.distanceToPoint( self.center ) ) <= self.radius
 
-    def clampPoint(self, point, optionalTarget=None ):
+    def clampPoint(self, point, target):
         deltaLengthSq = self.center.distanceToSquared( point )    
 
-        result = optionalTarget or Vector3()    
-
-        result.copy( point )    
+        target.copy( point )
 
         if deltaLengthSq > ( self.radius * self.radius ):
-            result.sub( self.center ).normalize()    
-            result.multiplyScalar( self.radius ).add( self.center )    
+            target.sub( self.center ).normalize()
+            target.multiplyScalar( self.radius ).add( self.center )
 
-        return result    
+        return target
 
-    def getBoundingBox(self, optionalTarget=None ):
-        box = optionalTarget or Box3()    
+    def getBoundingBox(self, target):
+        target.set( self.center, self.center )
+        target.expandByScalar( self.radius )
 
-        box.set( self.center, self.center )    
-        box.expandByScalar( self.radius )    
-
-        return box    
+        return target
 
     def applyMatrix4(self, matrix):
-        cSphere_applyMatrix4(self, matrix)
+        if cython:
+            cSphere_applyMatrix4(self, matrix)
+            return matrix
+        else:
+            return self._papplyMatrix4(matrix)
 
-    def _applyMatrix4(self, matrix ):
+    def _papplyMatrix4(self, matrix ):
         self.center.applyMatrix4( matrix )    
         self.radius = self.radius * matrix.getMaxScaleOnAxis()    
 
