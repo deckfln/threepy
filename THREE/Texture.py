@@ -10,7 +10,8 @@ from THREE.Constants import *
 from THREE.pyOpenGLObject import *
 from THREE.Vector2 import *
 import THREE.pyOpenGLProperties as pyOGLproperties
-
+from THREE.Matrix3 import *
+import THREE.Global
 
 _textureId = 0
 
@@ -50,8 +51,13 @@ class Texture(pyOpenGLObject):
         self.format = format if format is not None else RGBAFormat
         self.type = type if type is not None else UnsignedByteType
 
-        self.offset = Vector2( 0, 0 )
-        self.repeat = Vector2( 1, 1 )
+        self.offset = Vector2(0, 0)
+        self.repeat = Vector2(1, 1)
+        self.center = Vector2(0, 0)
+        self.rotation = 0
+
+        self.matrixAutoUpdate = True
+        self.matrix = Matrix3()
 
         self.generateMipmaps = True
         self.premultiplyAlpha = False
@@ -73,7 +79,11 @@ class Texture(pyOpenGLObject):
             self.version += 1
 
     needsUpdate = property(None, set)
-            
+
+    def updateMatrix(self):
+        self.matrix.setUvTransform(self.offset.x, self.offset.y, self.repeat.x, self.repeat.y, self.rotation,
+                                   self.center.x, self.center.y)
+
     def clone(self):
         return type(self)().copy( self )
 
@@ -98,6 +108,11 @@ class Texture(pyOpenGLObject):
 
         self.offset.copy( source.offset )
         self.repeat.copy( source.repeat )
+        self.center.copy(source.center)
+        self.rotation = source.rotation
+
+        self.matrixAutoUpdate = source.matrixAutoUpdate
+        self.matrix.copy(source.matrix)
 
         self.generateMipmaps = source.generateMipmaps
         self.premultiplyAlpha = source.premultiplyAlpha
@@ -108,11 +123,13 @@ class Texture(pyOpenGLObject):
         return self
 
     def toJSON(self, meta ):
+        isRootObject = meta is None or type(meta) is str
+
+        if not isRootObject and meta.textures[self.uuid] is not None:
+            return meta.textures[self.uuid]
+
         if meta.textures[ self.uuid ] is not None:
             return meta.textures[ self.uuid ]
-
-        def getDataURL( image ):
-            return image.toData()
 
         output = {
             'metadata': {
@@ -128,8 +145,12 @@ class Texture(pyOpenGLObject):
 
             'repeat': [ self.repeat.x, self.repeat.y ],
             'offset': [ self.offset.x, self.offset.y ],
+            'center': [self.center.x, self.center.y],
+            'rotation': self.rotation,
+
             'wrap': [ self.wrapS, self.wrapT ],
 
+            'format': self.format,
             'minFilter': self.minFilter,
             'magFilter': self.magFilter,
             'anisotropy': self.anisotropy,
@@ -144,27 +165,37 @@ class Texture(pyOpenGLObject):
             if image.uuid is None:
                 image.uuid = _Math.generateUUID()    # // UGH
 
-            if meta.images[ image.uuid ] is None:
+            if not isRootObject and meta.images[image.uuid] is None:
+                if type(image) is list:
+                    # process array of images e.g.CubeTexture
+                    url = []
+
+                    for i in range(len(image)):
+                        url.append( ImageUtils.getDataURL( image[i] ) )
+                else:
+                    # process single image
+                    url = ImageUtils.getDataURL( image )
+
                 meta.images[ image.uuid ] = {
                     'uuid': image.uuid,
-                    'url': getDataURL( image )
+                    'url': url
                 }
 
-            output.image = image.uuid
+            if not isRootObject:
+                output.image = image.uuid
 
         meta.textures[ self.uuid ] = output
 
         return output
 
     def dispose(self):
-        pyOGLproperties.dispose_queue.append(self)
+        THREE.Global.dispose_properties_queue.append(self)
 
     def transformUv(self, uv ):
         if self.mapping != UVMapping:
             return
 
-        uv.multiply( self.repeat )
-        uv.add( self.offset )
+        uv.applyMatrix3(self.matrix)
 
         if uv.x < 0 or uv.x > 1:
             if self.wrapS == RepeatWrapping:
