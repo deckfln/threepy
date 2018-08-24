@@ -101,6 +101,7 @@ class Material(pyOpenGLObject):
         self.emissiveMap = None
         self.bumpMap = None
         self.normalMap = None
+        self.normalMapType = None
         self.displacementMap = None
         self.roughnessMap = None
         self.metalnessMap = None

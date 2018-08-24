@@ -7,30 +7,6 @@
 from THREE.pyOpenGLObject import *
 from THREE.Color import *
 
-
-class FogExp2(pyOpenGLObject):
-    isFogExp2 = True
-    
-    def __init__(self, color, density ):
-        super().__init__()
-        self.set_class(isFogExp2)
-
-        self.name = ''
-
-        self.color = Color( color )
-        self.density = density if density is not None else 0.00025
-
-    def clone(self):
-        return type(self)( self.color.getHex(), self.density )
-
-    def toJSON(self, meta ):
-        return {
-            'type': 'FogExp2',
-            'color': self.color.getHex(),
-            'density': self.density
-        }
-
-
 """
 /**
  * @author mrdoob / http://mrdoob.com/
@@ -55,7 +31,7 @@ class Fog(pyOpenGLObject):
     def clone(self):
         return type(self)( self.color.getHex(), self.near, self.far )
 
-    def toJSON(self, meta ):
+    def toJSON(self):
         return {
             'type': 'Fog',
             'color': self.color.getHex(),

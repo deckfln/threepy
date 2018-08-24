@@ -33,6 +33,7 @@ isDepthTexture = np.uint64(524288)
 isDepthTexture = np.uint64(1048576)
 isCompressedTexture = np.uint64(2097152)
 isCanvasTexture = np.uint64(4194304)
+isVideoTexture = np.uint64(8388608)
 
 isArrayCamera = np.uint64(262144)
 isRawShaderMaterial = np.uint64(524288)

@@ -7,31 +7,22 @@
  * @author tschw
  */
 """
-import sys
-import time
-import pygame
-from pygame.locals import *
-from ctypes import c_void_p
-from threading import Thread
-import queue
 
-from OpenGL_accelerate import *
 import THREE.pyOpenGL.OpenGL as cOpenGL
 
 from THREE import *
+from THREE.pyOpenGL.pyOpenGLInfo import *
 import THREE._Math as _Math
 from THREE.ShaderLib import *
-from THREE.Javascript import *
-from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLGuiRenderer import *
 from THREE.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
+from THREE.pyOpenGL.pyOpenGLUtils import *
 
 import THREE.Global
-import THREE.pyOpenGLProperties as pyOGLproperties
 
 
 class pyOpenGLVAO:
@@ -61,28 +52,6 @@ class pyOpenGLFlareRenderer:
 """
 ***************************************************
 """
-
-
-class _infoMemory:
-    def __init__(self):
-        self.geometries = 0
-        self.textures = 0
-
-
-class _infoRender:
-    def __init__(self):
-        self.frame = 0
-        self.calls = 0
-        self.vertices = 0
-        self.faces = 0
-        self.points = 0
-
-
-class _info:
-    def __init__(self, render, memory, programs):
-        self.render = render
-        self.memory = memory
-        self.programs = programs
 
 
 class _vr:
@@ -261,9 +230,7 @@ class pyOpenGLRenderer:
         """
         // info
         """
-        self._infoMemory = _infoMemory()
-        self._infoRender = _infoRender()
-        self.info = _info(self._infoRender, self._infoMemory, None)
+        self.info = pyOpenGLInfo()
 
         self.utils = pyOpenGLUtils(self.extensions)
 
@@ -274,19 +241,19 @@ class pyOpenGLRenderer:
         self.state.viewport(self._currentViewport.copy(self._viewport).multiplyScalar(self._pixelRatio))
 
         self.properties = pyOpenGLProperties()
-        self.textures = pyOpenGLTextures(self.extensions, self.state, self.properties, self.capabilities, self.utils, self._infoMemory)
+        self.textures = pyOpenGLTextures(self.extensions, self.state, self.properties, self.capabilities, self.utils, self.info)
         self.attributes = pyOpenGLAttributes()
-        self.geometries = pyOpenGLGeometries(self.attributes, self._infoMemory)
-        self.objects = pyOpenGLObjects(self.geometries, self._infoRender)
+        self.geometries = pyOpenGLGeometries(self.attributes, self.info)
+        self.objects = pyOpenGLObjects(self.geometries, self.info)
         self.morphtargets = pyOpenGLMorphtargets()
         self.programCache = pyOpenGLPrograms(self, self.extensions, self.capabilities)
         self.lights = pyOpenGLLights()
         self.renderLists = pyOpenGLRenderLists()
 
-        self.background = pyOpenGLBackground(self, self.state, self.geometries, self._premultipliedAlpha)
+        self.background = pyOpenGLBackground(self, self.state, self.objects, self._premultipliedAlpha)
 
-        self.bufferRenderer = pyOpenGLBufferRenderer(self.extensions, self._infoRender)
-        self.indexedBufferRenderer = pyOpenGLIndexedBufferRenderer(self.extensions, self._infoRender)
+        self.bufferRenderer = pyOpenGLBufferRenderer(self.extensions, self.info)
+        self.indexedBufferRenderer = pyOpenGLIndexedBufferRenderer(self.extensions, self.info)
 
         self.flareRenderer = pyOpenGLFlareRenderer(self, self.state, self.textures, self.capabilities)
         self.spriteRenderer = pyOpenGLSpriteRenderer(self, self.state, self.textures, self.capabilities)
@@ -513,7 +480,7 @@ class pyOpenGLRenderer:
                     # //       64x64 pixel texture max 1024 bones * 4 pixels = (64 * 64)
 
                     size = math.sqrt(len(bones) * 4)  # // 4 pixels needed for 1 matrix
-                    size = _Math.nextPowerOfTwo(math.ceil(size))
+                    size = int(_Math.nextPowerOfTwo(math.ceil(size)))
                     size = max(size, 4)
 
                     boneMatrices = np.zeros(size * size * 4, 'f')  # // 4 floats per RGBA pixel
@@ -1047,7 +1014,9 @@ class pyOpenGLRenderer:
         :param group:
         :return:
         """
-        self.state.setMaterial(material)
+
+        frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
+        self.state.setMaterial(material, frontFaceCW)
 
         program = self._setProgram(camera, fog, material, object)
         if program is None:
@@ -1566,11 +1535,8 @@ class pyOpenGLRenderer:
 
         # //
 
-        self._infoRender.frame += 1
-        self._infoRender.calls = 0
-        self._infoRender.vertices = 0
-        self._infoRender.faces = 0
-        self._infoRender.points = 0
+        if self.info.autoReset:
+            self.info.reset()
 
         self.setRenderTarget(renderTarget)
         self.state.enable(GL_MULTISAMPLE)

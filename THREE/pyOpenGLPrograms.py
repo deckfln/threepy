@@ -34,7 +34,9 @@ def _allocateBones(object, capabilities):
 
         
 def _getTextureEncodingFromMap(map, gammaOverrideLinear):
-    if not map:
+    encoding = LinearEncoding
+
+    if map is None:
         encoding = LinearEncoding
     elif map.my_class(isTexture):
         encoding = map.encoding
@@ -63,12 +65,13 @@ class pyOpenGLPrograms:
         'LineBasicMaterial': 'basic',
         'LineDashedMaterial': 'dashed',
         'PointsMaterial': 'points',
-        'ShadowMaterial': 'shadow'
+        'ShadowMaterial': 'shadow',
+        'SpriteMaterial': 'sprite'
     }
 
     parameterNames = [
         "precision", "supportsVertexTextures", "map", "mapEncoding", "envMap", "envMapMode", "envMapEncoding",
-        "lightMap", "aoMap", "emissiveMap", "emissiveMapEncoding", "bumpMap", "normalMap", "displacementMap", "specularMap",
+        "lightMap", "aoMap", "emissiveMap", "emissiveMapEncoding", "bumpMap", "normalMap", "objectSpaceNormalMap", "displacementMap", "specularMap",
         "roughnessMap", "metalnessMap", "gradientMap",
         "alphaMap", "combine", "vertexColors", "fog", "useFog", "fogExp",
         "flatShading", "sizeAttenuation", "logarithmicDepthBuffer", "skinning",
@@ -136,6 +139,7 @@ class pyOpenGLPrograms:
             'emissiveMapEncoding': _getTextureEncodingFromMap(emissiveMap, self.renderer.gammaInput),
             'bumpMap': bumpMap is not None,
             'normalMap': normalMap is not None,
+            'objectSpaceNormalMap': material.normalMapType == ObjectSpaceNormalMap,
             'displacementMap': displacementMap is not None,
             'roughnessMap': roughnessMap is not None,
             'metalnessMap': metalnessMap is not None,

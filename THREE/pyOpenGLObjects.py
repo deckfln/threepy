@@ -9,13 +9,13 @@ from OpenGL.GL import *
 
 
 class pyOpenGLObjects:
-    def __init__(self, geometries, infoRender):
+    def __init__(self, geometries, info):
         self.updateList = {}
-        self.infoRender = infoRender
+        self.info = info
         self.geometries = geometries
 
     def update(self, object):
-        frame = self.infoRender.frame
+        frame = self.info.render.frame
 
         geometry = object.geometry
         buffergeometry = self.geometries.get(object, geometry)

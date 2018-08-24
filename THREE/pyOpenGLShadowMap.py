@@ -41,6 +41,8 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
         self._materialCache = {}
 
+        self.shadowSide = {0: BackSide, 1: FrontSide, 2: DoubleSide}
+
         self.cubeDirections = [
             Vector3( 1, 0, 0 ), Vector3( - 1, 0, 0 ), Vector3( 0, 0, 1 ),
             Vector3( 0, 0, - 1 ), Vector3( 0, 1, 0 ), Vector3( 0, - 1, 0 )
@@ -89,9 +91,6 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         self.needsUpdate = False
 
         self.type = PCFShadowMap
-
-        self.renderReverseSided = True
-        self.renderSingleSided = True
 
     def render(self, lights, scene, camera ):
         if not self.enabled:
@@ -298,18 +297,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         result.visible = material.visible
         result.wireframe = material.wireframe
 
-        side = material.side
-
-        if self.renderSingleSided and side == DoubleSide:
-            side = FrontSide
-
-        if self.renderReverseSided:
-            if side == FrontSide:
-                side = BackSide
-            elif side == BackSide:
-                side = FrontSide
-
-        result.side = side
+        result.side = material.shadowSide if material.shadowSide is not None else self.shadowSide[material.side]
 
         result.clipShadows = material.clipShadows
         result.clippingPlanes = material.clippingPlanes

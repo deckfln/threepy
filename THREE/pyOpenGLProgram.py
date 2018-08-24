@@ -96,7 +96,7 @@ def generateExtensions(extensions, parameters, rendererExtensions):
     extensions = extensions or {}
 
     chunks = [
-        '#extension GL_OES_standard_derivatives : enable' if ('derivatives' in extensions or parameters['envMapCubeUV'] or parameters['bumpMap'] or parameters['normalMap'] or parameters['flatShading']) else '',
+        '#extension GL_OES_standard_derivatives : enable' if ('derivatives' in extensions or parameters['envMapCubeUV'] or parameters['bumpMap'] or ( parameters['normalMap'] and not parameters['objectSpaceNormalMap']) or parameters['flatShading']) else '',
         '#extension GL_EXT_frag_depth : enable' if ('fragDepth' in extensions or parameters['logarithmicDepthBuffer']) and rendererExtensions.get('EXT_frag_depth') else '',
         '#extension GL_EXT_draw_buffers : require' if ('drawBuffers' in extensions) and rendererExtensions.get('WEBGL_draw_buffers') else '',
         '#extension GL_EXT_shader_texture_lod : enable' if ('shaderTextureLOD' in extensions or parameters['envMap']) and rendererExtensions.get('EXT_shader_texture_lod') else '',
@@ -123,7 +123,7 @@ def generateDefines(defines):
     return '\n'.join(chunks)
 
 
-def fetchAttributeLocations(gl, program, identifiers):
+def fetchAttributeLocations(gl, program):
     attributes = {}
 
     n = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES)
@@ -153,6 +153,12 @@ def replaceLightNums(string, parameters):
     return string
 
 
+def replaceClippingPlaneNums(string, parameters):
+    string = re.sub('NUM_CLIPPING_PLANES', str(parameters['numClippingPlanes']), string)
+    string = re.sub('UNION_CLIPPING_PLANES', str(parameters['numClippingPlanes'] - parameters['numClipIntersection']), string)
+    return string
+
+
 def parseIncludes(string):
     global ShaderChunk
     pattern = '^[\t ]*#include +<([\w\d.]+)>'
@@ -160,7 +166,7 @@ def parseIncludes(string):
 
     for match in re.finditer(pattern, string, re.MULTILINE):
         include = match.groups(0)[0]
-        includes = parseIncludes(ShaderChunk[include])
+        includes = parseIncludes(getShaderChunk(include))
         toreplace = match.string[match.start(0):match.end(0)]
         new = re.sub(toreplace, includes, new)
 
@@ -168,7 +174,7 @@ def parseIncludes(string):
 
 
 def unrollLoops(string):
-    pattern = 'for \( *int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}'
+    pattern = '#pragma unroll_loop[\s]+?for \( *int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}'
 
     unrolled_string = string
     for match in re.finditer(pattern, string):
@@ -217,6 +223,7 @@ def _getAttributeLocations(program):
 class pyOpenGLProgram:
     def __init__(self, renderer, extensions, code, material, shader, parameters):
         global _programIdCount, ShaderChunk
+        self.name = shader.name
         self.id = _programIdCount
         _programIdCount += 1
         self.code = code
@@ -281,11 +288,16 @@ class pyOpenGLProgram:
                 '\n'
            ])
 
+            if len(prefixVertex) > 0:
+                prefixVertex += '\n'
+
             prefixFragment = '\n'.join([
                 customExtensions,
                 customDefines,
                 '\n'
-           ])
+            ])
+            if len(prefixFragment) > 0:
+                prefixFragment += '\n'
         else:
             _prefixVertex = [
                 '#version 330',
@@ -312,6 +324,7 @@ class pyOpenGLProgram:
                 '#define USE_EMISSIVEMAP' if parameters['emissiveMap'] else '',
                 '#define USE_BUMPMAP' if parameters['bumpMap'] else '',
                 '#define USE_NORMALMAP' if parameters['normalMap'] else '',
+                '#define OBJECTSPACE_NORMALMAP' if parameters['normalMap'] and parameters['objectSpaceNormalMap'] else '',
                 '#define USE_DISPLACEMENTMAP' if parameters['displacementMap'] and parameters['supportsVertexTextures'] else '',
                 '#define USE_SPECULARMAP' if parameters['specularMap'] else '',
                 '#define USE_ROUGHNESSMAP' if parameters['roughnessMap'] else '',
@@ -328,8 +341,6 @@ class pyOpenGLProgram:
                 '#define USE_MORPHNORMALS' if parameters['morphNormals'] and not parameters['flatShading'] else '',
                 '#define DOUBLE_SIDED' if parameters['doubleSided'] else '',
                 '#define FLIP_SIDED' if parameters['flipSided'] else '',
-
-                '#define NUM_CLIPPING_PLANES %d' % parameters['numClippingPlanes'],
 
                 '#define USE_SHADOWMAP' if parameters['shadowMapEnabled'] else '',
                 '#define ' + shadowMapTypeDefine if parameters['shadowMapEnabled'] else '',
@@ -393,9 +404,8 @@ class pyOpenGLProgram:
             prefixVertex = '\n'.join([string for string in _prefixVertex if string != ''])
 
             _prefixFragment = [
-                '#version 330',
+                '#version 330\n',
                 customExtensions,
-
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
@@ -403,7 +413,7 @@ class pyOpenGLProgram:
 
                 customDefines,
 
-                '#define ALPHATEST %s ' % parameters['alphaTest'] if parameters['alphaTest'] else '',
+                '#define ALPHATEST %s ' % parameters['alphaTest'] + '' if parameters['alphaTest'] % 1 else '.0' if parameters['alphaTest'] else '',  # add '.0' if integer
 
                 '#define GAMMA_FACTOR %f' % gammaFactorDefine,
 
@@ -420,6 +430,7 @@ class pyOpenGLProgram:
                 '#define USE_EMISSIVEMAP' if parameters['emissiveMap'] else '',
                 '#define USE_BUMPMAP' if parameters['bumpMap'] else '',
                 '#define USE_NORMALMAP' if parameters['normalMap'] else '',
+                '#define OBJECTSPACE_NORMALMAP' if parameters['normalMap'] and parameters['objectSpaceNormalMap'] else '',
                 '#define USE_SPECULARMAP' if parameters['specularMap'] else '',
                 '#define USE_ROUGHNESSMAP' if parameters['roughnessMap'] else '',
                 '#define USE_METALNESSMAP' if parameters['metalnessMap'] else '',
@@ -432,9 +443,6 @@ class pyOpenGLProgram:
 
                 '#define DOUBLE_SIDED' if parameters['doubleSided'] else '',
                 '#define FLIP_SIDED' if parameters['flipSided'] else '',
-
-                '#define NUM_CLIPPING_PLANES %d' % parameters['numClippingPlanes'],
-                '#define UNION_CLIPPING_PLANES %d' % (parameters['numClippingPlanes'] - parameters['numClipIntersection']),
 
                 '#define USE_SHADOWMAP' if parameters['shadowMapEnabled'] else '',
                 '#define ' + shadowMapTypeDefine if parameters['shadowMapEnabled'] else '',
@@ -470,13 +478,61 @@ class pyOpenGLProgram:
 
         vertexShader = parseIncludes(vertexShader)
         vertexShader = replaceLightNums(vertexShader, parameters)
+        vertexShader = replaceClippingPlaneNums(vertexShader, parameters)
 
         fragmentShader = parseIncludes(fragmentShader)
         fragmentShader = replaceLightNums(fragmentShader, parameters)
+        fragmentShader = replaceClippingPlaneNums(fragmentShader, parameters)
 
-        if not material.my_class(isShaderMaterial):
-            vertexShader = unrollLoops(vertexShader)
-            fragmentShader = unrollLoops(fragmentShader)
+        vertexShader = unrollLoops(vertexShader)
+        fragmentShader = unrollLoops(fragmentShader)
+
+        #TODO reimplement WEBGL2
+        """
+        if not material.my_class(isRawShaderMaterial):
+            isGLSL3ShaderMaterial = False
+
+            versionRegex = "^ \s *  # version\s+300\s+es\s*\n"
+
+            if material.my_class(isShaderMaterial) and \
+                re.search(versionRegex, vertexShader) is not None and \
+                re.match( versionRegex, fragmentShader) is not None:
+
+                isGLSL3ShaderMaterial = True
+
+                vertexShader = vertexShader.replace( versionRegex, '' )
+                fragmentShader = fragmentShader.replace( versionRegex, '' )
+
+            # GLSL3.0 conversion
+            _prefixVertex = [
+                '#version 330\n',
+                '#define attribute in',
+                '#define varying out',
+                '#define texture2D texture'
+            ]
+            prefixVertex = '\n'.join([string for string in _prefixVertex if string != '']) + prefixVertex
+
+            _prefixFragment = [
+                '#version 330\n',
+
+                customExtensions,
+
+                '#define varying in',
+                '' if isGLSL3ShaderMaterial else 'out highp vec4 pc_fragColor;',
+                '' if isGLSL3ShaderMaterial else '#define gl_FragColor pc_fragColor',
+                '#define gl_FragDepthEXT gl_FragDepth',
+                '#define texture2D texture',
+                '#define textureCube texture',
+                '#define texture2DProj textureProj',
+                '#define texture2DLodEXT textureLod',
+                '#define texture2DProjLodEXT textureProjLod',
+                '#define textureCubeLodEXT textureLod',
+                '#define texture2DGradEXT textureGrad',
+                '#define texture2DProjGradEXT textureProjGrad',
+                '#define textureCubeGradEXT textureGrad'
+            ]
+            prefixFragment = '\n'.join([string for string in _prefixFragment if string != '']) + "\n" + prefixFragment
+        """
 
         vertexGlsl = prefixVertex + vertexShader
         fragmentGlsl = prefixFragment + fragmentShader

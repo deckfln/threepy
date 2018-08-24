@@ -23,8 +23,6 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
     isWebGLRenderTarget = True
     
     def __init__(self, width=0, height=0, options=None ):
-        self.uuid = _Math.generateUUID()
-
         super().__init__()
         self.set_class(isWebGLRenderTarget)
 
@@ -51,6 +49,8 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
         encoding= options['encoding'] if 'encoding' in options else None
 
         self.texture = Texture( None, None, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy, encoding )
+
+        self.texture.generateMipmaps = options.generateMipmaps if options.generateMipmaps is not None else True
 
         self.depthBuffer = options['depthBuffer'] if 'depthBuffer' in options else True
         self.stencilBuffer = options['stencilBuffer'] if 'stencilBuffer' in options else True

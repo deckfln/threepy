@@ -5,6 +5,7 @@
  * @author mikael emtinger / http://gomo.se/
  */
 """
+import os
 
 import THREE.UniformsUtils as UniformsUtils
 from THREE.ShaderChunk import *
@@ -17,6 +18,8 @@ from THREE.UniformValue import *
 
 global ShaderLib
 global ShaderChunk
+
+_currentModule = os.path.dirname(__file__)
 
 """
 /**
@@ -215,6 +218,18 @@ class _shader_lib:
         self.vertexShader = vertexShader
         self.fragmentShader = fragmentShader
 
+    def getVertexShader(self):
+        if self.vertexShader[0] == '_':
+            loader = THREE.FileLoader()
+            self.vertexShader = loader.load('%s/shaders/ShaderLib/%s' % (_currentModule, self.vertexShader[1:]))
+        return self.vertexShader
+
+    def getFragmentShader(self):
+        if self.fragmentShader[0] == '_':
+            loader = THREE.FileLoader()
+            self.fragmentShader = loader.load('%s/shaders/ShaderLib/%s' % (_currentModule, self.fragmentShader[1:]))
+        return self.fragmentShader
+
 
 ShaderLib = {
         'basic':  _shader_lib(
@@ -353,8 +368,8 @@ ShaderLib = {
                 'tFlip': UniformValue(- 1),
                 'opacity': UniformValue(1.0)
             },
-            ShaderChunk['cube_vert'],
-            ShaderChunk['cube_frag']
+            '_cube_vert.glsl',
+            '_cube_frag.glsl'
         ),
 
         'equirect': _shader_lib(

@@ -141,8 +141,10 @@ arrayCacheI32 = [None for i in range(32)]
 
 mat4array = np.zeros(16, 'f' )
 mat3array = np.zeros( 9 , 'f')
+mat2array = np.zeros( 4, 'f' )
 
 # // Flattening for arrays of vectors and matrices
+
 
 def flatten( array, nBlocks, blockSize ):
     firstElem = array[ 0 ]
@@ -168,7 +170,24 @@ def flatten( array, nBlocks, blockSize ):
 
     return r
 
+
+def arraysEqual(a, b):
+    if len(a) != len(b):
+        return False
+
+    for i in range(len(a)):
+        if a[i] != b[i]:
+            return False
+
+    return True
+
+
+def copyArray(a, b):
+    for i in range(len(b)):
+        a[i] = b[i]
+
 # // Texture unit allocation
+
 
 def allocTexUnits( renderer, n ):
     r = arrayCacheI32[n]
@@ -197,6 +216,7 @@ class SingleUniform:
         self.id = id
         self.addr = addr
         self.uploaded = False
+        self.cache = np.zeros(16, np.float32)
 
         _types = {
             0x1406: self.setValue1f,  # // FLOAT
@@ -228,74 +248,199 @@ class SingleUniform:
     # // Single scalar
 
     def setValue1f(self, v, renderer=None):
+        cache = self.cache
+
+        if cache[0] == v:
+            return
+
         glUniform1f(self.addr, v)
+        cache[0] = v
 
     def setValue1i(self, v, renderer=None):
+        cache = self.cache
+
+        if cache[0] == v:
+            return
+
         glUniform1i(self.addr, v)
+        cache[0] = v
 
         # // Single float vector (from flat array or THREE.VectorN)
 
     def setValue2fv(self, v, renderer=None):
-        if v.x is None:
-            glUniform2fv(self.addr, v)
+        cache = self.cache
+
+        if v.x is not None:
+            if cache[0] != v.x or cache[1] != v.y:
+                glUniform2f(self.addr, v.x, v.y)
+                cache[0] = v.x
+                cache[1] = v.y
         else:
-            glUniform2f(self.addr, v.x, v.y)
+            if arraysEqual( cache, v ):
+                return
+
+            glUniform2fv(self.addr, v)
+
+            copyArray(cache, v)
 
     def setValue3fv(self, v, renderer=None):
+        cache = self.cache
+
         if v.my_class(isVector3):
-            glUniform3f(self.addr, v.np[0], v.np[1], v.np[2])
+            if cache[0] != v.np[0] or cache[1] != v.np[1] or cache[2] != v.np[2]:
+                glUniform3f(self.addr, v.np[0], v.np[1], v.np[2])
+                cache[0] = v.np[0]
+                cache[1] = v.np[1]
+                cache[2] = v.np[2]
+
         elif v.my_class(isColor):
-            glUniform3f(self.addr, v.r, v.g, v.b)
-        else :
+            if cache[0] != v.r or cache[1] != v.g or cache[2] != v.b:
+                glUniform3f(self.addr, v.r, v.g, v.b)
+                cache[0] = v.r
+                cache[1] = v.g
+                cache[2] = v.b
+
+        else:
+            if arraysEqual( cache, v ):
+                return
+
             glUniform3fv(self.addr, 1, v)
+            copyArray(cache, v)
 
     def setValue4fv(self, v, renderer=None):
-        if hasattr(v, 'x') is None:
-            glUniform4fv(self.addr, v)
+        cache = self.cache
+
+        if hasattr(v, 'x') is not None:
+            if cache[0] != v.x or cache[1] != v.y or cache[2] != v.z or cache[3] != v.w:
+                glUniform4f(self.addr, v.x, v.y, v.z, v.w)
+
+            cache[0] = v.x
+            cache[1] = v.y
+            cache[2] = v.z
+            cache[3] = v.w
+
         else:
-            glUniform4f(self.addr, v.x, v.y, v.z, v.w)
+            if arraysEqual( cache, v ):
+                return
+
+            glUniform4fv(self.addr, v)
+
+            copyArray(cache, v)
 
     # // Single matrix (from flat array or MatrixN)
 
     def setValue2fm(self, v, renderer=None):
-        glUniformMatrix2fv(self.addr, 1, GL_FALSE, v.elements or v)
+        cache = self.cache
+
+        if not hasattr(v, 'elements'):
+            if arraysEqual(cache, v):
+                return
+
+            glUniformMatrix2fv(self.addr, 1, GL_FALSE, v)
+            copyArray(cache, v)
+
+        else:
+            elements = v.elements
+            if arraysEqual(cache, elements):
+                return
+
+            np.copyto(mat2array, elements)
+            glUniformMatrix2fv(self.addr, 1, GL_FALSE, mat2array)
+
+        copyArray(cache, elements)
 
     def setValue3fm(self, v, renderer=None):
-        try:
-            glUniformMatrix3fv(self.addr, 1, GL_FALSE, v.elements)
-        except:
+        cache = self.cache
+
+        if not hasattr(v, 'elements'):
+            if arraysEqual(cache, v):
+                return
+
             glUniformMatrix3fv(self.addr, GL_FALSE, v)
+            copyArray(cache, v)
+
+        else:
+            elements = v.elements
+
+            if arraysEqual(cache, elements):
+                return
+
+            np.copyto(mat3array, elements)
+
+            glUniformMatrix3fv(self.addr, 1, GL_FALSE, mat3array)
+            copyArray(cache, elements)
 
     def setValue4fm(self, v, renderer=None):
-        if hasattr(v, 'elements'):
-            # p = np.ascontiguousarray(v.elements, np.float32)
-            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
-            #glUniformMatrix4fv(self.addr, 1, GL_FALSE, v.elements)
-        else:
+        cache = self.cache
+
+        if not hasattr(v, 'elements'):
+            if arraysEqual(cache, v):
+                return
+
             glUniformMatrix4fv(self.addr, GL_FALSE, v)
+            copyArray(cache, v)
+
+        else:
+            elements = v.elements
+            if arraysEqual(cache, elements):
+                return
+
+            np.copyto(mat4array, elements)
+
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, elements)
+
+            copyArray(cache, elements)
 
     # // Single texture (2D / Cube)
 
     def setValueT1(self, v, renderer):
+        cache = self.cache
         unit = renderer.allocTextureUnit()
-        glUniform1i(self.addr, unit)
+
+        if cache[0] != unit:
+            glUniform1i(self.addr, unit)
+            cache[0] = unit
+
         renderer.textures.setTexture2D(v or emptyTexture, unit)
 
     def setValueT6(self, v, renderer):
+        cache = self.cache
         unit = renderer.allocTextureUnit()
-        glUniform1i(self.addr, unit)
+
+        if cache[0] != unit:
+            glUniform1i(self.addr, unit)
+            cache[0] = unit
+
         renderer.setTextureCube(v or emptyCubeTexture, unit)
 
     # // Integer / Boolean vectors or arrays thereof (always flat arrays)
 
     def setValue2iv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform2iv(self.addr, v)
+        copyArray(cache, v)
 
     def setValue3iv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform3iv(self.addr, v)
+        copyArray(cache, v)
 
     def setValue4iv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform4iv(self.addr, v)
+        copyArray(cache, v)
 
     # // self.path = activeInfo.name; # // DEBUG
 
@@ -305,6 +450,8 @@ class PureArrayUniform():
         self.id = id
         self.addr = addr
         self.size = activeInfo[1]
+        self.cache = np.zeros(16, np.float32)
+
         # // Helper to pick the right setter for a pure (bottom-level) array
         _types = {
             0x1406: self.setValue1fv,  # // FLOAT
@@ -332,61 +479,153 @@ class PureArrayUniform():
 
         self.setValue = _types[activeInfo[2]]
 
+    def updateCache(self, data):
+        cache = self.cache
+
+        if type(data) is 'np' and len(cache) != len(data):
+            self.cache = np.zeros(len(data), np.float32)
+
+        copyArray( cache, data )
+
     # // Array of scalars
 
     def setValue1fv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform1fv(self.addr, len(v), v)
+        copyArray(cache, v)
 
     def setValue1iv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform1iv(self.addr, len(v), v)
 
+        copyArray(cache, v)
+
     def setValue2iv(self, v, renderer=None):
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
         glUniform2iv(self.addr, len(v), v)
+        copyArray(cache, v)
 
     def setValue3iv(self, v, renderer=None):
-        glUniform3iv(self.addr, len(1), v)
+        cache = self.cache
+
+        if arraysEqual(cache, v):
+            return
+
+        glUniform3iv(self.addr, len(v), v)
 
     def setValue4iv(self, v, renderer=None):
-        glUniform4iv(self.addr, len(1), v)
+        cache = self.cache
 
-    # // Array of vectors (flat or from THREE classes)
+        if arraysEqual(cache, v):
+            return
+
+        glUniform4iv(self.addr, len(v), v)
+
+    # Array of vectors(flat or from THREE classes)
 
     def setValueV2a(self, v, renderer=None):
-        glUniform2fv(self.addr, len(v), flatten(v, self.size, 2))
+        cache = self.cache
+        data = flatten(v, self.size, 2)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniform2fv(self.addr, len(v), data)
+        self.updateCache(data)
 
     def setValueV3a(self, v, renderer=None):
-        glUniform3fv(self.addr, len(v), flatten(v, self.size, 3))
+        cache = self.cache
+        data = flatten(v, self.size, 3)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniform3fv(self.addr, len(v), data)
+
+        self.updateCache(data)
 
     def setValueV4a(self, v, renderer=None):
-        glUniform4fv(self.addr, len(v), flatten(v, self.size, 4))
+        cache = self.cache
+        data = flatten(v, self.size, 4)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniform4fv(self.addr, len(v), data)
+
+        self.updateCache(data)
 
     # // Array of matrices (flat or from THREE clases)
 
     def setValueM2a(self, v, renderer=None):
-        glUniformMatrix2fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 4))
+        cache = self.cache
+        data = flatten(v, self.size, 4)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniformMatrix2fv(self.addr, len(v), GL_FALSE, data)
+
+        self.updateCache(data)
 
     def setValueM3a(self, v, renderer=None):
-        glUniformMatrix3fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 9))
+        cache = self.cache
+        data = flatten(v, self.size, 9)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniformMatrix3fv(self.addr, len(v), GL_FALSE, data)
+
+        self.updateCache(data)
 
     def setValueM4a(self, v, renderer=None):
-        glUniformMatrix4fv(self.addr, len(v), GL_FALSE, flatten(v, self.size, 16))
+        cache = self.cache
+        data = flatten(v, self.size, 16)
+
+        if arraysEqual(cache, data):
+            return
+
+        glUniformMatrix4fv(self.addr, len(v), GL_FALSE, data)
+
+        self.updateCache(data)
 
     # // Array of textures (2D / Cube)
 
     def setValueT1a(self, v, renderer):
+        cache = self.cache
         n = len(v)
+
         units = allocTexUnits(renderer, n)
 
-        glUniform1iv(self.addr, n, units)
+        if not arraysEqual(cache, units):
+            glUniform1iv(self.addr, n, units)
+            copyArray(cache, units)
 
         for i in range(n):
             renderer.setTexture2D(v[i] or emptyTexture, units[i])
 
     def setValueT6a(self, v, renderer):
+        cache = self.cache
         n = len(v)
+
         units = allocTexUnits(renderer, n)
 
-        glUniform1iv(self.addr, units)
+        if not arraysEqual(cache, units):
+            glUniform1iv(self.addr, units)
+            copyArray(cache, units)
 
         for i in range(n):
             renderer.setTextureCube(v[i] or emptyCubeTexture, units[i])
@@ -394,19 +633,19 @@ class PureArrayUniform():
         # // self.path = activeInfo.name; # // DEBUG
     
     
-class StructuredUniform( UniformContainer ):
+class StructuredUniform( UniformContainer):
     def __init__(self, id ):
         self.id = id
         super().__init__(  ) # // mix-in
 
-    def setValue(self, value, renderer ):
+    def setValue(self, value, renderer):
         # // Note: Don't need an extra 'renderer' parameter, since samplers
         # // are not allowed in structured uniforms.
         seq = self.seq
 
         for i in range (len(seq)):
-            u = seq[ i ]
-            u.setValue( value[ u.id ], renderer )
+            u = seq[i]
+            u.setValue(value[u.id], renderer)
 
 # // --- Top-level ---
 
@@ -425,12 +664,12 @@ _RePathPart = re.compile('([\w\d_]+)(\])?(\[|\.)?')
 # // in the uniform names.
 
 
-def addUniform( container, uniformObject ):
-    container.seq.append( uniformObject )
+def addUniform(container, uniformObject):
+    container.seq.append(uniformObject)
     container.map[ uniformObject.id ] = uniformObject
 
 
-def parseUniform( activeInfo, addr, container ):
+def parseUniform(activeInfo, addr, container):
     path = activeInfo[0].decode("utf-8")
     pathLength = len(path)
 
@@ -442,8 +681,8 @@ def parseUniform( activeInfo, addr, container ):
         matchEnd = match.regs[0][1]
 
         id = match.group(1)
-        idIsIndex = match.group( 2 ) == ']'
-        subscript = match.group( 3 )
+        idIsIndex = match.group(2) == ']'
+        subscript = match.group(3)
 
         if idIsIndex:
             id = int(id)  # // convert to integer
@@ -461,8 +700,8 @@ def parseUniform( activeInfo, addr, container ):
             # // step into inner node / create it in case it doesn't exist
             map = container.map
             if id not in map:
-                next = StructuredUniform( id )
-                addUniform( container, next )
+                next = StructuredUniform(id)
+                addUniform(container, next)
             else:
                 next = map[id]
 
@@ -510,7 +749,7 @@ def _parseShaderForUniforms(shader, uniforms):
         isArray = False
         index = 0
         patt = 'uniform '+name+' ([\w\d_]+)\[ *(\d)+ *\]'
-        match = re.search (patt, shader)
+        match = re.search(patt, shader)
         if match:
             isArray = True
             index = int(match.group(2))
@@ -557,9 +796,8 @@ class pyOpenGLUniforms( UniformContainer ):
         n = glGetProgramiv( program, GL_ACTIVE_UNIFORMS )
 
         for i in range(n):
-            info = glGetActiveUniform( program, i )
-            path = info[0]
-            addr = glGetUniformLocation( program, path )
+            info = glGetActiveUniform(program, i)
+            addr = glGetUniformLocation(program, info[0])
 
             parseUniform( info, addr, self )
 

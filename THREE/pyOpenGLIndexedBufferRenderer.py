@@ -10,10 +10,10 @@ from ctypes import c_void_p
 
 
 class pyOpenGLIndexedBufferRenderer:
-    def __init__( self, extensions, infoRender):
+    def __init__( self, extensions, info):
         self.mode = 0
         self._extensions = extensions
-        self._infoRender = infoRender
+        self.info = info
         self._type = 0
         self._bytesPerElement = 0
 
@@ -34,13 +34,8 @@ class pyOpenGLIndexedBufferRenderer:
             glDrawElements(self.mode, int(count), self._type, pointer)
         except:
             print("down")
-        self._infoRender.calls += 1
-        self._infoRender.vertices += count
 
-        if self.mode == GL_TRIANGLES:
-            self._infoRender.faces += count / 3
-        elif self.mode == GL_POINTS:
-            self._infoRender.points += count
+        self.info.update(count, self.mode)
 
     def renderInstances(self, geometry, start, count ):
         if not start:
@@ -49,10 +44,4 @@ class pyOpenGLIndexedBufferRenderer:
             pointer = c_void_p(start * self._bytesPerElement)
         glDrawElementsInstanced(self.mode, int(count), self._type, pointer, geometry.maxInstancedCount )
 
-        self._infoRender.calls += 1
-        self._infoRender.vertices += count * geometry.maxInstancedCount
-
-        if self.mode == GL_TRIANGLES:
-            self._infoRender.faces += geometry.maxInstancedCount * count / 3
-        elif self.mode == GL_POINTS:
-            self._infoRender.points += geometry.maxInstancedCount * count
+        self.info.update(count, self.mode, geometry.maxInstancedCount)

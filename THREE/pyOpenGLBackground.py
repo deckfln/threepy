@@ -13,20 +13,20 @@ from THREE.Mesh import *
 
 
 class pyOpenGLBackground:
-    def __init__(self, renderer, state, geometries, premultipliedAlpha ):
+    def __init__(self, renderer, state, objects, premultipliedAlpha ):
         self.clearColor = Color( 0x000000 )
         self.clearAlpha = 0
 
         self.planeCamera = None
         self.planeMesh = None
         self.boxMesh = None
-        self.boxMesh_vertex = ShaderLib['cube'].vertexShader
-        self.boxMesh_fragment = ShaderLib['cube'].fragmentShader
+        self.boxMesh_vertex = ShaderLib['cube'].getVertexShader()
+        self.boxMesh_fragment = ShaderLib['cube'].getFragmentShader()
         self.boxMesh_uniforms = ShaderLib['cube'].uniforms
 
         self.renderer = renderer
         self.state = state
-        self.geometries = geometries
+        self.objects = objects
         self.premultipliedAlpha = premultipliedAlpha
 
     def render( self, renderList, scene, camera, forceClear ):
@@ -52,7 +52,6 @@ class pyOpenGLBackground:
                         'side': BackSide,
                         'depthTest': True,
                         'depthWrite': False,
-                        'polygonOffset': True,
                         'fog': False
                     } )
                 )
@@ -60,19 +59,14 @@ class pyOpenGLBackground:
                 self.boxMesh.geometry.removeAttribute( 'normal' )
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
-                def _onBeforeRenderBackgroup(object, renderer, scene, camera, geometry=None, material=None, group=None):
-                    scale = camera.far
-
-                    object.matrixWorld.makeScale(scale, scale, scale)
+                def _onBeforeRenderBackgroup(object, renderer, scene, camera):
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
                     object.matrixWorld.is_updated()
 
-                    object.material.polygonOffsetUnits = scale * 10
-
                 self.boxMesh.setOnBeforeRender(self, _onBeforeRenderBackgroup)
 
-                self.geometries.update( self.boxMesh.geometry )
+                self.objects.update( self.boxMesh)
 
             self.boxMesh.material.uniforms.tCube.value = background
 
@@ -87,7 +81,7 @@ class pyOpenGLBackground:
                     MeshBasicMaterial( { 'depthTest': False, 'depthWrite': False, 'fog': False } )
                 )
 
-                self.geometries.update( planeMesh.geometry )
+                self.objects.update( planeMesh )
 
             planeMesh.material.map = self.background
 

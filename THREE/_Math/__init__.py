@@ -7,6 +7,8 @@ from THREE.cython.cthree import *
 
 DEG2RAD = math.pi / 180
 RAD2DEG = 180 / math.pi
+LOG2E = 1.4426950408889634
+LN2 = 0.6931471805599453
 
 cython = True
 
@@ -113,4 +115,15 @@ def ceilPowerOfTwo( value ):
 
 
 def floorPowerOfTwo( value ):
-    return math.pow(2, math.floor(math.log(value) / math.LN2))
+    return math.pow(2, math.floor(math.log(value) / LN2))
+
+def nextPowerOfTwo( value ):
+    value -= 1
+    value |= value >> 1
+    value |= value >> 2
+    value |= value >> 4
+    value |= value >> 8
+    value |= value >> 16
+    value += 1
+
+    return value

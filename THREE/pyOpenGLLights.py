@@ -105,9 +105,27 @@ class _UniformsCache:
         return uniforms
 
 
+class _hash:
+    def __init__(self):
+        self.stateID = -1
+        self.directionalLength = -1
+        self.pointLength = -1
+        self.spotLength = -1
+        self.rectAreaLength = -1
+        self.hemiLength = -1
+        self.shadowsLength = -1
+
+
+_countLights = 0
+
+
 class _state:
     def __init__(self):
-        self.hash = ''
+        global _countLights
+
+        self.id = _countLights
+        _countLights += 1
+        self.hash = _hash()
 
         self.ambient = THREE.Color(0, 0, 0)
         self.directional = []
@@ -136,6 +154,12 @@ class pyOpenGLLights:
         r = 0
         g = 0
         b = 0
+
+        directionalLength = 0
+        pointLength = 0
+        spotLength = 0
+        rectAreaLength = 0
+        hemiLength = 0
 
         self.state.directional.clear()
         self.state.directionalShadowMap.clear()
@@ -188,6 +212,7 @@ class pyOpenGLLights:
                 self.state.directionalShadowMap.append(shadowMap)
                 self.state.directionalShadowMatrix.append(light.shadow.matrix)
                 self.state.directional.append(uniforms)
+                directionalLength += 1
 
             elif light.my_class(isSpotLight):
                 uniforms = self.cache.get( light )
@@ -219,15 +244,16 @@ class pyOpenGLLights:
                 self.state.spotShadowMap.append(shadowMap)
                 self.state.spotShadowMatrix.append(light.shadow.matrix)
                 self.state.spot.append(uniforms)
+                spotLength += 1
 
             elif light.is_a('RectAreaLight'):
                 uniforms = self.cache.get( light )
 
-                # // (a) intensity controls irradiance of entire light
-                uniforms.color.copy( color ).multiplyScalar( intensity / ( light.width * light.height ) )
+                # (a) intensity is the total visible light emitted
+                # uniforms.color.copy(color).multiplyScalar(intensity / (light.width * light.height * Math.PI))
 
                 # // (b) intensity controls the radiance per light area
-                # // uniforms.color.copy( color ).multiplyScalar( intensity );
+                uniforms.color.copy( color ).multiplyScalar(intensity)
 
                 uniforms.position.setFromMatrixPosition( light.matrixWorld )
                 uniforms.position.applyMatrix4( viewMatrix )
@@ -248,6 +274,7 @@ class pyOpenGLLights:
                 # // uniforms.distance = distance;
 
                 self.state.rectArea.append(uniforms)
+                rectAreaLength += 1
 
             elif light.my_class(isPointLight):
                 uniforms = self.cache.get( light )
@@ -273,6 +300,7 @@ class pyOpenGLLights:
                 self.state.pointShadowMap.append(shadowMap)
                 self.state.pointShadowMatrix.append(light.shadow.matrix)
                 self.state.point.append(uniforms)
+                pointLength += 1
 
             elif light.my_class(isHemisphereLight):
                 uniforms = self.cache.get( light )
@@ -285,12 +313,18 @@ class pyOpenGLLights:
                 uniforms.groundColor.copy( light.groundColor ).multiplyScalar( intensity )
 
                 self.state.hemi.append(uniforms)
+                hemiLength += 1
 
         self.state.ambient.r = r
         self.state.ambient.g = g
         self.state.ambient.b = b
 
-        # // TODO (sam-g-steel) why aren't we using join
-        self.state.hash = "%d+%d+%d+%d+%d+%d" % (len(self.state.directional), len(self.state.point), len(self.state.spot), len(self.state.rectArea), len(self.state.hemi), len(shadows))
+        self.state.hash.stateID = self.state.id
+        self.state.hash.directionalLength = directionalLength
+        self.state.hash.pointLength = pointLength
+        self.state.hash.spotLength = spotLength
+        self.state.hash.rectAreaLength = rectAreaLength
+        self.state.hash.hemiLength = hemiLength
+        self.state.hash.shadowsLength = len(shadows)
 
         return self

@@ -16,11 +16,11 @@ class _pyOpenGLGeometryReference:
 
 
 class pyOpenGLGeometries:
-    def __init__( self, attributes, infoMemory):
+    def __init__( self, attributes, info):
         self.geometries = {}
         self.wireframeAttributes = {}
         self.attributes = attributes
-        self.infoMemory = infoMemory
+        self.info = info
 
     def dispose(self, object, geometry):
         if object is None:
@@ -53,7 +53,7 @@ class pyOpenGLGeometries:
                         self.attributes.dispose(attribute, buffergeometry)
                         del self.wireframeAttributes[geometry.id]
 
-                self.infoMemory.geometries -= 1
+                self.info.memory.geometries -= 1
 
     def get(self, object, geometry):
         if geometry.id in self.geometries:
@@ -75,7 +75,7 @@ class pyOpenGLGeometries:
 
         self.geometries[geometry.id] = _pyOpenGLGeometryReference(buffergeometry, object.uuid)
 
-        self.infoMemory.geometries += 1
+        self.info.memory.geometries += 1
 
         return buffergeometry
 

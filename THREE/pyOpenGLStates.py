@@ -216,7 +216,7 @@ class pyOpenGLState:
         self.enabledAttributes = np.zeros(maxVertexAttributes, 'B')
         self.attributeDivisors = np.zeros(maxVertexAttributes, 'B')
 
-        self.capabilities = {}
+        self.enabledCapabilities = {}
 
         self.compressedTextureFormats = None
 
@@ -242,6 +242,8 @@ class pyOpenGLState:
         self.currentScissorTest = None
 
         self.maxTextures = glGetInteger( GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS )
+
+        self.lineWidthAvailable = True
 
         self.version = float(glGetInteger( GL_MAJOR_VERSION ))+float(glGetInteger( GL_MAJOR_VERSION ))/10
         self.lineWidthAvailable = self.version >= 1.0
@@ -282,15 +284,7 @@ class pyOpenGLState:
         #     self.newAttributes[ i ] = 0
 
     def enableAttribute(self, attribute ):
-        self.newAttributes[ attribute ] = True
-
-        if not self.enabledAttributes[ attribute ]:
-            glEnableVertexAttribArray( attribute )
-            self.enabledAttributes[ attribute ] = True
-
-        if self.attributeDivisors[ attribute ]:
-            glVertexAttribDivisor( attribute, 0 )
-            self.attributeDivisors[ attribute ] = False
+        self.enableAttributeAndDivisor(attribute, 0)
 
     def enableAttributeAndDivisor(self, attribute, meshPerAttribute ):
         self.newAttributes[ attribute ] = True
@@ -310,20 +304,20 @@ class pyOpenGLState:
                 self.enabledAttributes[ i ] = False
 
     def enable(self, id):
-        if id not in self.capabilities:
-            self.capabilities[id] = False
+        if id not in self.enabledCapabilities:
+            self.enabledCapabilities[id] = False
 
-        if not self.capabilities[id]:
+        if not self.enabledCapabilities[id]:
             glEnable(id)
-            self.capabilities[id] = True
+            self.enabledCapabilities[id] = True
 
     def disable(self, id ):
-        if id not in self.capabilities:
+        if id not in self.enabledCapabilities:
             return
 
-        if self.capabilities[id]:
+        if self.enabledCapabilities[id]:
             glDisable(id)
-            self.capabilities[id] = False
+            self.enabledCapabilities[id] = False
 
     def getCompressedTextureFormats(self):
         if self.compressedTextureFormats is None:
@@ -334,7 +328,8 @@ class pyOpenGLState:
             # WEBGL_compressed_texture_etc1
             if self.extensions.get( 'GL_EXT_texture_compression_dxt1' ) or\
                  self.extensions.get( 'GL_EXT_texture_compression_s3tc' ) or\
-                 self.extensions.get( 'GL_EXT_texture_compression_latc' ):
+                 self.extensions.get( 'GL_EXT_texture_compression_latc' ) or\
+                 self.extensions.get( 'WEBGL_compressed_texture_astc'):
                 formats = glGetIntegerv( GL_COMPRESSED_TEXTURE_FORMATS )
 
                 for format in formats:
@@ -416,18 +411,24 @@ class pyOpenGLState:
         self.currentBlending = blending
         self.currentPremultipledAlpha = premultipliedAlpha
 
-    def setMaterial( self, material ):
+    def setMaterial( self, material, frontFaceCW):
         if material.side == DoubleSide:
             self.disable( GL_CULL_FACE )
         else:
             self.enable( GL_CULL_FACE )
 
-        self.setFlipSided( material.side == BackSide )
+        flipSided = ( material.side == BackSide )
+        if frontFaceCW:
+            flipSided = not flipSided
 
-        if material.transparent:
-            self.setBlending( material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha )
+        self.setFlipSided(flipSided)
+
+        if material.blending == NormalBlending and not material.transparent:
+            self.setBlending(NoBlending)
         else:
-            self.setBlending( NoBlending )
+            self.setBlending(material.blending, material.blendEquation, material.blendSrc, material.blendDst,
+                      material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha,
+                      material.premultipliedAlpha)
 
         self.depthBuffer.setFunc( material.depthFunc )
         self.depthBuffer.setTest( material.depthTest )
@@ -540,7 +541,7 @@ class pyOpenGLState:
                 glDisableVertexAttribArray( i )
                 self.enabledAttributes[ i ] = 0
 
-        self.capabilities = {}
+        self.enabledCapabilities = {}
 
         self.compressedTextureFormats = None
 
