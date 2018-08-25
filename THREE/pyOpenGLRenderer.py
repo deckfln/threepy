@@ -7,6 +7,13 @@
  * @author tschw
  */
 """
+import sys
+import time
+import pygame
+from pygame.locals import *
+from ctypes import c_void_p
+from threading import Thread
+import queue
 
 import THREE.pyOpenGL.OpenGL as cOpenGL
 
@@ -14,6 +21,8 @@ from THREE import *
 from THREE.pyOpenGL.pyOpenGLInfo import *
 import THREE._Math as _Math
 from THREE.ShaderLib import *
+from THREE.Javascript import *
+from THREE.Constants import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLGuiRenderer import *
 from THREE.pyOpenGLMorphtargets import *
@@ -23,6 +32,7 @@ from THREE.OcTree import *
 from THREE.pyOpenGL.pyOpenGLUtils import *
 
 import THREE.Global
+import THREE.pyOpenGLProperties as pyOGLproperties
 
 
 class pyOpenGLVAO:

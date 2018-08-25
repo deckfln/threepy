@@ -60,6 +60,10 @@ class pyOpenGLBackground:
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
                 def _onBeforeRenderBackgroup(object, renderer, scene, camera):
+                    #TODO on r95 these 2 lines are removed, but if I remove them pyWorld doesn't display
+                    scale = camera.far
+                    object.matrixWorld.makeScale(scale, scale, scale)
+
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
                     object.matrixWorld.is_updated()
