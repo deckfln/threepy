@@ -4,11 +4,12 @@
  */
 """
 from THREE.pyOpenGLObject import *
-from THREE.pyOpenGL.pyOpenGLInfo import *
+from THREE.renderers.pyOpenGL.pyOpenGLInfo import *
+from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
 
 
 class pyOpenGLBufferRenderer:
-    def __init__( self, extensions, info: pyOpenGLInfo):
+    def __init__( self, extensions, info: pyOpenGLInfo, capbilities: pyOpenGLCapabilities):
         self.mode = 0
         self.info = info
         self.extensions = extensions

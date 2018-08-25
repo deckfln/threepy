@@ -210,7 +210,7 @@ def createTexture( type, target, count ):
 
     
 class pyOpenGLState:
-    def __init__(self, extensions, utils):
+    def __init__(self, extensions, utils, capabilities):
         maxVertexAttributes = glGetIntegerv( GL_MAX_VERTEX_ATTRIBS )
         self.newAttributes = np.zeros(maxVertexAttributes, 'B')
         self.enabledAttributes = np.zeros(maxVertexAttributes, 'B')
@@ -277,6 +277,7 @@ class pyOpenGLState:
 
         self.extensions = extensions
         self.utils = utils
+        self.capabilities = capabilities
 
     def initAttributes(self):
         self.newAttributes.fill(0)

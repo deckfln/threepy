@@ -90,6 +90,7 @@ class MeshPhongMaterial(Material):
         self.displacementBias = 0
 
         self.specularMap = None
+        self.uvTransform = None
 
         self.alphaMap = None
 

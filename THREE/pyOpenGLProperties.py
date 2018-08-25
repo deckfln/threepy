@@ -21,6 +21,7 @@ class _map:
         self.clippingState = None
         self.imageopenglTextureCube = None
         self.image_powerof2 = None
+        self.lightsHash = None
 
 
 class pyOpenGLProperties:

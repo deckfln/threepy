@@ -35,7 +35,7 @@ UniformsLib = {
         'opacity': UniformValue(1.0),
 
         'map': UniformValue(None),
-        'offsetRepeat': UniformValue(Vector4(0, 0, 1, 1)),
+        'uvTransform': UniformValue(Matrix3()),
 
         'alphaMap': UniformValue(None),
 

@@ -216,7 +216,7 @@ class SingleUniform:
         self.id = id
         self.addr = addr
         self.uploaded = False
-        self.cache = np.zeros(16, np.float32)
+        self.cache = np.full(16, -1, np.float32)
 
         _types = {
             0x1406: self.setValue1f,  # // FLOAT

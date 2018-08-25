@@ -6,11 +6,14 @@
 from OpenGL_accelerate import *
 from OpenGL.GL import *
 
+from THREE.renderers.pyOpenGL.pyOpenGLInfo import *
+from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
+
 from ctypes import c_void_p
 
 
 class pyOpenGLIndexedBufferRenderer:
-    def __init__( self, extensions, info):
+    def __init__( self, extensions, info: pyOpenGLInfo, capabilities: pyOpenGLCapabilities):
         self.mode = 0
         self._extensions = extensions
         self.info = info

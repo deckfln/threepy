@@ -58,8 +58,9 @@ _map = {
 
 
 class pyOpenGLUtils():
-    def __init__(self, extensions):
+    def __init__(self, extensions, capabilities):
         self.extensions = extensions
+        self.capabilities = capabilities
 
     def convert(self, p):
         if p in _map:

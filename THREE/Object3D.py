@@ -83,6 +83,10 @@ class Object3D(pyOpenGLObject):
 
         self._onBeforeRender = None
         self._onBeforeRenderParent = None
+
+        self._onAfterRender = None
+        self._onAfterRenderParent = None
+
         self.customDepthMaterial = None
 
         self.vao = [None, None, None]
@@ -97,7 +101,7 @@ class Object3D(pyOpenGLObject):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
-    def onBeforeRender(self, renderer, scene, camera, geometry, material, group):
+    def onBeforeRender(self, renderer, scene, camera, geometry, material=None, group=None):
         if self._onBeforeRender:
             return self._onBeforeRender(self, renderer, scene, camera)
 
@@ -107,8 +111,14 @@ class Object3D(pyOpenGLObject):
         self._onBeforeRender = func
         self._onBeforeRenderParent = object
 
-    def onAfterRender(self, renderer, scene, camera, geometry, material, group):
+    def onAfterRender(self, renderer, scene, camera, geometry=None, material=None, group=None):
+        if self._onAfterRender:
+            return self._onAfterRender(self, renderer, scene, camera)
         return True
+
+    def setOnAfterRender(self, object, func):
+        self._onAfterRender = func
+        self._onAfterRenderParent = object
 
     def onRotationChange(self, rotation):
         self._rotation = rotation

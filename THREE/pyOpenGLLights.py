@@ -105,7 +105,7 @@ class _UniformsCache:
         return uniforms
 
 
-class _hash:
+class LightHash:
     def __init__(self):
         self.stateID = -1
         self.directionalLength = -1
@@ -125,7 +125,7 @@ class _state:
 
         self.id = _countLights
         _countLights += 1
-        self.hash = _hash()
+        self.hash = LightHash()
 
         self.ambient = THREE.Color(0, 0, 0)
         self.directional = []
