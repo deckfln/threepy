@@ -376,6 +376,713 @@ class pyOpenGLRenderer:
         self.attributes.dispose()
         self.textures.dispose()
 
+    def _releaseMaterialProgramReference(self, material):
+        programInfo = self.properties.get(material).program
+        material.program = None
+
+        if programInfo is not None:
+            self.programCache.releaseProgram(programInfo)
+
+    def _deallocateMaterial(self, material):
+        self._releaseMaterialProgramReference(material)
+        self.properties.remove(material)
+
+    def _onMaterialDispose(self, material):
+        self._deallocateMaterial(material)
+
+    # // Buffer rendering
+
+    def _renderObjectImmediate(self, object, program, material):
+        """
+
+        :param object:
+        :param program:
+        :param material:
+        :return:
+        """
+        object.render(
+            self._renderBufferImmediate(object, program, material)
+       )
+
+    def _renderBufferImmediate(self, object, program, material):
+        """
+
+        :param object:
+        :param program:
+        :param material:
+        :return:
+        """
+        self.state.initAttributes()
+
+        buffers = self.properties.get(object)
+
+        if object.hasPositions and not buffers.position:
+            buffers.position = glGenBuffers(1)
+        if object.hasNormals and not buffers.normal:
+            buffers.normal = glGenBuffers(1)
+        if object.hasUvs and not buffers.uv:
+            buffers.uv = glGenBuffers(1)
+        if object.hasColors and not buffers.color:
+            buffers.color = glGenBuffers(1)
+
+        programAttributes = self.program.getAttributes()
+
+        if object.hasPositions:
+            glBindBuffer(GL_ARRAY_BUFFER, buffers.position)
+            glBufferData(GL_ARRAY_BUFFER, object.positionArray, GL_DYNAMIC_DRAW)
+
+            self.state.enableAttribute(programAttributes.position)
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, None)
+
+        if object.hasNormals:
+            glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
+
+            if not material.my_class(isMeshPhongMaterial) and \
+                    not material.my_class(isMeshStandardMaterial) and \
+                    not material.my_class(isMeshNormalMaterial) and \
+                    material.flatShading:
+
+                for i in range(0, object.count * 3, 9):
+                    array = object.normalArray
+
+                    nx = (array[i + 0] + array[i + 3] + array[i + 6]) / 3
+                    ny = (array[i + 1] + array[i + 4] + array[i + 7]) / 3
+                    nz = (array[i + 2] + array[i + 5] + array[i + 8]) / 3
+
+                    array[i + 0] = nx
+                    array[i + 1] = ny
+                    array[i + 2] = nz
+
+                    array[i + 3] = nx
+                    array[i + 4] = ny
+                    array[i + 5] = nz
+
+                    array[i + 6] = nx
+                    array[i + 7] = ny
+                    array[i + 8] = nz
+
+            glBufferData(GL_ARRAY_BUFFER, object.normalArray, GL_DYNAMIC_DRAW)
+
+            self.state.enableAttribute(programAttributes.normal)
+
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, None)
+
+        if object.hasUvs and material.map:
+            glBindBuffer(GL_ARRAY_BUFFER, buffers.uv)
+            glBufferData(GL_ARRAY_BUFFER, object.uvArray, GL_DYNAMIC_DRAW)
+
+            self.state.enableAttribute(programAttributes.uv)
+
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, None)
+
+        if object.hasColors and material.vertexColors != NoColors:
+            glBindBuffer(GL_ARRAY_BUFFER, buffers.color)
+            glBufferData(GL_ARRAY_BUFFER, object.colorArray, GL_DYNAMIC_DRAW)
+
+            self.state.enableAttribute(programAttributes.color)
+
+            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, None)
+
+        self.state.disableUnusedAttributes()
+
+        glDrawArrays(GL_TRIANGLES, 0, object.count)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        object.count = 0
+
+    def renderBufferDirect(self, camera, fog, geometry, material, object, group, renderer_id):
+        """
+
+        :param camera:
+        :param fog:
+        :param geometry:
+        :param material:
+        :param object:
+        :param group:
+        :return:
+        """
+
+        frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
+        self.state.setMaterial(material, frontFaceCW)
+
+        program = self._setProgram(camera, fog, material, object)
+        if program is None:
+            return False    # initialization of the shader was dlegated to the pyOpenGLShader Trhead
+
+        self.program = program
+        wireframe = material.wireframe
+        geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
+
+        updateBuffers = False
+
+        if geometryProgram != self._currentGeometryProgram:
+            self._currentGeometryProgram = geometryProgram
+            updateBuffers = True
+
+        if hasattr(object, 'morphTargetInfluences'):
+            self.morphtargets.update(object, geometry, material, program)
+            updateBuffers = True
+
+        # //
+
+        index = geometry.index
+        position = geometry.attributes.position
+        rangeFactor = 1
+
+        if wireframe:
+            index = self.geometries.getWireframeAttribute(geometry)
+            rangeFactor = 2
+
+        renderer = self.bufferRenderer
+
+        attribute = None
+        if index:
+            attribute = self.attributes.get(index)
+
+            renderer = self.indexedBufferRenderer
+            renderer.setIndex(attribute)
+
+        vao = object.vao[renderer_id]
+        if vao is None:
+            # create the VAO and register all the attributes
+            vao = pyOpenGLVAO(object)
+            object.vao[renderer_id] = vao
+            glBindVertexArray(vao.vao)
+            self._setupVertexAttributes(material, program, geometry)
+
+            if index:
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
+
+            glBindVertexArray(0)
+            if index:
+                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            object.update_vao[renderer_id] = False
+        else:
+            # if any of the attribute changed, update the vao
+            if index is not None and vao.index != index.uuid:
+                glBindVertexArray(vao.vao)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
+                glBindVertexArray(0)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+                vao.index = index.uuid
+
+        # //
+
+        dataCount = 0
+
+        if index:
+            dataCount = index.count
+        elif position:
+            dataCount = position.count
+
+        rangeStart = geometry.drawRange.start * rangeFactor
+        rangeCount = geometry.drawRange.count * rangeFactor
+
+        groupStart = group.start * rangeFactor if group else 0
+        groupCount = group.count * rangeFactor if group else float("+inf")
+
+        drawStart = max(rangeStart, groupStart)
+        drawEnd = min(dataCount, rangeStart + rangeCount, groupStart + groupCount) - 1
+
+        drawCount = max(0, drawEnd - drawStart + 1)
+
+        if drawCount == 0:
+            return False
+
+        # //
+
+        glBindVertexArray(vao.vao)
+
+        if object.my_class(isMesh):
+            if not material.wireframe:
+                renderer.setMode(self.drawMode[object.drawMode])
+            else:
+                self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
+                renderer.setMode(GL_LINES)
+
+        elif object.my_class(isLine):
+            lineWidth = material.linewidth
+
+            if lineWidth is None:
+                lineWidth = 1  # // Not using Line*Material
+
+            self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
+
+            if object.my_class(isLineSegments):
+                renderer.setMode(GL_LINES)
+            elif object.my_class(isLineLoop):
+                renderer.setMode(GL_LINE_LOOP)
+            else:
+                renderer.setMode(GL_LINE_STRIP)
+
+        elif object.my_class(isPoints):
+            renderer.setMode(GL_POINTS)
+            # <OpenGL
+            self.state.enable(GL_POINT_SPRITE)
+            self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
+            # OpenGL>
+
+        if geometry and geometry.my_class(isInstancedBufferGeometry):
+            if geometry.maxInstancedCount > 0:
+                renderer.renderInstances(geometry, drawStart, drawCount)
+        else:
+            renderer.render(drawStart, drawCount)
+
+        glBindVertexArray(0)
+
+        return True
+
+    def _setupVertexAttributes(self, material, program, geometry, startIndex=0):
+        # if geometry and geometry.my_class(isInstancedBufferGeometry):
+        #    if extensions.get('ANGLE_instanced_arrays') is None:
+        #        raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
+
+        geometryAttributes = geometry.attributes
+        programAttributes = program.getAttributes()
+        materialDefaultAttributeValues = material.defaultAttributeValues
+
+        for name in programAttributes:
+            programAttribute = programAttributes[name]
+
+            if programAttribute < 0:
+                continue
+
+            if hasattr(geometryAttributes, name):
+                geometryAttribute = geometryAttributes.__dict__[name]
+
+                if geometryAttribute is None:
+                    print("_setupVertexAttributes: missing geometryAttribute")
+                    continue
+
+                normalized = geometryAttribute.normalized
+                size = geometryAttribute.itemSize
+
+                attribute = self.attributes.get(geometryAttribute)
+
+                # // TODO Attribute may not be available on context restore
+                if attribute is None:
+                    continue
+
+                buffer = attribute.buffer
+                type = attribute.type
+                bytesPerElement = attribute.bytesPerElement
+
+                if geometryAttribute.my_class(isBufferAttribute):
+                    if geometryAttribute.my_class(isInstancedBufferAttribute):
+                        glEnableVertexAttribArray(programAttribute)
+                        glVertexAttribDivisor(programAttribute, geometryAttribute.meshPerAttribute)
+
+                        if geometry.maxInstancedCount is None:
+                            geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
+                    else:
+                        glEnableVertexAttribArray(programAttribute)
+
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+                    pointer = startIndex * size * bytesPerElement
+                    if not pointer:
+                        pointer = None
+                    else:
+                        pointer = c_void_p(pointer)
+                    cOpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
+
+                elif geometryAttribute.my_class(isInterleavedBufferAttribute):
+                    data = geometryAttribute.data
+                    stride = data.stride
+                    offset = geometryAttribute.offset
+
+                    if data and data.my_class(isInstancedInterleavedBuffer):
+                        glEnableVertexAttribArray(programAttribute)
+                        glVertexAttribDivisor(programAttribute, data.meshPerAttribute)
+
+                        if geometry.maxInstancedCount is None:
+                            geometry.maxInstancedCount = data.meshPerAttribute * data.count
+                    else:
+                        glEnableVertexAttribArray(programAttribute)
+
+                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p((startIndex * stride + offset) * bytesPerElement))
+
+            elif materialDefaultAttributeValues is not None:
+                if name in materialDefaultAttributeValues:
+                    value = materialDefaultAttributeValues[name]
+
+                    if len(value) == 2:
+                        glVertexAttrib2fv(programAttribute, value)
+                    elif len(value) == 3:
+                        glVertexAttrib3fv(programAttribute, value)
+                    elif len(value) == 4:
+                        glVertexAttrib4fv(programAttribute, value)
+                    else:
+                        glVertexAttrib1fv(programAttribute, value)
+
+    def render(self, scene, camera, renderTarget=None, forceClear=False):
+        """
+        :param scene:
+        :param camera:
+        :param renderTarget:
+        :param forceClear:
+        :return:
+        """
+        if not (camera and camera.my_class(isCamera)):
+            raise RuntimeError('THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.')
+
+        if self._isContextLost:
+            return
+
+        # // reset caching for this frame
+
+        self._currentGeometryProgram = ''
+        self._currentMaterialId = - 1
+        self._currentCamera = None
+
+        # clean up old objects
+        for mesh in THREE.Global.dispose_objects_queue:
+            self.objects.dispose(mesh)
+        THREE.Global.dispose_objects_queue.clear()
+
+        for texture in THREE.Global.dispose_properties_queue:
+            self.textures.dispose(texture)
+        THREE.Global.dispose_properties_queue.clear()
+
+        # // update scene graph
+
+        if scene.autoUpdate:
+            scene.updateMatrixWorld()
+
+        # // update camera matrices and frustum
+
+        if camera.parent is None:
+            camera.updateMatrixWorld()
+
+        if self.vr.enabled:
+            camera = self.vr.getCamera(camera)
+
+        self._projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+        self._frustum.setFromMatrix(self._projScreenMatrix)
+
+        self.lightsArray.clear()
+        self.shadowsArray.clear()
+
+        self.spritesArray.clear()
+        self.flaresArray.clear()
+
+        self._localClippingEnabled = self.localClippingEnabled
+        self._clippingEnabled = self._clipping.init(self.clippingPlanes, self._localClippingEnabled, camera)
+
+        self.currentRenderList = self.renderLists.get(scene, camera)
+        self.currentRenderList.init()
+
+        self._projectObject(scene, camera, self.sortObjects)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+        if self.sortObjects:
+            self.currentRenderList.sort()
+
+        # //
+        if self._clippingEnabled:
+            self._clipping.beginShadows()
+
+        self.shadowMap.render(self.shadowsArray, scene, camera)
+
+        self.lights.setup(self.lightsArray, self.shadowsArray, camera)
+
+        if self._clippingEnabled:
+            self._clipping.endShadows()
+
+        # //
+
+        if self.info.autoReset:
+            self.info.reset()
+
+        self.setRenderTarget(renderTarget)
+        self.state.enable(GL_MULTISAMPLE)
+        # //
+
+        self.background.render(self.currentRenderList, scene, camera, forceClear)
+
+        # render scene
+
+        self._renderInstances(scene, camera)
+
+        opaqueObjects = self.currentRenderList.opaque
+        transparentObjects = self.currentRenderList.transparent
+
+        if scene.overrideMaterial:
+            overrideMaterial = scene.overrideMaterial
+
+            if len(opaqueObjects) > 0:
+                self._renderObjects(opaqueObjects, scene, camera, overrideMaterial)
+            if len(transparentObjects) > 0:
+                self._renderObjects(transparentObjects, scene, camera, overrideMaterial)
+
+        else:
+            # // opaque pass (front-to-back order)
+            if len(opaqueObjects) > 0:
+                self._renderObjects(opaqueObjects, scene, camera)
+
+            # // transparent pass (back-to-front order)
+            if len(transparentObjects) > 0:
+                self._renderObjects(transparentObjects, scene, camera)
+
+        # custom renderers
+
+        self.spriteRenderer.render(self.spritesArray, scene, camera)
+        self.flareRenderer.render(self.flaresArray, scene, camera, self._currentViewport)
+        if self.guiRenderer:
+            self.guiRenderer.render()
+
+        # // Generate mipmap if we're using any kind of mipmap filtering
+
+        if renderTarget:
+            self.textures.updateRenderTargetMipmap(renderTarget)
+
+        # // Ensure depth buffer writing is enabled so it can be cleared on next render
+
+        self.state.buffers.depth.setTest(True)
+        self.state.buffers.depth.setMask(True)
+        self.state.buffers.color.setMask(True)
+
+        self.state.setPolygonOffset(False)
+
+        if self.vr.enabled:
+            self.vr.submitFrame()
+
+        # // _gl.finish()
+
+    def _projectObject(self, object, camera, sortObjects, test_culled=True):
+        """
+
+        :param object:
+        :param camera:
+        :param sortObjects:
+        :return:
+        """
+        global _vector3
+        if not object.visible:
+            return
+
+        if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints | isLight | isSprite | isLensFlare | isImmediateRenderObject | isOctree):
+            if object.my_class(isMesh | isLine | isPoints):
+                if object.my_class(isSkinnedMesh):
+                    object.skeleton.update()
+
+                if not test_culled or not object.frustumCulled or self._frustum.intersectsObject(object):
+                    if sortObjects:
+                        _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
+
+                    geometry = self.objects.update(object)
+                    material = object.material
+
+                    if isinstance(material, list):
+                        groups = geometry.groups
+
+                        for group in groups:
+                            groupMaterial = material[group.materialIndex]
+
+                            if groupMaterial and groupMaterial.visible:
+                                self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
+
+                    elif material.visible:
+                        self.currentRenderList.push(object, geometry, material, _vector3.np[2], None)
+
+            elif object.my_class(isLight):
+                self.lightsArray.append(object)
+
+                if object.castShadow:
+                    self.shadowsArray.append(object)
+
+            elif object.my_class(isSprite):
+                if not object.frustumCulled or self._frustum.intersectsSprite(object):
+                    self.spritesArray.append(object)
+
+            elif object.my_class(isLensFlare):
+                self.flaresArray.append(object)
+
+            elif object.my_class(isImmediateRenderObject):
+                if sortObjects:
+                    _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
+
+                self.currentRenderList.push(object, None, object.material, _vector3.z, None)
+
+            elif object.my_class(isOctree):
+                self._projectOctree(object, camera, sortObjects)
+                return
+
+        for i in object.children:
+            if i.visible:
+                self._projectObject(i, camera, sortObjects)
+
+    def _renderObjects(self, renderList, scene, camera, overrideMaterial=None):
+        """
+
+        :param renderList:
+        :param scene:
+        :param camera:
+        :param overrideMaterial:
+        :return:
+        """
+        for renderItem in renderList:
+            object = renderItem.object
+            geometry = renderItem.geometry
+            material = renderItem.material if overrideMaterial is None else overrideMaterial
+            group = renderItem.group
+
+            if camera.my_class(isArrayCamera):
+                self._currentArrayCamera = camera
+
+                cameras = camera.cameras
+
+                for camera2 in cameras:
+                    if object.layers.test(camera2.layers):
+                        bounds = camera2.bounds
+
+                    x = bounds.x * self._width
+                    y = bounds.y * self._height
+                    width = bounds.z * self._width
+                    height = bounds.w * self._height
+
+                    self.state.viewport(self._currentViewport.set(x, y, width, height).multiplyScalar(self._pixelRatio))
+                    self.state.scissor(self._currentScissor.set(x, y, width, height).multiplyScalar(self._pixelRatio))
+                    self.state.setScissorTest(True)
+
+                    self._renderObject(object, scene, camera2, geometry, material, group)
+            else:
+                self._currentArrayCamera = None
+                self._renderObject(object, scene, camera, geometry, material, group)
+
+    def _renderObject(self, object, scene, camera, geometry, material, group):
+        """
+
+        :param object:
+        :param scene:
+        :param camera:
+        :param geometry:
+        :param material:
+        :param group:
+        :return:
+        """
+        object.onBeforeRender(self, scene, camera, geometry, material, group)
+
+        object.modelViewMatrix.updated = object.normalMatrix.updated = False
+
+        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+            object.modelViewMatrix.updated = True
+            object.normalMatrix.updated = True
+
+        if object.my_class(isImmediateRenderObject):
+            self.state.setMaterial(material)
+
+            program = self._setProgram(camera, scene.fog, material, object)
+
+            self._currentGeometryProgram = ''
+
+            self._renderObjectImmediate(object, program, material)
+        else:
+            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group, isViewRenderer)
+
+        object.onAfterRender(self, scene, camera, geometry, material, group)
+
+    def _initMaterial(self, material, fog, object):
+        global ShaderLib
+        materialProperties = self.properties.get(material)
+
+        parameters = self.programCache.getParameters(material, self.lights.state, self.shadowsArray, fog,
+                                                     self._clipping.numPlanes, self._clipping.numIntersection, object)
+
+        code = self.programCache.getProgramCode(material, parameters)
+
+        program = materialProperties.program
+        programChange = True
+
+        if program is None:
+            material.onDispose(self._onMaterialDispose)
+        elif program.code != code:
+            # // changed glsl or parameters
+            self._releaseMaterialProgramReference(material)
+        elif parameters['shaderID']:
+            # // same glsl and uniform list
+            return
+        else:
+            # // only rebuild uniform list
+            programChange = False
+
+        if programChange:
+            if parameters['shaderID']:
+                shader = getShaderLib(parameters['shaderID'])
+
+                materialProperties.shader = Shader(material.type,
+                                                    UniformsUtils.clone(shader.uniforms),
+                                                    shader.vertexShader,
+                                                    shader.fragmentShader)
+            else:
+                materialProperties.shader = Shader(material.type,
+                                                    material.uniforms,
+                                                    material.vertexShader,
+                                                    material.fragmentShader)
+
+            material.onBeforeCompile(materialProperties.shader)
+
+            program = self.programCache.acquireProgram(material, materialProperties.shader, parameters, code)
+
+            materialProperties.program = program
+            material.program = program
+
+        programAttributes = program.getAttributes()
+
+        if material.morphTargets:
+            material.numSupportedMorphTargets = 0
+            for i in range(self.maxMorphTargets):
+                k = 'morphTarget%d' % i
+                if k in programAttributes and programAttributes[k] >= 0:
+                    material.numSupportedMorphTargets += 1
+
+        if material.morphNormals:
+            material.numSupportedMorphNormals = 0
+            for i in range(self.maxMorphNormals):
+                k = 'morphNormal%d' % i
+                if k in programAttributes and programAttributes[k] >= 0:
+                    material.numSupportedMorphNormals += 1
+
+        uniforms = materialProperties.shader.uniforms
+
+        if not material.my_class(isShaderMaterial) and not material.my_class(isRawShaderMaterial) or material.clipping:
+            materialProperties.numClippingPlanes = self._clipping.numPlanes
+            materialProperties.numIntersection = self._clipping.numIntersection
+            uniforms.clippingPlanes = self._clipping.uniform
+
+        materialProperties.fog = fog
+
+        # // store the light setup it was created for
+
+        materialProperties.lightsHash = self.lights.state.hash
+
+        if material.lights:
+            # // wire up the material to this renderer's lighting state
+            uniforms.ambientLightColor.value = self.lights.state.ambient
+            uniforms.directionalLights.value = self.lights.state.directional
+            uniforms.spotLights.value = self.lights.state.spot
+            uniforms.rectAreaLights.value = self.lights.state.rectArea
+            uniforms.pointLights.value = self.lights.state.point
+            uniforms.hemisphereLights.value = self.lights.state.hemi
+
+            uniforms.directionalShadowMap.value = self.lights.state.directionalShadowMap
+            uniforms.directionalShadowMatrix.value = self.lights.state.directionalShadowMatrix
+            uniforms.spotShadowMap.value = self.lights.state.spotShadowMap
+            uniforms.spotShadowMatrix.value = self.lights.state.spotShadowMatrix
+            uniforms.pointShadowMap.value = self.lights.state.pointShadowMap
+            uniforms.pointShadowMatrix.value = self.lights.state.pointShadowMatrix
+        # // TODO (abelnation): add area lights shadow info to uniforms
+
+        progUniforms = materialProperties.program.getUniforms()
+        uniformsList = pyOpenGLUniforms.seqWithValue(progUniforms.seq, uniforms)
+
+        materialProperties.uniformsList = uniformsList
+
     def prepare(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -679,10 +1386,10 @@ class pyOpenGLRenderer:
             if uvScaleMap.my_class(isWebGLRenderTarget):
                 uvScaleMap = uvScaleMap.texture
 
-            if uvScaleMap.matrixAutoUpdate:
-                uvScaleMap.updateMatrix()
+            offset = uvScaleMap.offset
+            repeat = uvScaleMap.repeat
 
-            uniforms.uvTransform.value.copy( uvScaleMap.matrix )
+            uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
 
     def _refreshUniformsLine(self, uniforms, material):
         uniforms.diffuse.value = material.color
@@ -702,10 +1409,10 @@ class pyOpenGLRenderer:
         uniforms.map.value = material.map
 
         if material.map is not None:
-            if material.map.matrixAutoUpdate:
-                material.map.updateMatrix()
+            offset = material.map.offset
+            repeat = material.map.repeat
 
-            uniforms.uvTransform.value.copy( material.map.matrix )
+            uniforms.offsetRepeat.value.set(offset.x, offset.y, repeat.x, repeat.y)
 
     def _refreshUniformsFog(self, uniforms, fog):
         uniforms.fogColor.value = fog.color
@@ -824,788 +1531,57 @@ class pyOpenGLRenderer:
         uniforms.rectAreaLights.needsUpdate = value
         uniforms.hemisphereLights.needsUpdate = value
 
-    def _releaseMaterialProgramReference(self, material):
-        programInfo = self.properties.get(material).program
-        material.program = None
+    """
+    //Textures
+    """
+    def allocTextureUnit(self):
+        textureUnit = self._usedTextureUnits
 
-        if programInfo is not None:
-            self.programCache.releaseProgram(programInfo)
+        if textureUnit >= self.capabilities.maxTextures:
+            raise RuntimeWarning('THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + self.capabilities.maxTextures)
 
-    def _deallocateMaterial(self, material):
-        self._releaseMaterialProgramReference(material)
-        self.properties.remove(material)
+        self._usedTextureUnits += 1
+        return textureUnit
 
-    def _onMaterialDispose(self, material):
-        self._deallocateMaterial(material)
+    def setTexture2D(self,  texture, slot):
+        # warned = False
+        # if texture and texture.my_class(isWebGLRenderTarget):
+        #    if not warned:
+        #        print("THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead.")
+        #        warned = True
 
-    def _initMaterial(self, material, fog, object):
-        global ShaderLib
-        materialProperties = self.properties.get(material)
+        #    texture = texture.texture
 
-        parameters = self.programCache.getParameters(material, self.lights.state, self.shadowsArray, fog,
-                                                     self._clipping.numPlanes, self._clipping.numIntersection, object)
+        self.textures.setTexture2D(texture, slot)
 
-        code = self.programCache.getProgramCode(material, parameters)
+    def setTexture(self, texture, slot):
+        # warned = False
+        # if not warned:
+        #    print("THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead.")
+        #    warned = True
+        self.textures.setTexture2D(texture, slot)
 
-        program = materialProperties.program
-        programChange = True
+    def setTextureCube(self, texture, slot):
+        warned = False
 
-        if program is None:
-            material.onDispose(self._onMaterialDispose)
-        elif program.code != code:
-            # // changed glsl or parameters
-            self._releaseMaterialProgramReference(material)
-        elif parameters['shaderID']:
-            # // same glsl and uniform list
-            return
+        # // backwards compatibility: peel texture.texture
+        if texture and texture.my_class(isWebGLRenderTargetCube):
+            if not warned:
+                print(
+                    "THREE.WebGLRenderer.setTextureCube: don't use cube render targets as textures. Use their .texture property instead.")
+                warned = True
+
+            texture = texture.texture
+
+        # // currently relying on the fact that WebGLRenderTargetCube.texture is a Texture and NOT a CubeTexture
+        # // TODO: unify these code paths
+        if (texture and texture.my_class(isCubeTexture)) or (isinstance(texture.image, list) and len(texture.image) == 6):
+            # // CompressedTexture can have Array in image :/
+            # // this function alone should take care of cube textures
+            self.textures.setTextureCube(texture, slot)
         else:
-            # // only rebuild uniform list
-            programChange = False
-
-        if programChange:
-            if parameters['shaderID']:
-                shader = getShaderLib(parameters['shaderID'])
-
-                materialProperties.shader = Shader(material.type,
-                                                    UniformsUtils.clone(shader.uniforms),
-                                                    shader.vertexShader,
-                                                    shader.fragmentShader)
-            else:
-                materialProperties.shader = Shader(material.type,
-                                                    material.uniforms,
-                                                    material.vertexShader,
-                                                    material.fragmentShader)
-
-            material.onBeforeCompile(materialProperties.shader)
-
-            program = self.programCache.acquireProgram(material, materialProperties.shader, parameters, code)
-
-            materialProperties.program = program
-            material.program = program
-
-        programAttributes = program.getAttributes()
-
-        if material.morphTargets:
-            material.numSupportedMorphTargets = 0
-            for i in range(self.maxMorphTargets):
-                k = 'morphTarget%d' % i
-                if k in programAttributes and programAttributes[k] >= 0:
-                    material.numSupportedMorphTargets += 1
-
-        if material.morphNormals:
-            material.numSupportedMorphNormals = 0
-            for i in range(self.maxMorphNormals):
-                k = 'morphNormal%d' % i
-                if k in programAttributes and programAttributes[k] >= 0:
-                    material.numSupportedMorphNormals += 1
-
-        uniforms = materialProperties.shader.uniforms
-
-        if not material.my_class(isShaderMaterial) and not material.my_class(isRawShaderMaterial) or material.clipping:
-            materialProperties.numClippingPlanes = self._clipping.numPlanes
-            materialProperties.numIntersection = self._clipping.numIntersection
-            uniforms.clippingPlanes = self._clipping.uniform
-
-        materialProperties.fog = fog
-
-        # // store the light setup it was created for
-
-        materialProperties.lightsHash = self.lights.state.hash
-
-        if material.lights:
-            # // wire up the material to this renderer's lighting state
-            uniforms.ambientLightColor.value = self.lights.state.ambient
-            uniforms.directionalLights.value = self.lights.state.directional
-            uniforms.spotLights.value = self.lights.state.spot
-            uniforms.rectAreaLights.value = self.lights.state.rectArea
-            uniforms.pointLights.value = self.lights.state.point
-            uniforms.hemisphereLights.value = self.lights.state.hemi
-
-            uniforms.directionalShadowMap.value = self.lights.state.directionalShadowMap
-            uniforms.directionalShadowMatrix.value = self.lights.state.directionalShadowMatrix
-            uniforms.spotShadowMap.value = self.lights.state.spotShadowMap
-            uniforms.spotShadowMatrix.value = self.lights.state.spotShadowMatrix
-            uniforms.pointShadowMap.value = self.lights.state.pointShadowMap
-            uniforms.pointShadowMatrix.value = self.lights.state.pointShadowMatrix
-        # // TODO (abelnation): add area lights shadow info to uniforms
-
-        progUniforms = materialProperties.program.getUniforms()
-        uniformsList = pyOpenGLUniforms.seqWithValue(progUniforms.seq, uniforms)
-
-        materialProperties.uniformsList = uniformsList
-
-    def _setupVertexAttributes(self, material, program, geometry, startIndex=0):
-        # if geometry and geometry.my_class(isInstancedBufferGeometry):
-        #    if extensions.get('ANGLE_instanced_arrays') is None:
-        #        raise RuntimeError('THREE.WebGLRenderer.setupVertexAttributes: using THREE.InstancedBufferGeometry but hardware does not support extension ANGLE_instanced_arrays.')
-
-        geometryAttributes = geometry.attributes
-        programAttributes = program.getAttributes()
-        materialDefaultAttributeValues = material.defaultAttributeValues
-
-        for name in programAttributes:
-            programAttribute = programAttributes[name]
-
-            if programAttribute < 0:
-                continue
-
-            if hasattr(geometryAttributes, name):
-                geometryAttribute = geometryAttributes.__dict__[name]
-
-                if geometryAttribute is None:
-                    print("_setupVertexAttributes: missing geometryAttribute")
-                    continue
-
-                normalized = geometryAttribute.normalized
-                size = geometryAttribute.itemSize
-
-                attribute = self.attributes.get(geometryAttribute)
-
-                # // TODO Attribute may not be available on context restore
-                if attribute is None:
-                    continue
-
-                buffer = attribute.buffer
-                type = attribute.type
-                bytesPerElement = attribute.bytesPerElement
-
-                if geometryAttribute.my_class(isBufferAttribute):
-                    if geometryAttribute.my_class(isInstancedBufferAttribute):
-                        glEnableVertexAttribArray(programAttribute)
-                        glVertexAttribDivisor(programAttribute, geometryAttribute.meshPerAttribute)
-
-                        if geometry.maxInstancedCount is None:
-                            geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
-                    else:
-                        glEnableVertexAttribArray(programAttribute)
-
-                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
-                    pointer = startIndex * size * bytesPerElement
-                    if not pointer:
-                        pointer = None
-                    else:
-                        pointer = c_void_p(pointer)
-                    cOpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
-
-                elif geometryAttribute.my_class(isInterleavedBufferAttribute):
-                    data = geometryAttribute.data
-                    stride = data.stride
-                    offset = geometryAttribute.offset
-
-                    if data and data.my_class(isInstancedInterleavedBuffer):
-                        glEnableVertexAttribArray(programAttribute)
-                        glVertexAttribDivisor(programAttribute, data.meshPerAttribute)
-
-                        if geometry.maxInstancedCount is None:
-                            geometry.maxInstancedCount = data.meshPerAttribute * data.count
-                    else:
-                        glEnableVertexAttribArray(programAttribute)
-
-                    glBindBuffer(GL_ARRAY_BUFFER, buffer)
-                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p((startIndex * stride + offset) * bytesPerElement))
-
-            elif materialDefaultAttributeValues is not None:
-                if name in materialDefaultAttributeValues:
-                    value = materialDefaultAttributeValues[name]
-
-                    if len(value) == 2:
-                        glVertexAttrib2fv(programAttribute, value)
-                    elif len(value) == 3:
-                        glVertexAttrib3fv(programAttribute, value)
-                    elif len(value) == 4:
-                        glVertexAttrib4fv(programAttribute, value)
-                    else:
-                        glVertexAttrib1fv(programAttribute, value)
-
-    def renderBufferDirect(self, camera, fog, geometry, material, object, group, renderer_id):
-        """
-
-        :param camera:
-        :param fog:
-        :param geometry:
-        :param material:
-        :param object:
-        :param group:
-        :return:
-        """
-
-        frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
-        self.state.setMaterial(material, frontFaceCW)
-
-        program = self._setProgram(camera, fog, material, object)
-        if program is None:
-            return False    # initialization of the shader was dlegated to the pyOpenGLShader Trhead
-
-        self.program = program
-        wireframe = material.wireframe
-        geometryProgram = "%d_%d_%d" % (geometry.id, program.id,  wireframe)
-
-        updateBuffers = False
-
-        if geometryProgram != self._currentGeometryProgram:
-            self._currentGeometryProgram = geometryProgram
-            updateBuffers = True
-
-        if hasattr(object, 'morphTargetInfluences'):
-            self.morphtargets.update(object, geometry, material, program)
-            updateBuffers = True
-
-        # //
-
-        index = geometry.index
-        position = geometry.attributes.position
-        rangeFactor = 1
-
-        if wireframe:
-            index = self.geometries.getWireframeAttribute(geometry)
-            rangeFactor = 2
-
-        renderer = self.bufferRenderer
-
-        attribute = None
-        if index:
-            attribute = self.attributes.get(index)
-
-            renderer = self.indexedBufferRenderer
-            renderer.setIndex(attribute)
-
-        vao = object.vao[renderer_id]
-        if vao is None:
-            # create the VAO and register all the attributes
-            vao = pyOpenGLVAO(object)
-            object.vao[renderer_id] = vao
-            glBindVertexArray(vao.vao)
-            self._setupVertexAttributes(material, program, geometry)
-
-            if index:
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
-
-            glBindVertexArray(0)
-            if index:
-                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-            object.update_vao[renderer_id] = False
-        else:
-            # if any of the attribute changed, update the vao
-            if index is not None and vao.index != index.uuid:
-                glBindVertexArray(vao.vao)
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, attribute.buffer)
-                glBindVertexArray(0)
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-                vao.index = index.uuid
-
-        # //
-
-        dataCount = 0
-
-        if index:
-            dataCount = index.count
-        elif position:
-            dataCount = position.count
-
-        rangeStart = geometry.drawRange.start * rangeFactor
-        rangeCount = geometry.drawRange.count * rangeFactor
-
-        groupStart = group.start * rangeFactor if group else 0
-        groupCount = group.count * rangeFactor if group else float("+inf")
-
-        drawStart = max(rangeStart, groupStart)
-        drawEnd = min(dataCount, rangeStart + rangeCount, groupStart + groupCount) - 1
-
-        drawCount = max(0, drawEnd - drawStart + 1)
-
-        if drawCount == 0:
-            return False
-
-        # //
-
-        glBindVertexArray(vao.vao)
-
-        if object.my_class(isMesh):
-            if not material.wireframe:
-                renderer.setMode(self.drawMode[object.drawMode])
-            else:
-                self.state.setLineWidth(material.wireframeLinewidth * self._getTargetPixelRatio())
-                renderer.setMode(GL_LINES)
-
-        elif object.my_class(isLine):
-            lineWidth = material.linewidth
-
-            if lineWidth is None:
-                lineWidth = 1  # // Not using Line*Material
-
-            self.state.setLineWidth(lineWidth * self._getTargetPixelRatio())
-
-            if object.my_class(isLineSegments):
-                renderer.setMode(GL_LINES)
-            elif object.my_class(isLineLoop):
-                renderer.setMode(GL_LINE_LOOP)
-            else:
-                renderer.setMode(GL_LINE_STRIP)
-
-        elif object.my_class(isPoints):
-            renderer.setMode(GL_POINTS)
-            # <OpenGL
-            self.state.enable(GL_POINT_SPRITE)
-            self.state.enable(GL_VERTEX_PROGRAM_POINT_SIZE)
-            # OpenGL>
-
-        if geometry and geometry.my_class(isInstancedBufferGeometry):
-            if geometry.maxInstancedCount > 0:
-                renderer.renderInstances(geometry, drawStart, drawCount)
-        else:
-            renderer.render(drawStart, drawCount)
-
-        glBindVertexArray(0)
-
-        return True
-
-    def _renderObject(self, object, scene, camera, geometry, material, group):
-        """
-
-        :param object:
-        :param scene:
-        :param camera:
-        :param geometry:
-        :param material:
-        :param group:
-        :return:
-        """
-        object.onBeforeRender(self, scene, camera, geometry, material, group)
-
-        object.modelViewMatrix.updated = object.normalMatrix.updated = False
-
-        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-            object.modelViewMatrix.updated = True
-            object.normalMatrix.updated = True
-
-        if object.my_class(isImmediateRenderObject):
-            self.state.setMaterial(material)
-
-            program = self._setProgram(camera, scene.fog, material, object)
-
-            self._currentGeometryProgram = ''
-
-            self._renderObjectImmediate(object, program, material)
-        else:
-            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group, isViewRenderer)
-
-        object.onAfterRender(self, scene, camera, geometry, material, group)
-
-    def _renderObjects(self, renderList, scene, camera, overrideMaterial=None):
-        """
-
-        :param renderList:
-        :param scene:
-        :param camera:
-        :param overrideMaterial:
-        :return:
-        """
-        for renderItem in renderList:
-            object = renderItem.object
-            geometry = renderItem.geometry
-            material = renderItem.material if overrideMaterial is None else overrideMaterial
-            group = renderItem.group
-
-            if camera.my_class(isArrayCamera):
-                self._currentArrayCamera = camera
-
-                cameras = camera.cameras
-
-                for camera2 in cameras:
-                    if object.layers.test(camera2.layers):
-                        bounds = camera2.bounds
-
-                    x = bounds.x * self._width
-                    y = bounds.y * self._height
-                    width = bounds.z * self._width
-                    height = bounds.w * self._height
-
-                    self.state.viewport(self._currentViewport.set(x, y, width, height).multiplyScalar(self._pixelRatio))
-                    self.state.scissor(self._currentScissor.set(x, y, width, height).multiplyScalar(self._pixelRatio))
-                    self.state.setScissorTest(True)
-
-                    self._renderObject(object, scene, camera2, geometry, material, group)
-            else:
-                self._currentArrayCamera = None
-                self._renderObject(object, scene, camera, geometry, material, group)
-
-    # // Buffer rendering
-
-    def _renderObjectImmediate(self, object, program, material):
-        """
-
-        :param object:
-        :param program:
-        :param material:
-        :return:
-        """
-        object.render(
-            self._renderBufferImmediate(object, program, material)
-       )
-
-    def _renderBufferImmediate(self, object, program, material):
-        """
-
-        :param object:
-        :param program:
-        :param material:
-        :return:
-        """
-        self.state.initAttributes()
-
-        buffers = self.properties.get(object)
-
-        if object.hasPositions and not buffers.position:
-            buffers.position = glGenBuffers(1)
-        if object.hasNormals and not buffers.normal:
-            buffers.normal = glGenBuffers(1)
-        if object.hasUvs and not buffers.uv:
-            buffers.uv = glGenBuffers(1)
-        if object.hasColors and not buffers.color:
-            buffers.color = glGenBuffers(1)
-
-        programAttributes = self.program.getAttributes()
-
-        if object.hasPositions:
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.position)
-            glBufferData(GL_ARRAY_BUFFER, object.positionArray, GL_DYNAMIC_DRAW)
-
-            self.state.enableAttribute(programAttributes.position)
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, None)
-
-        if object.hasNormals:
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
-
-            if not material.my_class(isMeshPhongMaterial) and \
-                    not material.my_class(isMeshStandardMaterial) and \
-                    not material.my_class(isMeshNormalMaterial) and \
-                    material.flatShading:
-
-                for i in range(0, object.count * 3, 9):
-                    array = object.normalArray
-
-                    nx = (array[i + 0] + array[i + 3] + array[i + 6]) / 3
-                    ny = (array[i + 1] + array[i + 4] + array[i + 7]) / 3
-                    nz = (array[i + 2] + array[i + 5] + array[i + 8]) / 3
-
-                    array[i + 0] = nx
-                    array[i + 1] = ny
-                    array[i + 2] = nz
-
-                    array[i + 3] = nx
-                    array[i + 4] = ny
-                    array[i + 5] = nz
-
-                    array[i + 6] = nx
-                    array[i + 7] = ny
-                    array[i + 8] = nz
-
-            glBufferData(GL_ARRAY_BUFFER, object.normalArray, GL_DYNAMIC_DRAW)
-
-            self.state.enableAttribute(programAttributes.normal)
-
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, None)
-
-        if object.hasUvs and material.map:
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.uv)
-            glBufferData(GL_ARRAY_BUFFER, object.uvArray, GL_DYNAMIC_DRAW)
-
-            self.state.enableAttribute(programAttributes.uv)
-
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, None)
-
-        if object.hasColors and material.vertexColors != NoColors:
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.color)
-            glBufferData(GL_ARRAY_BUFFER, object.colorArray, GL_DYNAMIC_DRAW)
-
-            self.state.enableAttribute(programAttributes.color)
-
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, None)
-
-        self.state.disableUnusedAttributes()
-
-        glDrawArrays(GL_TRIANGLES, 0, object.count)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        object.count = 0
-
-    def _projectOctree(self, octree, camera, sortObjects, test_culled=True):
-        """
-        Hiarchical Frustrum using octree
-        :param object:
-        :param camera:
-        :param sortObjects:
-        :return:
-        """
-
-        visibility = self._frustum.intersectsOctree(octree) if test_culled else 1
-        if visibility < 0:
-            # completely outside of the frustrum
-            return
-
-        elif visibility > 0:
-            # completely inside the frustrum
-            if octree.leaf:
-                # for leaf, test each object individually
-                for child in octree.children:
-                    self._projectObject(child, camera, sortObjects, False)
-                #if len(octree.children) > 0:
-                #    self._projectObject(octree.children[0], camera, sortObjects, False)
-
-            else:
-                # for branch, push all objects down
-                #if len(octree.children) > 8:
-                #    self._projectObject(octree.children[8], camera, sortObjects, False)
-                for child in octree.children:
-                    if child is not None:
-                        self._projectOctree(child, camera, sortObjects, False)
-
-        else:
-            # partialy in the frustrum => recurse to find more
-            if octree.leaf:
-                # for leaf, test each object individually
-                for child in octree.children:
-                   self._projectObject(child, camera, sortObjects, False)
-                #if len(octree.children) > 0:
-                #    self._projectObject(octree.children[0], camera, sortObjects, False)
-            else:
-                # for branch, continue testing down
-                #if len(octree.children) > 8:
-                #    self._projectObject(octree.children[8], camera, sortObjects, False)
-                for child in octree.children:
-                    if child is not None:
-                        self._projectOctree(child, camera, sortObjects, test_culled)
-
-    def _projectObject(self, object, camera, sortObjects, test_culled=True):
-        """
-
-        :param object:
-        :param camera:
-        :param sortObjects:
-        :return:
-        """
-        global _vector3
-        if not object.visible:
-            return
-
-        if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints | isLight | isSprite | isLensFlare | isImmediateRenderObject | isOctree):
-            if object.my_class(isMesh | isLine | isPoints):
-                if object.my_class(isSkinnedMesh):
-                    object.skeleton.update()
-
-                if not test_culled or not object.frustumCulled or self._frustum.intersectsObject(object):
-                    if sortObjects:
-                        _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
-
-                    geometry = self.objects.update(object)
-                    material = object.material
-
-                    if isinstance(material, list):
-                        groups = geometry.groups
-
-                        for group in groups:
-                            groupMaterial = material[group.materialIndex]
-
-                            if groupMaterial and groupMaterial.visible:
-                                self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
-
-                    elif material.visible:
-                        self.currentRenderList.push(object, geometry, material, _vector3.np[2], None)
-
-            elif object.my_class(isLight):
-                self.lightsArray.append(object)
-
-                if object.castShadow:
-                    self.shadowsArray.append(object)
-
-            elif object.my_class(isSprite):
-                if not object.frustumCulled or self._frustum.intersectsSprite(object):
-                    self.spritesArray.append(object)
-
-            elif object.my_class(isLensFlare):
-                self.flaresArray.append(object)
-
-            elif object.my_class(isImmediateRenderObject):
-                if sortObjects:
-                    _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
-
-                self.currentRenderList.push(object, None, object.material, _vector3.z, None)
-
-            elif object.my_class(isOctree):
-                self._projectOctree(object, camera, sortObjects)
-                return
-
-        for i in object.children:
-            if i.visible:
-                self._projectObject(i, camera, sortObjects)
-
-    def _renderInstances(self, scene, camera):
-        """
-        Render all instances objects in the scene
-        :param scene:
-        :param camera:
-        :return:
-        """
-        global _vector3
-
-        for instance in scene.instances:
-            if instance.geometry.maxInstancedCount > 0:
-                geometry = self.objects.update(instance)
-                material = instance.material
-
-                if isinstance(material, list):
-                    groups = geometry.groups
-
-                    for group in groups:
-                        groupMaterial = material[group.materialIndex]
-
-                        if groupMaterial and groupMaterial.visible:
-                            self.currentRenderList.push(instance, geometry, groupMaterial, _vector3.z, group)
-
-                elif material.visible:
-                    self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-
-    def render(self, scene, camera, renderTarget=None, forceClear=False):
-        """
-        :param scene:
-        :param camera:
-        :param renderTarget:
-        :param forceClear:
-        :return:
-        """
-        if not (camera and camera.my_class(isCamera)):
-            raise RuntimeError('THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.')
-
-        if self._isContextLost:
-            return
-
-        # // reset caching for this frame
-
-        self._currentGeometryProgram = ''
-        self._currentMaterialId = - 1
-        self._currentCamera = None
-
-        # clean up old objects
-        for mesh in THREE.Global.dispose_objects_queue:
-            self.objects.dispose(mesh)
-        THREE.Global.dispose_objects_queue.clear()
-
-        for texture in THREE.Global.dispose_properties_queue:
-            self.textures.dispose(texture)
-        THREE.Global.dispose_properties_queue.clear()
-
-        # // update scene graph
-
-        if scene.autoUpdate:
-            scene.updateMatrixWorld()
-
-        # // update camera matrices and frustum
-
-        if camera.parent is None:
-            camera.updateMatrixWorld()
-
-        if self.vr.enabled:
-            camera = self.vr.getCamera(camera)
-
-        self._projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-        self._frustum.setFromMatrix(self._projScreenMatrix)
-
-        self.lightsArray.clear()
-        self.shadowsArray.clear()
-
-        self.spritesArray.clear()
-        self.flaresArray.clear()
-
-        self._localClippingEnabled = self.localClippingEnabled
-        self._clippingEnabled = self._clipping.init(self.clippingPlanes, self._localClippingEnabled, camera)
-
-        self.currentRenderList = self.renderLists.get(scene, camera)
-        self.currentRenderList.init()
-
-        self._projectObject(scene, camera, self.sortObjects)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-
-        if self.sortObjects:
-            self.currentRenderList.sort()
-
-        # //
-        if self._clippingEnabled:
-            self._clipping.beginShadows()
-
-        self.shadowMap.render(self.shadowsArray, scene, camera)
-
-        self.lights.setup(self.lightsArray, self.shadowsArray, camera)
-
-        if self._clippingEnabled:
-            self._clipping.endShadows()
-
-        # //
-
-        if self.info.autoReset:
-            self.info.reset()
-
-        self.setRenderTarget(renderTarget)
-        self.state.enable(GL_MULTISAMPLE)
-        # //
-
-        self.background.render(self.currentRenderList, scene, camera, forceClear)
-
-        # render scene
-
-        self._renderInstances(scene, camera)
-
-        opaqueObjects = self.currentRenderList.opaque
-        transparentObjects = self.currentRenderList.transparent
-
-        if scene.overrideMaterial:
-            overrideMaterial = scene.overrideMaterial
-
-            if len(opaqueObjects) > 0:
-                self._renderObjects(opaqueObjects, scene, camera, overrideMaterial)
-            if len(transparentObjects) > 0:
-                self._renderObjects(transparentObjects, scene, camera, overrideMaterial)
-
-        else:
-            # // opaque pass (front-to-back order)
-            if len(opaqueObjects) > 0:
-                self._renderObjects(opaqueObjects, scene, camera)
-
-            # // transparent pass (back-to-front order)
-            if len(transparentObjects) > 0:
-                self._renderObjects(transparentObjects, scene, camera)
-
-        # custom renderers
-
-        self.spriteRenderer.render(self.spritesArray, scene, camera)
-        self.flareRenderer.render(self.flaresArray, scene, camera, self._currentViewport)
-        if self.guiRenderer:
-            self.guiRenderer.render()
-
-        # // Generate mipmap if we're using any kind of mipmap filtering
-
-        if renderTarget:
-            self.textures.updateRenderTargetMipmap(renderTarget)
-
-        # // Ensure depth buffer writing is enabled so it can be cleared on next render
-
-        self.state.buffers.depth.setTest(True)
-        self.state.buffers.depth.setMask(True)
-        self.state.buffers.color.setMask(True)
-
-        self.state.setPolygonOffset(False)
-
-        if self.vr.enabled:
-            self.vr.submitFrame()
-
-        # // _gl.finish()
+            # // assumed: texture property of THREE.WebGLRenderTargetCube
+            self.textures.setTextureCubeDynamic(texture, slot)
 
     def getRenderTarget(self):
         """
@@ -1658,54 +1634,80 @@ class pyOpenGLRenderer:
             textureProperties = self.properties.get(renderTarget.texture)
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + renderTarget.activeCubeFace, textureProperties.__webglTexture, renderTarget.activeMipMapLevel)
 
-    """
-    //Textures
-    """
-    def allocTextureUnit(self):
-        textureUnit = self._usedTextureUnits
+    # FDE extensions
 
-        if textureUnit >= self.capabilities.maxTextures:
-            raise RuntimeWarning('THREE.WebGLRenderer: Trying to use ' + textureUnit + ' texture units while this GPU supports only ' + self.capabilities.maxTextures)
+    def _projectOctree(self, octree, camera, sortObjects, test_culled=True):
+        """
+        Hiarchical Frustrum using octree
+        :param object:
+        :param camera:
+        :param sortObjects:
+        :return:
+        """
 
-        self._usedTextureUnits += 1
-        return textureUnit
+        visibility = self._frustum.intersectsOctree(octree) if test_culled else 1
+        if visibility < 0:
+            # completely outside of the frustrum
+            return
 
-    def setTexture2D(self,  texture, slot):
-        # warned = False
-        # if texture and texture.my_class(isWebGLRenderTarget):
-        #    if not warned:
-        #        print("THREE.WebGLRenderer.setTexture2D: don't use render targets as textures. Use their .texture property instead.")
-        #        warned = True
+        elif visibility > 0:
+            # completely inside the frustrum
+            if octree.leaf:
+                # for leaf, test each object individually
+                for child in octree.children:
+                    self._projectObject(child, camera, sortObjects, False)
+                #if len(octree.children) > 0:
+                #    self._projectObject(octree.children[0], camera, sortObjects, False)
 
-        #    texture = texture.texture
+            else:
+                # for branch, push all objects down
+                #if len(octree.children) > 8:
+                #    self._projectObject(octree.children[8], camera, sortObjects, False)
+                for child in octree.children:
+                    if child is not None:
+                        self._projectOctree(child, camera, sortObjects, False)
 
-        self.textures.setTexture2D(texture, slot)
-
-    def setTexture(self, texture, slot):
-        # warned = False
-        # if not warned:
-        #    print("THREE.WebGLRenderer: .setTexture is deprecated, use setTexture2D instead.")
-        #    warned = True
-        self.textures.setTexture2D(texture, slot)
-
-    def setTextureCube(self, texture, slot):
-        warned = False
-
-        # // backwards compatibility: peel texture.texture
-        if texture and texture.my_class(isWebGLRenderTargetCube):
-            if not warned:
-                print(
-                    "THREE.WebGLRenderer.setTextureCube: don't use cube render targets as textures. Use their .texture property instead.")
-                warned = True
-
-            texture = texture.texture
-
-        # // currently relying on the fact that WebGLRenderTargetCube.texture is a Texture and NOT a CubeTexture
-        # // TODO: unify these code paths
-        if (texture and texture.my_class(isCubeTexture)) or (isinstance(texture.image, list) and len(texture.image) == 6):
-            # // CompressedTexture can have Array in image :/
-            # // this function alone should take care of cube textures
-            self.textures.setTextureCube(texture, slot)
         else:
-            # // assumed: texture property of THREE.WebGLRenderTargetCube
-            self.textures.setTextureCubeDynamic(texture, slot)
+            # partialy in the frustrum => recurse to find more
+            if octree.leaf:
+                # for leaf, test each object individually
+                for child in octree.children:
+                   self._projectObject(child, camera, sortObjects, False)
+                #if len(octree.children) > 0:
+                #    self._projectObject(octree.children[0], camera, sortObjects, False)
+            else:
+                # for branch, continue testing down
+                #if len(octree.children) > 8:
+                #    self._projectObject(octree.children[8], camera, sortObjects, False)
+                for child in octree.children:
+                    if child is not None:
+                        self._projectOctree(child, camera, sortObjects, test_culled)
+
+    def _renderInstances(self, scene, camera):
+        """
+        Render all instances objects in the scene
+        :param scene:
+        :param camera:
+        :return:
+        """
+        global _vector3
+
+        for instance in scene.instances:
+            if instance.geometry.maxInstancedCount > 0:
+                geometry = self.objects.update(instance)
+                material = instance.material
+
+                if isinstance(material, list):
+                    groups = geometry.groups
+
+                    for group in groups:
+                        groupMaterial = material[group.materialIndex]
+
+                        if groupMaterial and groupMaterial.visible:
+                            self.currentRenderList.push(instance, geometry, groupMaterial, _vector3.z, group)
+
+                elif material.visible:
+                    self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
