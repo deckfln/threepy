@@ -57,10 +57,15 @@ class pyOpenGLBackground:
                 self.boxMesh.geometry.removeAttribute( 'normal' )
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
-                def _onBeforeRenderBackgroup(object, renderer, scene, camera):
+                def _onBeforeRenderBackgroup(object, renderer, scene, camera, geometry=None, material=None, group=None):
+                    #scale = camera.far
+
+                    #object.matrixWorld.makeScale(scale, scale, scale)
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
                     object.matrixWorld.is_updated()
+
+                    #object.material.polygonOffsetUnits = scale * 10
 
                 self.boxMesh.setOnBeforeRender(self, _onBeforeRenderBackgroup)
 
@@ -72,21 +77,21 @@ class pyOpenGLBackground:
 
         elif background and background.my_class(isTexture):
             if self.planeCamera is None:
-                planeCamera = OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
+                self.planeCamera = OrthographicCamera( - 1, 1, 1, - 1, 0, 1 )
 
-                planeMesh = Mesh(
+                self.planeMesh = Mesh(
                     PlaneBufferGeometry( 2, 2 ),
                     MeshBasicMaterial( { 'depthTest': False, 'depthWrite': False, 'fog': False } )
                 )
 
-                self.objects.update( planeMesh )
+                self.objects.update( self.planeMesh )
 
-            planeMesh.material.map = self.background
+            self.planeMesh.material.map = background
 
             # // TODO Push this to renderList
 
             glBindVertexArray(self.boxMesh.vao)
-            self.renderer.renderBufferDirect( self.planeCamera, None, planeMesh.geometry, planeMesh.material, planeMesh, None, isViewRenderer)
+            self.renderer.renderBufferDirect( self.planeCamera, None, self.planeMesh.geometry, self.planeMesh.material, planeMesh, None, isViewRenderer)
             glBindVertexArray(0)
 
     def setClear(self, color, alpha ):
