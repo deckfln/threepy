@@ -26,7 +26,7 @@ from THREE.renderers.pyOpenGL.pyOpenGLIndexedBufferRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLInfo import *
 from THREE.renderers.pyOpenGL.pyOpenGLRenderStates import *
 import THREE._Math as _Math
-from THREE.ShaderLib import *
+from THREE.renderers.shaders.ShaderLib import *
 from THREE.Javascript import *
 from THREE.pyOpenGLSpriteRenderer import *
 from THREE.pyOpenGLGuiRenderer import *
@@ -1083,7 +1083,7 @@ class pyOpenGLRenderer:
 
         if programChange:
             if parameters['shaderID']:
-                shader = ShaderLib[parameters['shaderID']]
+                shader = getShaderLib(parameters['shaderID'])
 
                 materialProperties.shader = Shader(material.type,
                                                     UniformsUtils.clone(shader.uniforms),
@@ -1444,7 +1444,7 @@ class pyOpenGLRenderer:
             uniforms.reflectivity.value = material.reflectivity
             uniforms.refractionRatio.value = material.refractionRatio
 
-            uniforms.maxMipLevel.value = self.properties.get(material.envMap).__maxMipLevel
+            uniforms.maxMipLevel.value = self.properties.get(material.envMap)._maxMipLevel
 
         if material.lightMap is not None:
             uniforms.lightMap.value = material.lightMap

@@ -51,7 +51,7 @@ from THREE.Shape import *
 from THREE.ExtrudeBufferGeometry import *
 from THREE.Camera import *
 from THREE.ArrayCamera import *
-from THREE.ShaderChunk import *
+from THREE.renderers.shaders.ShaderChunk import *
 from THREE.Material import *
 from THREE.ShadowMaterial import *
 from THREE.ShaderMaterial import *
@@ -102,7 +102,7 @@ from THREE.Sprite import *
 from THREE.AnimationMixer import *
 from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
 from THREE.pyOpenGLAttributes import *
-from THREE.pyOpenGLBackground import *
+from THREE.renderers.pyOpenGL.pyOpenGLBackground import *
 from THREE.pyOpenGLTextures import *
 from THREE.pyOpenGLProperties import *
 from THREE.pyOpenGLClipping import *

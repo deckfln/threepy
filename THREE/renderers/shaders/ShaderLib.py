@@ -5,211 +5,15 @@
  * @author mikael emtinger / http://gomo.se/
  */
 """
-import os
 
-import THREE.UniformsUtils as UniformsUtils
-from THREE.ShaderChunk import *
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-from THREE.Vector4 import *
-from THREE.Color import *
-from THREE.UniformValue import *
+from THREE.renderers.shaders.ShaderChunk import *
+from THREE.renderers.shaders.UniformsLib import *
 
 
-global ShaderLib
 global ShaderChunk
+global UniformsLib
 
 _currentModule = os.path.dirname(__file__)
-
-"""
-/**
- * Uniforms library for shared webgl shaders
- */
-"""
-
-UniformsLib = {
-
-    'common': {
-
-        'diffuse': UniformValue(Color(0xeeeeee)),
-        'opacity': UniformValue(1.0),
-
-        'map': UniformValue(None),
-        'uvTransform': UniformValue(Matrix3()),
-
-        'alphaMap': UniformValue(None),
-
-    },
-
-    'specularmap': {
-
-        'specularMap': UniformValue(None),
-
-    },
-
-    'envmap': {
-
-        'envMap': UniformValue(None),
-        'flipEnvMap': UniformValue(- 1),
-        'reflectivity': UniformValue(1.0),
-        'refractionRatio': UniformValue(0.98)
-
-    },
-
-    'aomap': {
-
-        'aoMap': UniformValue(None),
-        'aoMapIntensity': UniformValue(1)
-
-    },
-
-    'lightmap': {
-
-        'lightMap': UniformValue(None),
-        'lightMapIntensity': UniformValue(1)
-
-    },
-
-    'emissivemap': {
-
-        'emissiveMap': UniformValue(None)
-
-    },
-
-    'bumpmap': {
-
-        'bumpMap': UniformValue(None),
-        'bumpScale': UniformValue(1)
-
-    },
-
-    'normalmap': {
-
-        'normalMap': UniformValue(None),
-        'normalScale': UniformValue(Vector2(1, 1))
-
-    },
-
-    'displacementmap': {
-
-        'displacementMap': UniformValue(None),
-        'displacementScale': UniformValue(1),
-        'displacementBias': UniformValue(0)
-
-    },
-
-    'roughnessmap': {
-
-        'roughnessMap': UniformValue(None)
-
-    },
-
-    'metalnessmap': {
-
-        'metalnessMap': UniformValue(None)
-
-    },
-
-    'gradientmap': {
-
-        'gradientMap': UniformValue(None)
-
-    },
-
-    'fog': {
-
-        'fogDensity': UniformValue(0.00025),
-        'fogNear': UniformValue(1),
-        'fogFar': UniformValue(2000),
-        'fogColor': UniformValue(Color(0xffffff))
-
-    },
-
-    'lights': {
-
-        'ambientLightColor': UniformValue(None),
-
-        'directionalLights': UniformValue(
-            [],
-           {
-                'direction': {},
-                'color': {},
-
-                'shadow': {},
-                'shadowBias': {},
-                'shadowRadius': {},
-                'shadowMapSize': {}
-        } ),
-
-        'directionalShadowMap': UniformValue([]),
-        'directionalShadowMatrix': UniformValue([]),
-
-        'spotLights': UniformValue([],
-                                   {
-            'color': {},
-            'position': {},
-            'direction': {},
-            'distance': {},
-            'coneCos': {},
-            'penumbraCos': {},
-            'decay': {},
-
-            'shadow': {},
-            'shadowBias': {},
-            'shadowRadius': {},
-            'shadowMapSize': {}
-        }),
-
-        'spotShadowMap': UniformValue([]),
-        'spotShadowMatrix': UniformValue([]),
-
-        'pointLights': UniformValue([],
-                                    {
-            'color': {},
-            'position': {},
-            'decay': {},
-            'distance': {},
-
-            'shadow': {},
-            'shadowBias': {},
-            'shadowRadius': {},
-            'shadowMapSize': {},
-            'shadowCameraNear': {},
-            'shadowCameraFar': {}
-        }),
-
-        'pointShadowMap': UniformValue([]),
-        'pointShadowMatrix': UniformValue([]),
-
-        'hemisphereLights': UniformValue([],
-                                         {
-            'direction': {},
-            'skyColor': {},
-            'groundColor': {}
-        }),
-
-        # // TODO (abelnation): RectAreaLight BRDF data needs to be moved from example to main src
-        'rectAreaLights': UniformValue([],
-                                       {
-            'color': {},
-            'position': {},
-            'width': {},
-            'height': {}
-        })
-
-    },
-
-    'points': {
-
-        'diffuse': UniformValue(Color(0xeeeeee)),
-        'opacity': UniformValue(1.0),
-        'size': UniformValue(1.0),
-        'scale': UniformValue(1.0),
-        'map': UniformValue(None),
-        'offsetRepeat': UniformValue(Vector4(0, 0, 1, 1))
-
-    }
-}
 
 
 class _shader_lib:
@@ -221,13 +25,13 @@ class _shader_lib:
     def getVertexShader(self):
         if self.vertexShader[0] == '_':
             loader = THREE.FileLoader()
-            self.vertexShader = loader.load('%s/shaders/ShaderLib/%s' % (_currentModule, self.vertexShader[1:]))
+            self.vertexShader = loader.load('%s/ShaderLib/%s.glsl' % (_currentModule, self.vertexShader[1:]))
         return self.vertexShader
 
     def getFragmentShader(self):
         if self.fragmentShader[0] == '_':
             loader = THREE.FileLoader()
-            self.fragmentShader = loader.load('%s/shaders/ShaderLib/%s' % (_currentModule, self.fragmentShader[1:]))
+            self.fragmentShader = loader.load('%s/ShaderLib/%s.glsl' % (_currentModule, self.fragmentShader[1:]))
         return self.fragmentShader
 
 
@@ -241,8 +45,8 @@ ShaderLib = {
                 UniformsLib['lightmap'],
                 UniformsLib['fog']
             ] ),
-            ShaderChunk['meshbasic_vert'],
-            ShaderChunk['meshbasic_frag']
+            '_meshbasic_vert',
+            '_meshbasic_frag'
         ),
 
         'lambert': _shader_lib(
@@ -259,8 +63,8 @@ ShaderLib = {
                     'emissive': UniformValue(Color(0x000000))
                 }
             ] ),
-            ShaderChunk['meshlambert_vert'],
-            ShaderChunk['meshlambert_frag']
+            '_meshlambert_vert',
+            '_meshlambert_frag'
         ),
 
         'phong': _shader_lib(
@@ -283,8 +87,8 @@ ShaderLib = {
                     'shininess': UniformValue(30)
                 }
             ] ),
-            ShaderChunk['meshphong_vert'],
-            ShaderChunk['meshphong_frag']
+            '_meshphong_vert',
+            '_meshphong_frag'
         ),
 
         'standard': _shader_lib(
@@ -308,8 +112,8 @@ ShaderLib = {
                     'envMapIntensity': UniformValue(1) # // temporary
                 }
             ] ),
-            ShaderChunk['meshphysical_vert'],
-            ShaderChunk['meshphysical_frag']
+            '_meshphysical_vert',
+            '_meshphysical_frag'
         ),
 
         'points': _shader_lib(
@@ -317,8 +121,8 @@ ShaderLib = {
                 UniformsLib['points'],
                 UniformsLib['fog']
             ] ),
-            ShaderChunk['points_vert'],
-            ShaderChunk['points_frag']
+            '_points_vert',
+            '_points_frag'
         ),
 
         'dashed': _shader_lib(
@@ -331,8 +135,8 @@ ShaderLib = {
                     'totalSize': UniformValue(2)
                 }
             ] ),
-            ShaderChunk['linedashed_vert'],
-            ShaderChunk['linedashed_frag']
+            '_linedashed_vert',
+            '_linedashed_frag'
         ),
 
         'depth': _shader_lib(
@@ -340,8 +144,8 @@ ShaderLib = {
                 UniformsLib['common'],
                 UniformsLib['displacementmap']
             ] ),
-            ShaderChunk['depth_vert'],
-            ShaderChunk['depth_frag']
+            '_depth_vert',
+            '_depth_frag'
         ),
 
         'normal': _shader_lib(
@@ -354,8 +158,18 @@ ShaderLib = {
                     'opacity': UniformValue(1.0)
                 }
             ] ),
-            ShaderChunk['normal_vert'],
-            ShaderChunk['normal_frag']
+            '_normal_vert',
+            '_normal_frag'
+        ),
+
+        'sprite': _shader_lib(
+            UniformsUtils.merge([
+                UniformsLib['sprite'],
+                UniformsLib['fog']
+            ]),
+
+            '_sprite_vert',
+            '_sprite_frag'
         ),
 
     # /* -------------------------------------------------------------------------
@@ -368,16 +182,16 @@ ShaderLib = {
                 'tFlip': UniformValue(- 1),
                 'opacity': UniformValue(1.0)
             },
-            '_cube_vert.glsl',
-            '_cube_frag.glsl'
+            '_cube_vert',
+            '_cube_frag'
         ),
 
         'equirect': _shader_lib(
             {
                 'tEquirect': UniformValue(None),
             },
-            ShaderChunk['equirect_vert'],
-            ShaderChunk['equirect_frag']
+            '_equirect_vert',
+            '_equirect_frag'
         ),
 
         'distanceRGBA': _shader_lib(
@@ -390,20 +204,21 @@ ShaderLib = {
                     'farDistance': UniformValue(1000)
                 }
             ] ),
-            ShaderChunk['distanceRGBA_vert'],
-            ShaderChunk['distanceRGBA_frag']
+            '_distanceRGBA_vert',
+            '_distanceRGBA_frag'
         ),
 
         'shadow': _shader_lib(
             UniformsUtils.merge( [
                 UniformsLib['lights'],
+                UniformsLib['fog'],
                 {
                     'color': UniformValue(Color(0x00000)),
                     'opacity': UniformValue(1.0)
                 },
             ] ),
-            ShaderChunk['shadow_vert'],
-            ShaderChunk['shadow_frag']
+            '_shadow_vert',
+            '_shadow_frag'
         ),
 
         'physical': _shader_lib(
@@ -429,7 +244,18 @@ ShaderLib = {
                     'clearCoatRoughness': UniformValue(0)
                 }
             ] ),
-            ShaderChunk['meshphysical_vert'],
-            ShaderChunk['meshphysical_frag']
+            '_meshphysical_vert',
+            '_meshphysical_frag'
         )
 }
+
+
+def getShaderLib(shaderID):
+    global ShaderLib
+
+    shader = ShaderLib[shaderID]
+
+    shader.vertexShader = shader.getVertexShader()
+    shader.fragmentShader = shader.getFragmentShader()
+
+    return shader

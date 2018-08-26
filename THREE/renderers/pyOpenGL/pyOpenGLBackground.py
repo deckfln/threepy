@@ -3,12 +3,10 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Color import *
 from THREE.Camera import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
-from THREE.ShaderMaterial import *
-from THREE.ShaderLib import *
+from THREE.renderers.shaders.ShaderLib import *
 from THREE.Mesh import *
 
 
@@ -60,10 +58,6 @@ class pyOpenGLBackground:
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
                 def _onBeforeRenderBackgroup(object, renderer, scene, camera):
-                    #TODO on r95 these 2 lines are removed, but if I remove them pyWorld doesn't display
-                    scale = camera.far
-                    object.matrixWorld.makeScale(scale, scale, scale)
-
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
                     object.matrixWorld.is_updated()

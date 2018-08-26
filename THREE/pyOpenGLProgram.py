@@ -3,15 +3,10 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-import re
 
-from OpenGL_accelerate import *
-from OpenGL.GL import *
 from OpenGL.raw.GL.VERSION.GL_2_0 import glCreateProgram
 
-from THREE.Constants import *
-from THREE.Uniforms import *
-from THREE.ShaderChunk import *
+from THREE.renderers.shaders.ShaderChunk import *
 
 
 def addLineNumbers(string):
@@ -160,7 +155,6 @@ def replaceClippingPlaneNums(string, parameters):
 
 
 def parseIncludes(string):
-    global ShaderChunk
     pattern = '^[\t ]*#include +<([\w\d.]+)>'
     new = string
 
@@ -222,7 +216,7 @@ def _getAttributeLocations(program):
 
 class pyOpenGLProgram:
     def __init__(self, renderer, extensions, code, material, shader, parameters):
-        global _programIdCount, ShaderChunk
+        global _programIdCount
         self.name = shader.name
         self.id = _programIdCount
         _programIdCount += 1
@@ -460,12 +454,12 @@ class pyOpenGLProgram:
                 'uniform vec3 cameraPosition;',
 
                 "#define TONE_MAPPING" if (parameters['toneMapping'] != NoToneMapping) else '',
-                ShaderChunk['tonemapping_pars_fragment'] if (parameters['toneMapping'] != NoToneMapping) else '',  # // self code is required here because it is used by the toneMapping() function defined below
+                getShaderChunk('tonemapping_pars_fragment') if (parameters['toneMapping'] != NoToneMapping) else '',  # // self code is required here because it is used by the toneMapping() function defined below
                 getToneMappingFunction("toneMapping", parameters['toneMapping']) if (parameters['toneMapping'] != NoToneMapping) else '',
 
                 '#define DITHERING' if parameters['dithering'] else '',
 
-                ShaderChunk['encodings_pars_fragment'] if (parameters['outputEncoding'] or parameters['mapEncoding'] or parameters['envMapEncoding'] or parameters['emissiveMapEncoding']) else '', # // self code is required here because it is used by the various encoding/decoding function defined below
+                getShaderChunk('encodings_pars_fragment') if (parameters['outputEncoding'] or parameters['mapEncoding'] or parameters['envMapEncoding'] or parameters['emissiveMapEncoding']) else '', # // self code is required here because it is used by the various encoding/decoding function defined below
                 getTexelDecodingFunction('mapTexelToLinear', parameters['mapEncoding']) if parameters['mapEncoding'] else '',
                 getTexelDecodingFunction('envMapTexelToLinear', parameters['envMapEncoding']) if parameters['envMapEncoding'] else '',
                 getTexelDecodingFunction('emissiveMapTexelToLinear', parameters['emissiveMapEncoding']) if parameters['emissiveMapEncoding'] else '',

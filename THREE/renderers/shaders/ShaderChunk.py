@@ -1,0 +1,133 @@
+"""
+
+"""
+import os
+from THREE.Loader import *
+
+
+_currentModule = os.path.dirname(__file__)
+
+ShaderChunk = {
+    'alphamap_fragment': None,
+    'alphamap_pars_fragment': None,
+    'alphatest_fragment': None,
+    'aomap_fragment': None,
+    'aomap_pars_fragment': None,
+    'begin_vertex': None,
+    'beginnormal_vertex': None,
+    'bsdfs': None,
+    'bumpmap_pars_fragment': None,
+    'clipping_planes_fragment': None,
+    'clipping_planes_pars_fragment': None,
+    'clipping_planes_pars_vertex': None,
+    'clipping_planes_vertex': None,
+    'color_fragment': None,
+    'color_pars_fragment': None,
+    'color_pars_vertex': None,
+    'color_vertex': None,
+    'common': None,
+    'cube_uv_reflection_fragment': None,
+    'defaultnormal_vertex': None,
+    'displacementmap_pars_vertex': None,
+    'displacementmap_vertex': None,
+    'emissivemap_fragment': None,
+    'emissivemap_pars_fragment': None,
+    'encodings_fragment': None,
+    'encodings_pars_fragment': None,
+    'envmap_fragment': None,
+    'envmap_pars_fragment': None,
+    'envmap_pars_vertex': None,
+    'envmap_vertex': None,
+    'fog_vertex': None,
+    'fog_pars_vertex': None,
+    'fog_fragment': None,
+    'fog_pars_fragment': None,
+    'gradientmap_pars_fragment': None,
+    'lightmap_fragment': None,
+    'lightmap_pars_fragment': None,
+    'lights_lambert_vertex': None,
+    'lights_pars': None,
+    'lights_phong_fragment': None,
+    'lights_phong_pars_fragment': None,
+    'lights_physical_fragment': None,
+    'lights_physical_pars_fragment': None,
+    'lights_template': None,
+    'logdepthbuf_fragment': None,
+    'logdepthbuf_pars_fragment': None,
+    'logdepthbuf_pars_vertex': None,
+    'logdepthbuf_vertex': None,
+    'map_fragment': None,
+    'map_pars_fragment': None,
+    'map_particle_fragment': None,
+    'map_particle_pars_fragment': None,
+    'metalnessmap_fragment': None,
+    'metalnessmap_pars_fragment': None,
+    'morphnormal_vertex': None,
+    'morphtarget_pars_vertex': None,
+    'morphtarget_vertex': None,
+    'normal_fragment': None,
+    'normalmap_pars_fragment': None,
+    'packing': None,
+    'premultiplied_alpha_fragment': None,
+    'project_vertex': None,
+    'dithering_fragment': None,
+    'dithering_pars_fragment': None,
+    'roughnessmap_fragment': None,
+    'roughnessmap_pars_fragment': None,
+    'shadowmap_pars_fragment': None,
+    'shadowmap_pars_vertex': None,
+    'shadowmap_vertex': None,
+    'shadowmask_pars_fragment': None,
+    'skinbase_vertex': None,
+    'skinning_pars_vertex': None,
+    'skinning_vertex': None,
+    'skinnormal_vertex': None,
+    'specularmap_fragment': None,
+    'specularmap_pars_fragment': None,
+    'tonemapping_fragment': None,
+    'tonemapping_pars_fragment': None,
+    'uv_pars_fragment': None,
+    'uv_pars_vertex': None,
+    'uv_vertex': None,
+    'uv2_pars_fragment': None,
+    'uv2_pars_vertex': None,
+    'uv2_vertex': None,
+    'worldpos_vertex': None,
+
+    'depth_frag': None,
+    'depth_vert': None,
+    'distanceRGBA_frag': None,
+    'distanceRGBA_vert': None,
+    'equirect_frag': None,
+    'equirect_vert': None,
+    'linedashed_frag': None,
+    'linedashed_vert': None,
+    'meshbasic_frag': None,
+    'meshbasic_vert': None,
+    'meshlambert_frag': None,
+    'meshlambert_vert': None,
+    'meshphong_frag': None,
+    'meshphong_vert': None,
+    'meshphysical_frag': None,
+    'meshphysical_vert': None,
+    'normal_frag': None,
+    'normal_vert': None,
+    'points_frag': None,
+    'points_vert': None,
+    'shadow_frag': None,
+    'shadow_vert': None,
+    'sprite_frag': None,
+    'sprite_vert': None
+}
+
+
+def getShaderChunk(chunk):
+    if chunk in ShaderChunk and ShaderChunk[chunk] is not None:
+        return ShaderChunk[chunk]
+
+    loader = THREE.FileLoader()
+    shaderChunk = loader.load('%s/ShaderChunk/%s.glsl' % (_currentModule, chunk))
+
+    ShaderChunk[chunk] = shaderChunk
+
+    return shaderChunk

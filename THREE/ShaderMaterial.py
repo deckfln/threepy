@@ -68,6 +68,7 @@ class ShaderMaterial(Material):
         }
 
         self.index0AttributeName = None
+        self.uniformsNeedUpdate = False
 
         if parameters is not None:
             if 'attributes' in parameters is not None:

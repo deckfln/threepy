@@ -22,6 +22,7 @@ class _map:
         self.imageopenglTextureCube = None
         self.image_powerof2 = None
         self.lightsHash = None
+        self._maxMipLevel = 0
 
 
 class pyOpenGLProperties:

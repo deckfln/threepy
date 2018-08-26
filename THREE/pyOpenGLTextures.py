@@ -70,7 +70,7 @@ def generateMipmap(properties, target, texture, width, height ):
     textureProperties = properties.get( texture )
 
     # Note: Math.log( x ) * Math.LOG2E used instead of Math.log2( x ) which is not supported by IE11
-    textureProperties.__maxMipLevel = math.log( max( width, height ) ) * _Math.LOG2E
+    textureProperties._maxMipLevel = math.log( max( width, height ) ) * _Math.LOG2E
 
 
 def getInternalFormat( glFormat, glType ):
@@ -293,11 +293,11 @@ class pyOpenGLTextures:
                     self.state.texImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data)
 
                 texture.generateMipmaps = False
-                textureProperties.__maxMipLevel = len(mipmaps) - 1
+                textureProperties._maxMipLevel = len(mipmaps) - 1
             else:
                 # self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
                 OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, image.width, image.height, 0, GL_RGBA, glType, image.data)
-                textureProperties.__maxMipLevel = 0
+                textureProperties._maxMipLevel = 0
 
         elif texture.my_class(isCompressedTexture):
             for i in range(len(mipmaps)):
@@ -312,7 +312,7 @@ class pyOpenGLTextures:
                 else:
                     self.state.texImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data)
 
-            textureProperties.__maxMipLevel = len(mipmaps) - 1
+            textureProperties._maxMipLevel = len(mipmaps) - 1
 
         else:
             # // regular Texture (image, video, canvas)
@@ -328,14 +328,14 @@ class pyOpenGLTextures:
                     i += 1
 
                 texture.generateMipmaps = False
-                textureProperties.__maxMipLevel = len(mipmaps) - 1
+                textureProperties._maxMipLevel = len(mipmaps) - 1
             else:
                 if texture.img_data is None:
                     texture.img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
                 width, height = image.size
                 # self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, texture.img_data)
                 OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat,  width, height, 0, glFormat, glType, texture.img_data)
-                textureProperties.__maxMipLevel = 0
+                textureProperties._maxMipLevel = 0
 
         if _textureNeedsGenerateMipmaps(texture, isPowerOfTwoImage):
             generateMipmap(self.properties, GL_TEXTURE_2D, texture, image.width, image.height)
@@ -526,9 +526,9 @@ class pyOpenGLTextures:
                                 self.state.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, j, glInternalFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data)
 
                 if not isCompressed:
-                    textureProperties.__maxMipLevel = 0
+                    textureProperties._maxMipLevel = 0
                 else:
-                    textureProperties.__maxMipLevel = len(mipmaps) - 1
+                    textureProperties._maxMipLevel = len(mipmaps) - 1
 
                 if _textureNeedsGenerateMipmaps(texture, isPowerOfTwoImage):
                     # We assume images for cube map have the same size.
