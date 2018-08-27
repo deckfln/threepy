@@ -3,8 +3,7 @@
  @author WestLangley / http://github.com/WestLangley
 """
 from THREE.LineSegments import *
-from THREE.Constants import *
-from THREE.LineBasicMaterial import *
+from THREE.materials.LineBasicMaterial import *
 
 
 class VertexNormalsHelper(LineSegments):

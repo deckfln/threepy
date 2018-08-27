@@ -13,7 +13,7 @@
  * }
  */
 """
-from THREE.Material import *
+from THREE.materials.Material import *
 from THREE.Color import *
 
 

@@ -15,12 +15,8 @@
  *  headWidth - Number
  */
 """
-from THREE.Object3D import *
-from THREE.BufferGeometry import *
 from THREE.CylinderBufferGeometry import *
-from THREE.LineBasicMaterial import *
 from THREE.Line import *
-from THREE.MeshBasicMaterial import *
 from THREE.Mesh import *
 
 

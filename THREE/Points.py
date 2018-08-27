@@ -15,9 +15,8 @@
 """
 import random
 
-from THREE.Material import *
+from THREE.materials.Material import *
 from THREE.BufferGeometry import *
-from THREE.Matrix4 import *
 from THREE.Sphere import *
 # TODO implement Ray
 # from THREE.Ray import *

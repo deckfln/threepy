@@ -4,13 +4,8 @@
  */
 """
 import random
-from THREE.Object3D import *
-from THREE.Matrix4 import *
-from THREE.Sphere import *
-from THREE.Sphere import *
-from THREE.Vector3 import *
 from THREE.BufferGeometry import *
-from THREE.LineBasicMaterial import *
+from THREE.materials.LineBasicMaterial import *
 
 
 class Line(Object3D):

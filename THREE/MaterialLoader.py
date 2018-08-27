@@ -3,28 +3,24 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-import json
 
-from THREE.LoadingManager import *
 from THREE.FileLoader import *
-from THREE.ShadowMaterial import *
-from THREE.SpriteMaterial import *
-from THREE.ShaderMaterial import *
-from THREE.RawShaderMaterial import *
-from THREE.ShaderMaterial import *
+from THREE.materials.ShadowMaterial import *
+from THREE.materials.SpriteMaterial import *
+from THREE.materials.RawShaderMaterial import *
+from THREE.materials.ShaderMaterial import *
 from THREE.PointsMaterial import *
-from THREE.MeshPhysicalMaterial import *
-from THREE.MeshStandardMaterial import *
-from THREE.MeshPhongMaterial import *
-from THREE.MeshToonMaterial import *
-from THREE.MeshNormalMaterial import *
-from THREE.MeshLambertMaterial import *
-from THREE.MeshDepthMaterial import *
-from THREE.MeshDistanceMaterial import *
-from THREE.MeshBasicMaterial import *
-from THREE.LineDashedMaterial import *
-from THREE.LineBasicMaterial import *
-from THREE.Material import *
+from THREE.materials.MeshPhysicalMaterial import *
+from THREE.materials.MeshStandardMaterial import *
+from THREE.materials.MeshToonMaterial import *
+from THREE.materials.MeshNormalMaterial import *
+from THREE.materials.MeshLambertMaterial import *
+from THREE.materials.MeshDepthMaterial import *
+from THREE.materials.MeshDistanceMaterial import *
+from THREE.materials.MeshBasicMaterial import *
+from THREE.materials.LineDashedMaterial import *
+from THREE.materials.LineBasicMaterial import *
+from THREE.materials.Material import *
 
 
 Materials = {

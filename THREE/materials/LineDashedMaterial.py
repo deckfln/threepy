@@ -14,7 +14,7 @@
  * }
  */
 """
-from THREE.LineBasicMaterial import *
+from THREE.materials.LineBasicMaterial import *
 
 
 class LineDashedMaterial(LineBasicMaterial):
