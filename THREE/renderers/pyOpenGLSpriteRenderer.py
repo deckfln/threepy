@@ -6,14 +6,11 @@
 """
 from ctypes import c_void_p
 
-from OpenGL_accelerate import *
 from PIL import Image, ImageDraw
 from THREE.javascriparray import *
-from THREE.Vector3 import *
-from THREE.Quaternion import *
 from THREE.CanvasTexture import *
-from THREE.pyOpenGLProgram import pyOpenGLShader
-from THREE.Uniforms import *
+from THREE.renderers.pyOpenGL.pyOpenGLProgram import pyOpenGLShader
+from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 
 
 def _glGetActiveAttrib(program, index):

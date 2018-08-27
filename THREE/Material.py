@@ -6,9 +6,7 @@
 """
 import json
 import THREE._Math as _Math
-from THREE.Constants import *
-from THREE.pyOpenGLObject import *
-from THREE.Uniforms import *
+from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 
 _materialId = 0
 
@@ -19,9 +17,9 @@ def _extractFromCache( cache ):
     values = []
 
     for key in cache :
-        data = cache[ key ]
+        data = cache[key]
         del data.metadata
-        values.push( data )
+        values.append(data)
 
     return values
 
@@ -67,6 +65,8 @@ class Material(pyOpenGLObject):
         self.clippingPlanes = None
         self.clipIntersection = False
         self.clipShadows = False
+
+        self.shadowSide = None
 
         self.colorWrite = True
 
@@ -114,6 +114,7 @@ class Material(pyOpenGLObject):
         self.index0AttributeName = None
         self.clipping = False
         self.emissive = None
+        self.emissiveIntensity = 1
         self.defaultAttributeValues = None
         self.skinning = None
         self.morphTargets = None
@@ -124,6 +125,11 @@ class Material(pyOpenGLObject):
         self.color = None
         self.extensions = None
         self.wireframeLinewidth = None
+        self.rotation = 0
+        self.linewidth = 1
+        self.dashSize = None
+        self.gapSize = None
+        self.scale = None
 
     def onBeforeCompile(self, shader):
         return True
@@ -145,23 +151,23 @@ class Material(pyOpenGLObject):
             newValue = values[ key ]
 
             if newValue is None:
-                print( "THREE.Material: '" + key + "' parameter is undefined." )
+                print("THREE.Material: '" + key + "' parameter is undefined.")
                 continue
 
             # // for backward compatability if shading is set in the constructor
             if key == 'shading' :
-                print( 'THREE.' + self.type + ': .shading has been removed. Use the boolean .flatShading instead.' )
+                print('THREE.' + self.type + ': .shading has been removed. Use the boolean .flatShading instead.')
                 self.flatShading = True if newValue == FlatShading else False
                 continue
 
             if key not in self.__dict__:
-                print("THREE.%s: %s is not a property of self material." % (self.type , key) )
+                print("THREE.%s: %s is not a property of self material." % (self.type , key))
                 continue
 
-            currentValue = self[ key ]
+            currentValue = self[key]
 
             if isinstance(currentValue, int) or isinstance(currentValue, float) or isinstance(currentValue, str):
-                self[ key ] = newValue
+                self[key] = newValue
             elif key == 'overdraw':
                 # // ensure overdraw is backwards-compatible with legacy boolean type
                 self[key] = Number(newValue)
@@ -169,13 +175,13 @@ class Material(pyOpenGLObject):
                 self[key] = Uniforms(newValue)
             elif currentValue and currentValue.my_class(isColor):
                 currentValue.set( newValue )
-            elif (currentValue and currentValue.my_class(isVector3) ) and ( newValue and newValue.my_class(isVector3)):
-                currentValue.copy( newValue )
+            elif (currentValue and currentValue.my_class(isVector3)) and (newValue and newValue.my_class(isVector3)):
+                currentValue.copy(newValue)
             else:
-                self[ key ] = newValue
+                self[key] = newValue
 
     def toJSON(self, meta=None):
-        isRoot = meta is None
+        isRoot = meta is None or type(meta) is str
 
         if isRoot:
             meta = {
@@ -208,6 +214,9 @@ class Material(pyOpenGLObject):
 
         if self.emissive and self.emissive.my_class(isColor):
             data['emissive'] = self.emissive.getHex()
+        if self.emissiveIntensity != 1:
+            data['emissiveIntensity'] = self.emissiveIntensity
+
         if self.specular and self.specular.my_class(isColor):
             data['specular'] = self.specular.getHex()
         if self.shininess:
@@ -223,11 +232,15 @@ class Material(pyOpenGLObject):
             data['alphaMap'] = self.alphaMap.toJSON( meta ).uuid
         if self.lightMap and self.lightMap.my_class(isTexture):
             data['lightMap'] = self.lightMap.toJSON( meta ).uuid
+        if self.aoMap and self.aoMap.my_class(isTexture):
+            data['aoMap'] = self.aoMap.toJSON( meta ).uuid
+            data['aoScale'] = self.aoScale
         if self.bumpMap and self.bumpMap.my_class(isTexture):
             data['bumpMap'] = self.bumpMap.toJSON( meta ).uuid
             data['bumpScale'] = self.bumpScale
         if self.normalMap and self.normalMap.my_class(isTexture):
             data['normalMap'] = self.normalMap.toJSON( meta ).uuid
+            data['normalMapType'] = self.normalMapType
             data['normalScale'] = self.normalScale.toArray()
         if self.displacementMap and self.displacementMap.my_class(isTexture):
             data['displacementMap'] = self.displacementMap.toJSON( meta ).uuid
@@ -269,6 +282,18 @@ class Material(pyOpenGLObject):
         if self.transparent:
             data['transparent'] = self.transparent
 
+        # rotation(SpriteMaterial)
+        if self.rotation != 0:
+            data['rotation'] = self.rotation
+        if self.linewidth != 1:
+            data['linewidth'] = self.linewidth
+        if self.dashSize is not None:
+            data['dashSize'] = self.dashSize
+        if self.gapSize is not None:
+            data['gapSize'] = self.gapSize
+        if self.scale is not None:
+            data['scale'] = self.scale
+
         data['depthFunc'] = self.depthFunc
         data['depthTest'] = self.depthTest
         data['depthWrite'] = self.depthWrite
@@ -304,9 +329,9 @@ class Material(pyOpenGLObject):
             textures = _extractFromCache( meta.textures )
             images = _extractFromCache( meta.images )
 
-            if textures.length > 0:
+            if len(textures) > 0:
                 data['textures'] = textures
-            if images.length > 0:
+            if len(images) > 0:
                 data['images'] = images
 
         return data
@@ -355,7 +380,7 @@ class Material(pyOpenGLObject):
         self.overdraw = source.overdraw
 
         self.visible = source.visible
-        self.userData = json.loads( json.dumps( source.userData ) )
+        self.userData = json.loads(json.dumps(source.userData))
 
         self.clipShadows = source.clipShadows
         self.clipIntersection = source.clipIntersection
@@ -365,12 +390,13 @@ class Material(pyOpenGLObject):
 
         if srcPlanes is not None:
             n = len(srcPlanes)
-            dstPlanes = [ None for i in range(n) ]
+            dstPlanes = [None for i in range(n)]
 
             for i in range(n):
-                dstPlanes[ i ] = srcPlanes[ i ].clone()
+                dstPlanes[i] = srcPlanes[i].clone()
 
         self.clippingPlanes = dstPlanes
+        self.shadowSide = source.shadowSide
 
         return self
 

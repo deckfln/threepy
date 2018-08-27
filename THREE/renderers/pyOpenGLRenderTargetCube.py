@@ -3,7 +3,7 @@
   * @ author alteredq / http: // alteredqualia.com
   * /
 """
-from THREE.pyOpenGLRenderTarget import *
+from THREE.renderers.pyOpenGLRenderTarget import *
 
 
 class pyOpenGLRenderTargetCube(pyOpenGLRenderTarget):

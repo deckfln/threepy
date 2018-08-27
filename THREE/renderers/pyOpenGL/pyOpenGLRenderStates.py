@@ -2,7 +2,7 @@
 @author Mugen87 / https://github.com/Mugen87
 """
 
-from THREE.pyOpenGLLights import *
+from THREE.renderers.pyOpenGL.pyOpenGLLights import *
 
 
 class pyOpenGLRenderState:

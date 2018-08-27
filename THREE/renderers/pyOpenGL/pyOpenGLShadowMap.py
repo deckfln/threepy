@@ -4,17 +4,11 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-from OpenGL_accelerate import *
 
-from THREE.Constants import *
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-from THREE.Vector4 import *
-from THREE.Matrix4 import *
 from THREE.Frustum import *
 from THREE.MeshDepthMaterial import *
 from THREE.MeshDistanceMaterial import *
-from THREE.pyOpenGLRenderTarget import *
+from THREE.renderers.pyOpenGLRenderTarget import *
 
 
 class pyOpenGLShadowMap(pyOpenGLObject):

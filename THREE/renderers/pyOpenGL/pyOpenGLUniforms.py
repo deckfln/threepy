@@ -1,6 +1,8 @@
 """
 /**
  * @author tschw
+ * @author Mugen87 / https://github.com/Mugen87
+ * @author mrdoob / http://mrdoob.com/
  *
  * Uniforms of a program.
  * Those form a tree structure with a special top-level container for the root,
@@ -49,7 +51,6 @@
  */
 """
 import numpy as np
-from OpenGL_accelerate import *
 from OpenGL.GL import *
 import THREE.pyOpenGL.OpenGL as cOpenGL
 import re
@@ -216,7 +217,7 @@ class SingleUniform:
         self.id = id
         self.addr = addr
         self.uploaded = False
-        self.cache = np.full(16, -1, np.float32)
+        self.cache = np.full(16, -99999999999999999999999999999, np.float32)
 
         _types = {
             0x1406: self.setValue1f,  # // FLOAT
@@ -450,7 +451,7 @@ class PureArrayUniform():
         self.id = id
         self.addr = addr
         self.size = activeInfo[1]
-        self.cache = np.zeros(16, np.float32)
+        self.cache = np.full(16, -99999999999999999999999999999, np.float32)
 
         # // Helper to pick the right setter for a pure (bottom-level) array
         _types = {
@@ -482,10 +483,10 @@ class PureArrayUniform():
     def updateCache(self, data):
         cache = self.cache
 
-        if type(data) is 'np' and len(cache) != len(data):
+        if type(data) is 'np' and len(cache) < len(data):
             self.cache = np.zeros(len(data), np.float32)
 
-        copyArray( cache, data )
+        copyArray(cache, data)
 
     # // Array of scalars
 
@@ -826,13 +827,13 @@ class pyOpenGLUniforms( UniformContainer ):
 
 # // Static interface
 
-    def upload(gl, seq, values, renderer ):
+    def upload(self, seq, values, renderer):
         for u in seq:
-            v = values.__dict__[ u.id ]
+            v = values.__dict__[u.id]
 
-            if v.needsUpdate is not False:
+            if v.needsUpdate:
                 # // note: always updating when .needsUpdate is undefined
-                u.setValue( v.value, renderer )
+                u.setValue(v.value, renderer)
 
     def seqWithValue(seq, values):
         r = []

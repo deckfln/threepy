@@ -7,22 +7,13 @@
  */
 """
 import random
-import math
 
-from OpenGL.GL import *
-
-from THREE.Constants import *
-from THREE.Object3D import *
 from THREE.MeshBasicMaterial import *
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-from THREE.Matrix4 import *
 from THREE.Triangle import *
-from THREE.Sphere import *
 from THREE.BufferGeometry import *
 from THREE.Face3 import *
 from THREE.Ray import *
-import THREE.pyOpenGLObjects as pyOpenGLObjects
+import THREE.renderers.pyOpenGL.pyOpenGLObjects as pyOpenGLObjects
 
 
 def _uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ):

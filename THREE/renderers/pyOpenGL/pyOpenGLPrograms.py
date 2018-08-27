@@ -3,9 +3,7 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-import math
-from THREE.Constants import *
-from THREE.pyOpenGLProgram import *
+from THREE.renderers.pyOpenGL.pyOpenGLProgram import *
 
 
 def _allocateBones(object, capabilities):

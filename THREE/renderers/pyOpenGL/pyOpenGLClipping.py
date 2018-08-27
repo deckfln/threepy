@@ -3,11 +3,9 @@
  * @author tschw
  */
 """
-import numpy as np
 
 from THREE.Plane import *
-from THREE.Matrix3 import *
-from THREE.Uniforms import *
+from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 
 class pyOpenGLClipping:
     def __init__(self):

@@ -6,10 +6,7 @@
  */
 """
 import THREE._Math as _Math
-from THREE.Constants import *
-from THREE.pyOpenGLObject import *
 from THREE.Vector2 import *
-import THREE.pyOpenGLProperties as pyOGLproperties
 from THREE.Matrix3 import *
 import THREE.Global
 

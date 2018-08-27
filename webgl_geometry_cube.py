@@ -37,6 +37,7 @@ def init(params):
     params.mesh1 = THREE.Mesh(geometry, material)
     params.mesh1.position.x = 50
     params.mesh1.position.y = 50
+    params.mesh1.name = "extra"
     params.scene.add(params.mesh1)
 
     params.renderer = params.renderer = THREE.pyOpenGLRenderer({'antialias': True})

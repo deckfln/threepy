@@ -4,8 +4,7 @@
  */
 """
 from THREE.Javascript import *
-from THREE.pyOpenGLObject import *
-from THREE.Uniforms import *
+from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 
 
 def merge( uniforms ):

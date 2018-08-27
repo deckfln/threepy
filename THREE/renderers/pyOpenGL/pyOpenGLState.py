@@ -3,6 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
+from bitarray import bitarray
 import numpy as np
 import re
 from OpenGL_accelerate import *
@@ -211,10 +212,10 @@ def createTexture( type, target, count ):
     
 class pyOpenGLState:
     def __init__(self, extensions, utils, capabilities):
-        maxVertexAttributes = glGetIntegerv( GL_MAX_VERTEX_ATTRIBS )
-        self.newAttributes = np.zeros(maxVertexAttributes, 'B')
-        self.enabledAttributes = np.zeros(maxVertexAttributes, 'B')
-        self.attributeDivisors = np.zeros(maxVertexAttributes, 'B')
+        self.maxVertexAttributes = glGetIntegerv( GL_MAX_VERTEX_ATTRIBS )
+        self.newAttributes = [np.zeros(self.maxVertexAttributes, 'B')]
+        self.enabledAttributes = [np.zeros(self.maxVertexAttributes, 'B')]
+        self.attributeDivisors = [np.zeros(self.maxVertexAttributes, 'B')]
 
         self.enabledCapabilities = {}
 
@@ -279,30 +280,36 @@ class pyOpenGLState:
         self.utils = utils
         self.capabilities = capabilities
 
-    def initAttributes(self):
-        self.newAttributes.fill(0)
+    def initAttributes(self, vao):
+        if len(self.newAttributes) < vao + 1:
+            self.newAttributes.append(np.zeros(self.maxVertexAttributes, 'B'))
+            self.enabledAttributes.append(np.zeros(self.maxVertexAttributes, 'B'))
+            self.attributeDivisors.append(np.zeros(self.maxVertexAttributes, 'B'))
+
+        self.newAttributes[vao].fill(0)
+
         # for i in range(len(self.newAttributes)):
         #     self.newAttributes[ i ] = 0
 
-    def enableAttribute(self, attribute ):
-        self.enableAttributeAndDivisor(attribute, 0)
+    def enableAttribute(self, attribute, vao):
+        self.enableAttributeAndDivisor(attribute, 0, vao)
 
-    def enableAttributeAndDivisor(self, attribute, meshPerAttribute ):
-        self.newAttributes[ attribute ] = True
+    def enableAttributeAndDivisor(self, attribute, meshPerAttribute, vao):
+        self.newAttributes[vao][attribute] = True
 
-        if not self.enabledAttributes[ attribute ]:
-            glEnableVertexAttribArray( attribute )
-            self.enabledAttributes[ attribute ] = True
+        if not self.enabledAttributes[vao][attribute]:
+            glEnableVertexAttribArray(attribute)
+            self.enabledAttributes[vao][attribute] = True
 
-        if self.attributeDivisors[ attribute ] != meshPerAttribute:
-            glVertexAttribDivisor( attribute, meshPerAttribute )
-            self.attributeDivisors[ attribute ] = meshPerAttribute
+        if self.attributeDivisors[vao][attribute] != meshPerAttribute:
+            glVertexAttribDivisor(attribute, meshPerAttribute )
+            self.attributeDivisors[vao][attribute] = meshPerAttribute
 
-    def disableUnusedAttributes(self):
-        for i in range(len(self.enabledAttributes)):
-            if self.enabledAttributes[ i ] and  not self.newAttributes[ i ]:
-                glDisableVertexAttribArray( i )
-                self.enabledAttributes[ i ] = False
+    def disableUnusedAttributes(self, vao):
+        for i in range(len(self.enabledAttributes[vao])):
+            if self.enabledAttributes[vao][i] and not self.newAttributes[vao][i]:
+                glDisableVertexAttribArray(i)
+                self.enabledAttributes[vao][i] = False
 
     def enable(self, id):
         if id not in self.enabledCapabilities:

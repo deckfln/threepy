@@ -7,37 +7,24 @@
  * @author tschw
  */
 """
-import sys
-import time
-import pygame
-from pygame.locals import *
-from ctypes import c_void_p
-from threading import Thread
-import queue
 
 import THREE.pyOpenGL.OpenGL as cOpenGL
 
 from THREE import *
-from THREE.Constants import *
 from THREE.renderers.pyOpenGL.pyOpenGLAnimation import *
 from THREE.renderers.pyOpenGL.pyOpenGLBufferRenderer import *
-from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
 from THREE.renderers.pyOpenGL.pyOpenGLIndexedBufferRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLInfo import *
 from THREE.renderers.pyOpenGL.pyOpenGLRenderStates import *
 import THREE._Math as _Math
-from THREE.renderers.shaders.ShaderLib import *
-from THREE.Javascript import *
-from THREE.pyOpenGLSpriteRenderer import *
-from THREE.pyOpenGLGuiRenderer import *
-from THREE.pyOpenGLMorphtargets import *
+from THREE.renderers.pyOpenGLGuiRenderer import *
+from THREE.renderers.pyOpenGL.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
 from THREE.renderers.pyOpenGL.pyOpenGLUtils import *
 
 import THREE.Global
-import THREE.pyOpenGLProperties as pyOGLproperties
 
 
 class pyOpenGLVAO:
@@ -207,7 +194,7 @@ class pyOpenGLRenderer:
         """
         // internal state cache
         """
-        self._framebuffer = None
+        self._framebuffer = 0
         self._currentRenderTarget = None
         self._currentFramebuffer = None
         self._currentMaterialId = -1
@@ -691,7 +678,7 @@ class pyOpenGLRenderer:
                     pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(offset * bytesPerElement))
                 else:
                     if geometryAttribute.my_class(isInstancedBufferAttribute):
-                        self.state.enableAttributeAndDivisor(programAttribute, geometryAttribute.meshPerAttribute)
+                        self.state.enableAttributeAndDivisor(programAttribute, geometryAttribute.meshPerAttribute, vao)
 
                         if geometry.maxInstancedCount is None:
                             geometry.maxInstancedCount = geometryAttribute.meshPerAttribute * geometryAttribute.count
@@ -929,7 +916,7 @@ class pyOpenGLRenderer:
                 self.currentRenderState.pushLight( object )
 
                 if object.castShadow:
-                    self.urrentRenderState.pushShadow( object )
+                    self.currentRenderState.pushShadow( object )
 
             elif object.my_class(isSprite):
                 if not object.frustumCulled or self._frustum.intersectsSprite(object):
@@ -1719,20 +1706,20 @@ class pyOpenGLRenderer:
         """
         self._currentRenderTarget = renderTarget
 
-        if renderTarget and self.properties.get(renderTarget).frameBuffer is None:
+        if renderTarget and self.properties.get(renderTarget).openglFrameBuffer is None:
             self.textures.setupRenderTarget(renderTarget)
 
-        _framebuffer = self._framebuffer
+        framebuffer = self._framebuffer
         isCube = False
 
         if renderTarget:
-            frameBuffer = self.properties.get(renderTarget).frameBuffer
+            _openglFramebuffer = self.properties.get(renderTarget).openglFrameBuffer
 
             if renderTarget.my_class(isWebGLRenderTargetCube):
-                _framebuffer = frameBuffer[renderTarget.activeCubeFace]
+                framebuffer = _openglFramebuffer[renderTarget.activeCubeFace]
                 isCube = True
             else:
-                _framebuffer = frameBuffer
+                framebuffer = _openglFramebuffer
 
             self._currentViewport.copy(renderTarget.viewport)
             self._currentScissor.copy(renderTarget.scissor)
@@ -1743,9 +1730,9 @@ class pyOpenGLRenderer:
             self._currentScissor.copy(self._scissor).multiplyScalar(self._pixelRatio)
             self._currentScissorTest = self._scissorTest
 
-        if self._currentFramebuffer != _framebuffer:
-            glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer)
-            self._currentFramebuffer = _framebuffer
+        if self._currentFramebuffer != framebuffer:
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
+            self._currentFramebuffer = framebuffer
 
         self.state.viewport(self._currentViewport)
         self.state.scissor(self._currentScissor)

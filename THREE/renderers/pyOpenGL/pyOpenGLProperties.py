@@ -15,8 +15,8 @@ class _map:
         self.openglTexture = None
         self.openglInit = False
         self.currentAnisotropy = False
-        self.frameBuffer = None
-        self.depthBuffer = None
+        self.openglFrameBuffer = None
+        self.openglDepthBuffer = None
         self.version = -1
         self.clippingState = None
         self.imageopenglTextureCube = None
