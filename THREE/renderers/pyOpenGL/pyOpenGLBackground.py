@@ -58,9 +58,9 @@ class pyOpenGLBackground:
                 self.boxMesh.geometry.removeAttribute( 'uv' )
 
                 def _onBeforeRenderBackgroup(object, renderer, scene, camera, geometry=None, material=None, group=None):
-                    #scale = camera.far
+                    scale = camera.far
 
-                    #object.matrixWorld.makeScale(scale, scale, scale)
+                    object.matrixWorld.makeScale(scale, scale, scale)
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
                     object.matrixWorld.is_updated()

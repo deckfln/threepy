@@ -8,7 +8,7 @@
 """
 import random
 
-from THREE.MeshBasicMaterial import *
+from THREE.materials.MeshBasicMaterial import *
 from THREE.Triangle import *
 from THREE.BufferGeometry import *
 from THREE.Face3 import *

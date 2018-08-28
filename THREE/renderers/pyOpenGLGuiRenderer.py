@@ -51,6 +51,8 @@ class pyOpenGLGuiRenderer:
         self.attributes = None
         self.uniforms = None
 
+        self.vao = -1
+
         if renderer.parameters['gui'] is None:
             image = Image.new("RGBA", (8,8))
             d = ImageDraw.Draw(image)
@@ -94,6 +96,15 @@ class pyOpenGLGuiRenderer:
 
         self.uniforms = _Uniforms()
         self.uniforms.map = glGetUniformLocation( self.program, 'map')
+
+        self.vao = glGenVertexArrays(1)
+        glBindVertexArray(self.vao)
+        glBindBuffer( GL_ARRAY_BUFFER, self.vertexBuffer )
+        glEnableVertexAttribArray(self.attributes.position)
+        OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer( self.attributes.position, 2, GL_FLOAT, False, 2 * 8, None )
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, self.elementBuffer )
+        glBindVertexArray(0)
+
         glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 )
         glBindBuffer( GL_ARRAY_BUFFER, 0 )
 
@@ -105,16 +116,16 @@ class pyOpenGLGuiRenderer:
 
         self.state.useProgram( self.program )
 
-        self.state.initAttributes()
-        self.state.enableAttribute( self.attributes.position )
-        self.state.disableUnusedAttributes()
+        """
+        self.state.initAttributes(self.vao)
+        self.state.enableAttribute( self.attributes.position, self.vao )
+        self.state.disableUnusedAttributes(self.vao)
+        """
 
         self.state.disable( GL_CULL_FACE )
         self.state.enable( GL_BLEND )
 
-        glBindBuffer( GL_ARRAY_BUFFER, self.vertexBuffer )
-        OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer( self.attributes.position, 2, GL_FLOAT, False, 2 * 8, None )
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, self.elementBuffer )
+        glBindVertexArray(self.vao)
 
         self.state.activeTexture( GL_TEXTURE0 )
         glUniform1i( self.uniforms.map, 0 )
@@ -131,8 +142,7 @@ class pyOpenGLGuiRenderer:
         #self.state.buffers.depth.setMask(True)
 
         # restore gl
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 )
-        glBindBuffer( GL_ARRAY_BUFFER, 0 )
+        glBindVertexArray(0)
 
         self.state.enable( GL_CULL_FACE )
         # self.state.reset()

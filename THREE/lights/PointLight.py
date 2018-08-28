@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Light import *
+from THREE.lights.Light import *
 from THREE.Camera import *
 
 
@@ -23,12 +23,12 @@ class PointLight(Light):
 
     def getPower(self):
         # // intensity = power per solid angle.
-        # // ref: equation (15) from http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+        # // ef: equation (15) from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
         return self.intensity * 4 * math.pi
 
     def setPower(self, power):
         # // intensity = power per solid angle.
-        # // ref: equation (15) from http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+        # // ef: equation (15) from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
         self.intensity = power / (4 * math.pi)
 
     power = property(getPower, setPower)

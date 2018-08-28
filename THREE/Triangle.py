@@ -70,7 +70,7 @@ class Triangle:
 
     def _containsPoint(self, point, a, b, c):
         v1 = Vector3()
-        self.getBarycoord( point, a, b, c, v1 )
+        self._getBarycoord( point, a, b, c, v1 )
 
         return ( v1.x >= 0 ) and ( v1.y >= 0 ) and ( ( v1.x + v1.y ) <= 1 )
 

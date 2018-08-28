@@ -7,7 +7,7 @@
  * }
  */
 """
-from THREE.MeshPhongMaterial import *
+from THREE.materials.MeshPhongMaterial import *
 
 
 class MeshToonMaterial(MeshPhongMaterial):

@@ -7,16 +7,28 @@
  * @author tschw
  */
 """
+import sys
+import time
+import pygame
+from pygame.locals import *
+from ctypes import c_void_p
+from threading import Thread
+import queue
 
 import THREE.pyOpenGL.OpenGL as cOpenGL
 
 from THREE import *
+from THREE.Constants import *
 from THREE.renderers.pyOpenGL.pyOpenGLAnimation import *
 from THREE.renderers.pyOpenGL.pyOpenGLBufferRenderer import *
+from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
 from THREE.renderers.pyOpenGL.pyOpenGLIndexedBufferRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLInfo import *
 from THREE.renderers.pyOpenGL.pyOpenGLRenderStates import *
 import THREE._Math as _Math
+from THREE.renderers.shaders.ShaderLib import *
+from THREE.Javascript import *
+from THREE.renderers.pyOpenGLSpriteRenderer import *
 from THREE.renderers.pyOpenGLGuiRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLMorphtargets import *
 from THREE.DataTexture import *

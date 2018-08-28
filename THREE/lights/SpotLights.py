@@ -3,9 +3,8 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-import math
 import THREE._Math as _Math
-from THREE.Light import *
+from THREE.lights.Light import *
 from THREE.Camera import *
 
 
@@ -15,15 +14,15 @@ class _power:
         
     def get(self):
         """
-            // intensity = power per solid angle.
-            // ref: equation (17) from http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+        // intensity = power per solid angle.
+        // ref: equation (17) from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
         """
         return self.parent.intensity * math.pi
 
     def set(self,  power):
         """
         // intensity = power per solid angle.
-        // ref: equation (17) from http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+        // ref: ref: equation (17) from https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
         """
         self.parent.intensity = power / math.pi
     

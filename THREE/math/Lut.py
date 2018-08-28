@@ -3,12 +3,9 @@
  * @author daron1337 / http://daron1337.github.io/
  */
 """
-from THREE.Color import *
-from THREE.Vector3 import *
 from THREE.PlaneBufferGeometry import *
-from THREE.MeshBasicMaterial import *
+from THREE.materials.MeshBasicMaterial import *
 
-import numpy
 from PIL import Image, ImageDraw, ImageFont
 
 

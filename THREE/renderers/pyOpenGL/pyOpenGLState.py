@@ -213,9 +213,9 @@ def createTexture( type, target, count ):
 class pyOpenGLState:
     def __init__(self, extensions, utils, capabilities):
         self.maxVertexAttributes = glGetIntegerv( GL_MAX_VERTEX_ATTRIBS )
-        self.newAttributes = [np.zeros(self.maxVertexAttributes, 'B')]
-        self.enabledAttributes = [np.zeros(self.maxVertexAttributes, 'B')]
-        self.attributeDivisors = [np.zeros(self.maxVertexAttributes, 'B')]
+        self.newAttributes = [None]
+        self.enabledAttributes = [None]
+        self.attributeDivisors = [None]
 
         self.enabledCapabilities = {}
 
@@ -282,9 +282,13 @@ class pyOpenGLState:
 
     def initAttributes(self, vao):
         if len(self.newAttributes) < vao + 1:
-            self.newAttributes.append(np.zeros(self.maxVertexAttributes, 'B'))
-            self.enabledAttributes.append(np.zeros(self.maxVertexAttributes, 'B'))
-            self.attributeDivisors.append(np.zeros(self.maxVertexAttributes, 'B'))
+            for i in range(len(self.newAttributes), vao +1):
+                self.newAttributes.append(None)
+                self.enabledAttributes.append(None)
+                self.attributeDivisors.append(None)
+            self.newAttributes[vao] = np.zeros(self.maxVertexAttributes, 'B')
+            self.enabledAttributes[vao] = np.zeros(self.maxVertexAttributes, 'B')
+            self.attributeDivisors[vao] = np.zeros(self.maxVertexAttributes, 'B')
 
         self.newAttributes[vao].fill(0)
 

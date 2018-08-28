@@ -5,7 +5,7 @@
  */
 """
 from THREE.Object3D import *
-from THREE.SpriteMaterial import *
+from THREE.materials.SpriteMaterial import *
 
 
 class Sprite(Object3D):

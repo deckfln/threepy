@@ -3,7 +3,7 @@
 * @ author mrdoob / http: // mrdoob.com /
 * /
 """
-from THREE.Light import *
+from THREE.lights.Light import *
 
 
 class AmbientLight(Light):

@@ -3,8 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Object3D import *
-from THREE.Light import *
+from THREE.lights.Light import *
 from THREE.Camera import *
 
 

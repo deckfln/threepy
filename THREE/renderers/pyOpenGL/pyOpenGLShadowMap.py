@@ -6,8 +6,8 @@
 """
 
 from THREE.Frustum import *
-from THREE.MeshDepthMaterial import *
-from THREE.MeshDistanceMaterial import *
+from THREE.materials.MeshDepthMaterial import *
+from THREE.materials.MeshDistanceMaterial import *
 from THREE.renderers.pyOpenGLRenderTarget import *
 
 

@@ -7,7 +7,7 @@
  * }
  */
 """
-from THREE.MeshStandardMaterial import *
+from THREE.materials.MeshStandardMaterial import *
 
 
 class MeshPhysicalMaterial(MeshStandardMaterial):

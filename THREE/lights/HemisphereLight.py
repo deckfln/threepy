@@ -3,7 +3,7 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-from THREE.Light import *
+from THREE.lights.Light import *
 
 
 class HemisphereLight(Light):

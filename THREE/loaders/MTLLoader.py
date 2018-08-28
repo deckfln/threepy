@@ -3,16 +3,8 @@
  *
  * @author angelxuanchang
 """
-import re
 
-import THREE
-from THREE.Constants import *
-from THREE.Vector2 import *
-from THREE.LoadingManager import *
-from THREE.FileLoader import *
-from THREE.TextureLoader import *
-from THREE.Color import *
-from THREE.MeshPhongMaterial import *
+from THREE.materials.MeshPhongMaterial import *
 
 
 class MaterialCreator:

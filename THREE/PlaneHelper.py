@@ -4,7 +4,6 @@
  */
 """
 from THREE.Line import *
-from THREE.MeshBasicMaterial import *
 from THREE.Mesh import *
 
 

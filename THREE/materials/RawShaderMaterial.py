@@ -3,7 +3,7 @@
      * @author mrdoob / http://mrdoob.com/
      */
 """
-from THREE.ShaderMaterial import *
+from THREE.materials.ShaderMaterial import *
 
 
 class RawShaderMaterial(ShaderMaterial):
