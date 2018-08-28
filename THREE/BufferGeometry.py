@@ -4,18 +4,12 @@
  */
 """
 
-import math
-import numpy as np
-
 import THREE._Math as _Math
-from THREE.Matrix3 import *
-from THREE.Matrix4 import *
 from THREE.arrayMax import *
-from THREE.Box3 import *
+from THREE.math.Box3 import *
 from THREE.BoundingSphere import *
 from THREE.Object3D import *
 from THREE.BufferAttribute import *
-from THREE.DirectGeometry import *
 from THREE.DirectGeometry import *
 
 _gIdcount = 0

@@ -6,8 +6,8 @@
  */
 """
 import THREE._Math as _Math
-from THREE.Vector2 import *
-from THREE.Matrix3 import *
+from THREE.math.Vector2 import *
+from THREE.math.Matrix3 import *
 import THREE.Global
 
 _textureId = 0

@@ -3,14 +3,9 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from bitarray import bitarray
-import numpy as np
-import re
-from OpenGL_accelerate import *
 from OpenGL.GL import *
 from THREE.Constants import *
-from THREE.Vector4 import *
-from ctypes import sizeof, c_float, c_void_p, c_uint, c_uint16
+from THREE.math.Vector4 import *
 import OpenGL.raw.GL.VERSION.GL_1_0
 
 

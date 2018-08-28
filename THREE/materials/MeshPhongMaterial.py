@@ -50,8 +50,8 @@
  */
 """
 from THREE.materials.Material import *
-from THREE.Color import *
-from THREE.Vector2 import *
+from THREE.math.Color import *
+from THREE.math.Vector2 import *
 
 
 class MeshPhongMaterial(Material):

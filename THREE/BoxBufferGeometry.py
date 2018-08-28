@@ -1,6 +1,3 @@
-import math
-from THREE.Vector3 import *
-from THREE.BufferGeometry import *
 from THREE.Geometry import *
 
 

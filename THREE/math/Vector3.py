@@ -8,10 +8,8 @@
      * @author WestLangley / http://github.com/WestLangley
      */
 """
-import math
-import numpy as np
 
-from THREE.Quaternion import *
+from THREE.math.Quaternion import *
 
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
@@ -485,5 +483,4 @@ class Vector3(pyOpenGLObject):
         return self
 
 
-from THREE.Matrix4 import *
-from THREE.Quaternion import *
+from THREE.math.Matrix4 import *

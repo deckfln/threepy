@@ -9,13 +9,7 @@
  */
 """
 import THREE._Math as _Math
-from THREE.pyOpenGLObject import *
-from THREE.Matrix3 import *
-from THREE.Object3D import *
-from THREE.Vector2 import *
-from THREE.Color import *
 from THREE.Face3 import *
-from THREE.Sphere import *
 from THREE.BufferGeometry import *
 import numpy as np
 

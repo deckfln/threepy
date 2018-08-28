@@ -5,7 +5,7 @@
 """
 from THREE.Group import *
 from THREE.Mesh import *
-from THREE.Matrix4 import *
+from THREE.math.Matrix4 import *
 
 
 def createMultiMaterialObject( geometry, materials ):

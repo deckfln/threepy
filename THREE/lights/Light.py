@@ -5,9 +5,9 @@
  */
 """
 from THREE.Object3D import *
-from THREE.Color import *
-from THREE.Vector2 import *
-from THREE.Matrix4 import *
+from THREE.math.Color import *
+from THREE.math.Vector2 import *
+from THREE.math.Matrix4 import *
 
 
 class Light(Object3D):

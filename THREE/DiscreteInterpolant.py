@@ -5,7 +5,7 @@
  *
  * @author tschw
 """
-from THREE.Interpolant import *
+from THREE.math.Interpolant import *
 
 
 class DiscreteInterpolant(Interpolant):

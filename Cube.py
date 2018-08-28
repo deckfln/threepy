@@ -10,7 +10,7 @@ Licence: GPLv3 or higher <http://www.gnu.org/licenses/gpl.html>
 
 # imports ####################################################################
 
-from THREE.Triangle import *
+from THREE.math.Triangle import *
 
 # model ######################################################################
 

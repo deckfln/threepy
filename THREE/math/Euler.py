@@ -5,10 +5,9 @@
      * @author bhouston / http://clara.io
      */
 """
-import math
 import THREE._Math as _Math
-from THREE.Matrix4 import *
-from THREE.Quaternion import *
+from THREE.math.Matrix4 import *
+from THREE.math.Quaternion import *
 from THREE.pyOpenGLObject import *
 
 _matrix4 = Matrix4()

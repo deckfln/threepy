@@ -3,8 +3,8 @@
  *
  * @author tschw
 """
-from THREE.Interpolant import *
-from THREE.Quaternion import *
+from THREE.math.Interpolant import *
+from THREE.math.Quaternion import *
 
 from THREE.cython.cInterpolant import *
 

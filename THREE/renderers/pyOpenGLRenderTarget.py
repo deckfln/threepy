@@ -14,8 +14,7 @@
 */
 """
 import THREE._Math as _Math
-from THREE.pyOpenGLObject import *
-from THREE.Vector4 import*
+from THREE.math.Vector4 import*
 from THREE.Texture import *
 
 

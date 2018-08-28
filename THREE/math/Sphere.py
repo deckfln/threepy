@@ -4,9 +4,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-import math
-from THREE.Vector3 import *
-from THREE.Box3 import *
+from THREE.math.Box3 import *
 
 
 class Sphere:

@@ -15,7 +15,7 @@
 import math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
-from THREE.Vector3 import *
+from THREE.math.Vector3 import *
 
 cython = True
 

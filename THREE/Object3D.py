@@ -10,15 +10,10 @@
 import json
 
 import THREE._Math as _Math
-from THREE.pyOpenGLObject import *
-from THREE.Vector3 import *
-from THREE.Matrix3 import *
-from THREE.Matrix4 import *
-from THREE.Euler import *
-from THREE.Quaternion import *
+from THREE.math.Matrix3 import *
+from THREE.math.Euler import *
+from THREE.math.Quaternion import *
 from THREE.Layers import *
-from THREE.Constants import *
-
 
 _object3DId = 0
 

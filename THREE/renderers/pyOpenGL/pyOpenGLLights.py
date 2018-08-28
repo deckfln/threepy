@@ -3,11 +3,10 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-from THREE.Matrix4 import *
-from THREE.Color import *
-from THREE.Javascript import *
+from THREE.math.Vector2 import *
+from THREE.math.Vector3 import *
+from THREE.math.Matrix4 import *
+from THREE.math.Color import *
 
 
 class _LightUniforms:

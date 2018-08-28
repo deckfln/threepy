@@ -4,9 +4,7 @@
      * @author mrdoob / http://mrdoob.com/
      */
 """
-import math
-from THREE.Vector3 import *
-from THREE.Plane import *
+from THREE.math.Plane import *
 
 _v0 = Vector3()
 

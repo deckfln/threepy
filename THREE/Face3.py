@@ -4,8 +4,8 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-from THREE.Vector3 import *
-from THREE.Color import *
+from THREE.math.Vector3 import *
+from THREE.math.Color import *
 
 
 class Face3:

@@ -7,9 +7,7 @@
      */
 """
 
-import math
-import THREE
-from THREE.Vector3 import *
+from THREE.math.Vector3 import *
 from THREE.Constants import *
 from THREE.cython.cthree import *
 

@@ -3,7 +3,7 @@
  * @author bhouston / http:# //clara.io
  */
 """
-from THREE.Vector3 import *
+from THREE.math.Vector3 import *
 
 
 class Ray:

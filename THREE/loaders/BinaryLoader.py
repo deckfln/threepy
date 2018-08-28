@@ -3,13 +3,8 @@
  * @author alteredq / http:# //alteredqualia.com/
  */
 """
-import json
-import numpy as np
 
 from THREE.Geometry import *
-from THREE.javascriparray import *
-from THREE.Vector3 import *
-from THREE.FileLoader import *
 from THREE.Loader import *
 
 

@@ -5,7 +5,7 @@
  */
 """
 
-from THREE.Frustum import *
+from THREE.math.Frustum import *
 from THREE.materials.MeshDepthMaterial import *
 from THREE.materials.MeshDistanceMaterial import *
 from THREE.renderers.pyOpenGLRenderTarget import *

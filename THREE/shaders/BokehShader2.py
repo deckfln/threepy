@@ -9,7 +9,7 @@
  * Requires #define RINGS and SAMPLES integers
  */
 """
-from THREE.Vector2 import *
+from THREE.math.Vector2 import *
 from THREE.Javascript import *
 
 

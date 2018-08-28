@@ -3,8 +3,6 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Color import *
-from THREE.BufferGeometry import *
 from THREE.LineSegments import *
 
 

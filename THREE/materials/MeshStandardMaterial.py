@@ -51,7 +51,7 @@
  */
 """
 from THREE.materials.Material import *
-from THREE.Color import *
+from THREE.math.Color import *
 
 
 class MeshStandardMaterial(Material):

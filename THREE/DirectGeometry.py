@@ -3,9 +3,7 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-import numpy as np
+from THREE.math.Vector2 import *
 
 
 class _group:

@@ -10,7 +10,6 @@
  */
 """
 from THREE.LineSegments import *
-from THREE.Vector3 import *
 from THREE.Camera import *
 
 

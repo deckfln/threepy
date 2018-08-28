@@ -6,12 +6,7 @@
 """
 import json as JSON
 
-from THREE.LoadingManager import *
-from THREE.FileLoader import *
 from THREE.Loader import *
-from THREE.Vector3 import *
-from THREE.Vector4 import *
-from THREE.Face3 import *
 from THREE.Geometry import *
 from THREE.MorphTarget import *
 from THREE.AnimationClip import *

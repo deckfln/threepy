@@ -4,10 +4,7 @@
  * @author Mugen87 / https:# //github.com/Mugen87
  */
 """
-import math
 
-from THREE.Vector2 import *
-from THREE.Vector3 import *
 from THREE.Geometry import *
 from THREE.BufferGeometry import *
 

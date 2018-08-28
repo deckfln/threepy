@@ -8,7 +8,7 @@
 """
 import numpy
 
-from THREE.Vector3 import *
+from THREE.math.Vector3 import *
 from THREE.Constants import *
 
 

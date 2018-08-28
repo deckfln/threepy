@@ -6,8 +6,6 @@
 """
 from THREE.Curve import *
 from THREE.Bezier import *
-from THREE.Vector2 import *
-from THREE.Vector3 import *
 from THREE.Geometry import *
 
 

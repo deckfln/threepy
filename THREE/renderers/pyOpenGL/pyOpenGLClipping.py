@@ -4,7 +4,7 @@
  */
 """
 
-from THREE.Plane import *
+from THREE.math.Plane import *
 from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 
 class pyOpenGLClipping:

@@ -5,11 +5,9 @@
      * @author WestLangley / http://github.com/WestLangley
     */
 """
-import math
 import THREE._Math as _Math
 from THREE.Object3D import *
-from THREE.Matrix4 import *
-from THREE.Quaternion import *
+from THREE.math.Quaternion import *
 
 
 class Camera(Object3D):

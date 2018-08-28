@@ -3,9 +3,7 @@
  * @author alteredq / http:# //alteredqualia.com/
  */
 """
-import re
 import THREE._Math as _Math
-from THREE.Color import *
 from THREE.TextureLoader import *
 from THREE.MaterialLoader import *
 

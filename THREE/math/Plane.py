@@ -3,8 +3,7 @@
  * @author bhouston / http:# //clara.io
  */
 """
-from THREE.Vector3 import *
-from THREE.Matrix3 import *
+from THREE.math.Matrix3 import *
 
 cython = True
 

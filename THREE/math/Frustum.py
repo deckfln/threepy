@@ -5,7 +5,7 @@
  * @author bhouston / http://clara.io
  */
 """
-from THREE.Plane import *
+from THREE.math.Plane import *
 from THREE.BoundingSphere import *
 
 cython = True

@@ -2,7 +2,7 @@
     @author deckfln
 """
 
-from THREE.Sphere import *
+from THREE.math.Sphere import *
 
 
 class BoundingSphere(Sphere):

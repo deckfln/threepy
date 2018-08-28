@@ -4,20 +4,10 @@
  * @author Mugen87 / https:#github.com/Mugen87
  */
 """
-from lxml import etree
 from xml.dom import minidom
-import re
 
-import THREE
-from THREE.Vector3 import *
-from THREE.Quaternion import *
-from THREE.Matrix4 import *
-from THREE.Javascript import *
-from THREE.Skeleton import *
 from THREE.SkinnedMesh import *
 from THREE.Loader import *
-from THREE.LoadingManager import *
-
 
 import THREE._Math as _Math
 

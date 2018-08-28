@@ -1,9 +1,8 @@
 """
 
 """
-from THREE.pyOpenGLObject import *
 from THREE.Group import *
-from THREE.Sphere import *
+from THREE.math.Sphere import *
 import THREE.MeshUtils as MeshUtils
 
 

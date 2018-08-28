@@ -5,7 +5,7 @@
  * @author ikerr / http:#verold.com
 """
 from THREE.javascriparray import *
-from THREE.Matrix4 import *
+from THREE.math.Matrix4 import *
 
 _offsetMatrix = THREE.Matrix4()
 _identityMatrix = THREE.Matrix4()

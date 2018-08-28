@@ -3,11 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-import json
 
-from THREE.LoadingManager import *
-from THREE.Vector3 import *
-from THREE.BufferAttribute import *
 from THREE.BufferGeometry import *
 from THREE.javascriparray import *
 from THREE.FileLoader import *

@@ -8,7 +8,7 @@
  * @author tschw
 """
 from THREE.javascriparray import *
-from THREE.Quaternion import *
+from THREE.math.Quaternion import *
 
 
 class PropertyMixer:

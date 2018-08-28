@@ -1,7 +1,7 @@
 """
  * @author tschw
 """
-from THREE.Interpolant import *
+from THREE.math.Interpolant import *
 from THREE.cython.cInterpolant import *
 
 

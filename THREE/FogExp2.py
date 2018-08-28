@@ -4,8 +4,7 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-from THREE.pyOpenGLObject import *
-from THREE.Color import *
+from THREE.math.Color import *
 
 
 class FogExp2(pyOpenGLObject):

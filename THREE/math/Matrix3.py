@@ -7,11 +7,9 @@
      */
 """
 
-import math
-from THREE.Vector3 import *
+from THREE.math.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
-from numpy.linalg import inv
 
 _v1 = Vector3()
 

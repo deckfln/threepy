@@ -7,7 +7,7 @@
  */
 """
 import math
-import THREE.Vector3
+import THREE.math.Vector3
 from THREE.pyOpenGL.EventManager import *
 
 

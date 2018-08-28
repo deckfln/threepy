@@ -3,10 +3,10 @@
  * Uniforms library for shared webgl shaders
  */
 """
-from THREE.Color import *
-from THREE.Vector2 import *
-from THREE.Vector4 import *
-from THREE.Matrix3 import *
+from THREE.math.Color import *
+from THREE.math.Vector2 import *
+from THREE.math.Vector4 import *
+from THREE.math.Matrix3 import *
 from THREE.UniformValue import *
 
 UniformsLib = {

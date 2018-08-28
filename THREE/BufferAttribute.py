@@ -4,14 +4,12 @@
      */
 """
 import THREE._Math as _Math
-from THREE.Color import *
-from THREE.Vector2 import *
-from THREE.Vector3 import *
-from THREE.Vector4 import *
+from THREE.math.Color import *
+from THREE.math.Vector2 import *
+from THREE.math.Vector3 import *
+from THREE.math.Vector4 import *
 from THREE.pyOpenGLObject import *
 
-
-from array import *
 import numpy as np
 
 

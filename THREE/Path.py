@@ -5,7 +5,7 @@
  **/
 """
 from THREE.CurvePath import *
-from THREE.Vector2 import *
+from THREE.math.Vector2 import *
 
 
 class Path(CurvePath):

@@ -4,9 +4,7 @@
      * @author WestLangley / http://github.com/WestLangley
      */
 """
-import math
-from THREE.Vector3 import *
-from THREE.Sphere import *
+from THREE.math.Sphere import *
 
 
 class Box3:
@@ -153,8 +151,6 @@ class Box3:
         # // Computes the world-axis-aligned bounding box of an object (including its children),
         #// accounting for both the object's, and children's, world transforms
 
-        object.updateMatrixWorld( True )
-
         # TODO: FDE fix it in python
         def _traverse_box3(node, scope):
             v1 = Vector3()
@@ -173,6 +169,7 @@ class Box3:
                             v1.fromBufferAttribute(attribute, i).applyMatrix4(node.matrixWorld)
                             self.expandByPoint(v1)
 
+        object.updateMatrixWorld( True )
         object.traverse( _traverse_box3, self)
 
         return self
