@@ -4,7 +4,7 @@
  */
 """
 import random
-from THREE.BufferGeometry import *
+from THREE.core.BufferGeometry import *
 from THREE.materials.LineBasicMaterial import *
 
 

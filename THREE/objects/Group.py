@@ -3,7 +3,7 @@
      * @author mrdoob / http://mrdoob.com/
      */
 """
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 
 
 class Group(Object3D):

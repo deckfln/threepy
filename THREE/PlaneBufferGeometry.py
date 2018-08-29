@@ -4,8 +4,8 @@
      * @author Mugen87 / https://github.com/Mugen87
      */
 """
-from THREE.Geometry import *
-from THREE.BufferGeometry import *
+from THREE.core.Geometry import *
+from THREE.core.BufferGeometry import *
 
 
 # // PlaneGeometry

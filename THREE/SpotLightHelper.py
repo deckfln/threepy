@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  * @author WestLangley / http://github.com/WestLangley
 """
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 
 
 class SpotLightHelper(Object3D):

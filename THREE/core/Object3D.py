@@ -13,7 +13,7 @@ import THREE._Math as _Math
 from THREE.math.Matrix3 import *
 from THREE.math.Euler import *
 from THREE.math.Quaternion import *
-from THREE.Layers import *
+from THREE.core.Layers import *
 
 _object3DId = 0
 
@@ -163,6 +163,20 @@ class Object3D(pyOpenGLObject):
         self._quaternion.multiply(q1)
         return self
 
+    def rotateOnWorldAxis(self, axis, angle):
+        """
+        // rotate object on axis in world space
+        // axis is assumed to be normalized
+        // method assumes no rotated parent
+        """
+        q1 = Quaternion()
+
+        q1.setFromAxisAngle( axis, angle )
+
+        self.quaternion.premultiply( q1 )
+
+        return self
+
     def rotateX(self, angle):
         v1 = Vector3(1, 0, 0)
         return self.rotateOnAxis(v1, angle)
@@ -265,54 +279,37 @@ class Object3D(pyOpenGLObject):
     def getObjectByName(self, name):
         return self.getObjectByProperty('name', name)
         
-    def getWorldPosition(self, optionalTarget=None):
-        result = optionalTarget or Vector3()
-
+    def getWorldPosition(self, target):
         self.updateMatrixWorld(True)
 
-        return result.setFromMatrixPosition(self.matrixWorld)
+        return target.setFromMatrixPosition(self.matrixWorld)
 
-    def getWorldQuaternion(self, optionalTarget=None):
+    def getWorldQuaternion(self, target):
         position = Vector3()
         scale = Vector3()
 
-        result = optionalTarget or Quaternion()
-
         self.updateMatrixWorld(True)
 
-        self.matrixWorld.decompose(position, result, scale)
+        self.matrixWorld.decompose(position, target, scale)
 
-        return result
+        return target
 
-    def getWorldRotation(self, optionalTarget=None):
-        quaternion = Quaternion()
-
-        result = optionalTarget or Euler()
-
-        self.getWorldQuaternion(quaternion)
-
-        return result.setFromQuaternion(quaternion, self._rotation.order, False)
-
-    def getWorldScale(self, optionalTarget=None):
+    def getWorldScale(self, target):
         position = Vector3()
         quaternion = Quaternion()
 
-        result = optionalTarget or Vector3()
-
         self.updateMatrixWorld(True)
 
-        self.matrixWorld.decompose(position, quaternion, result)
+        self.matrixWorld.decompose(position, quaternion, target)
 
-        return result
+        return target
 
-    def getWorldDirection(self, optionalTarget=None):
+    def getWorldDirection(self, target):
         quaternion = Quaternion()
-
-        result = optionalTarget or Vector3()
 
         self.getWorldQuaternion(quaternion)
 
-        return result.set(0, 0, 1).applyQuaternion(quaternion)
+        return target.set(0, 0, 1).applyQuaternion(quaternion)
 
     def raycast(self, raycaster, intersects):
         return None
@@ -384,8 +381,8 @@ class Object3D(pyOpenGLObject):
                 child.updateMatrixWorld(force)
 
     def toJSON(self, meta):
-        # // meta is '' when called from JSON.stringify
-        isRootObject = (meta is None or meta == '')
+        # // meta is a string when called from JSON.stringify
+        isRootObject = (meta is None or type(meta) is str)
         output = {}
 
         # // meta is a hash used to collect geometries, materials.
@@ -397,7 +394,8 @@ class Object3D(pyOpenGLObject):
                 'geometries': {},
                 'materials': {},
                 'textures': {},
-                'images': {}
+                'images': {},
+                'shapes': {}
             }
 
             output['metadata'] = {
@@ -420,10 +418,18 @@ class Object3D(pyOpenGLObject):
             object['receiveShadow'] = True
         if not self.visible:
             object['visible'] = False
+        if not self.frustumCulled:
+            object['frustumCulled'] = False
+        if self.renderOrder != 0:
+            object['renderOrder'] = self.renderOrder
+
         if json.dumps(self.userData) != '{}':
             object['userData'] = self.userData
 
+        object['layers'] = self.layers.mask
         object['matrix'] = self.matrix.toArray()
+        if not self.matrixAutoUpdate:
+            object['matrixAutoUpdate'] = False
 
         # //
         def serialize(library, element):
@@ -432,8 +438,20 @@ class Object3D(pyOpenGLObject):
 
             return element.uuid
 
-        if self.geometry is not None:
+        if self.my_class(isMesh | isLine | isPoints):
             object['geometry'] = serialize(meta['geometries'], self.geometry)
+            parameters = self.geometry.parameters
+
+            if parameters is not None and parameters.shapes is not None:
+
+                shapes = parameters.shapes
+
+                if type( shapes ) is list:
+                   for shape in shapes:
+                        serialize( meta.shapes, shape )
+
+                else:
+                    serialize( meta.shapes, shapes )
 
         if self.material is not None:
             if isinstance(self.material, list):
@@ -469,6 +487,7 @@ class Object3D(pyOpenGLObject):
             materials = extractFromCache(meta['materials'])
             textures = extractFromCache(meta['textures'])
             images = extractFromCache(meta['images'])
+            shapes = extractFromCache(meta['shapes'])
 
             if len(geometries) > 0:
                 output['geometries'] = geometries
@@ -478,6 +497,8 @@ class Object3D(pyOpenGLObject):
                 output['textures'] = textures
             if len(images) > 0:
                 output['images'] = images
+            if len(shapes) > 0:
+                output['shapes'] = shapes
 
         output['object'] = object
 

@@ -4,7 +4,7 @@
  */
 """
 
-from THREE.BufferGeometry import *
+from THREE.core.BufferGeometry import *
 from THREE.javascriparray import *
 from THREE.FileLoader import *
 

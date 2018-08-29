@@ -3,9 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.BufferGeometry import *
-from OpenGL_accelerate import *
-from OpenGL.GL import *
+from THREE.core.BufferGeometry import *
 
 
 class pyOpenGLObjects:

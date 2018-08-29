@@ -4,12 +4,8 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-from THREE.math.Vector2 import *
-from THREE.math.Vector3 import *
-from THREE.math.Matrix4 import *
-from THREE.Object3D import *
-from THREE.BufferGeometry import *
-from THREE.InterleavedBufferAttribute import *
+from THREE.core.BufferGeometry import *
+from THREE.core.InterleavedBufferAttribute import *
 from THREE.materials.SpriteMaterial import *
 from THREE.javascriparray import *
 

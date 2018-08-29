@@ -4,7 +4,7 @@
  */
 """
 
-from THREE.Geometry import *
+from THREE.core.Geometry import *
 from THREE.Loader import *
 
 

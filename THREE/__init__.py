@@ -13,18 +13,18 @@ from THREE.math.Matrix4 import *
 from THREE.math.Matrix3 import *
 from THREE.math.Plane import *
 from THREE.math.Euler import *
-from THREE.Layers import *
+from THREE.core.Layers import *
 from THREE.math.Sphere import *
 from THREE.math.Box3 import *
 from THREE.math.Frustum import *
 from THREE.math.Spherical import *
-from THREE.Geometry import *
-from THREE.BufferAttribute import *
-from THREE.InterleavedBufferAttribute import *
-from THREE.InstancedBufferAttribute import *
-from THREE.BufferGeometry import *
-from THREE.InstancedBufferGeometry import *
-from THREE.DirectGeometry import *
+from THREE.core.Geometry import *
+from THREE.core.BufferAttribute import *
+from THREE.core.InterleavedBufferAttribute import *
+from THREE.core.InstancedBufferAttribute import *
+from THREE.core.BufferGeometry import *
+from THREE.core.InstancedBufferGeometry import *
+from THREE.core.DirectGeometry import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
 from THREE.SphereBufferGeometry import *
@@ -41,7 +41,7 @@ from THREE.LatheBufferGeometry import *
 from THREE.DodecahedronBufferGeometry import *
 from THREE.math.Line3 import *
 from THREE.math.Color import *
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 from THREE.objects.Group import *
 from THREE.Bezier import *
 from THREE.Curve import *
@@ -74,7 +74,7 @@ from THREE.lights.DirectionalLight import *
 from THREE.lights.AmbientLight import *
 from THREE.lights.HemisphereLight import *
 from THREE.lights.PointLight import *
-from THREE.Face3 import *
+from THREE.core.Face3 import *
 from THREE.objects.Points import *
 from THREE.objects.Mesh import *
 from THREE.Scene import *
@@ -97,7 +97,7 @@ from THREE.VertexNormalsHelper import *
 from THREE.SpotLightHelper import *
 from THREE.SkeletonHelper import *
 from THREE.Ray import *
-from THREE.Raycaster import *
+from THREE.core.Raycaster import *
 from THREE.objects.Sprite import *
 from THREE.AnimationMixer import *
 from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
@@ -132,7 +132,7 @@ from THREE.TextureLoader import *
 from THREE.JSONLoader import *
 from THREE.BufferGeometryLoader import *
 from THREE.CubeTextureLoader import *
-from THREE.Clock import *
+from THREE.core.Clock import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils
 

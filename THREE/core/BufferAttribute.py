@@ -37,7 +37,7 @@ class BufferAttribute(pyOpenGLObject):
         self.count = 0
         if array is not None:
             self.count = int(len(array) / itemSize)
-        self.normalized = (normalized == True)
+        self.normalized = normalized
 
         self.dynamic = False
         self.updateRange = _updateRange(0, - 1)
@@ -45,15 +45,13 @@ class BufferAttribute(pyOpenGLObject):
         self.version = 0
         # self.needsUpdate = False
 
-        self.onUploadCallback = self._onUploadCallback
-
     def setUpdate(self, value):
         if value:
             self.version += 1
 
     needsUpdate = property(None, setUpdate)    
 
-    def _onUploadCallback(self):
+    def onUploadCallback(self):
         return True
 
     def onUpload(self, callback):
@@ -68,12 +66,15 @@ class BufferAttribute(pyOpenGLObject):
             self.count = len(array) / self.itemSize
         self.array = array
 
+        return self
+
     def setDynamic(self, value):
         self.dynamic = value
 
         return self
 
     def copy(self, source):
+        self.name = source.name
         self.array[:] = source.array[:]
         self.itemSize = source.itemSize
         self.count = source.count
@@ -98,11 +99,12 @@ class BufferAttribute(pyOpenGLObject):
         return self
 
     def copyColorsArray(self, colors):
-        array = self.array; offset = 0
+        array = self.array
+        offset = 0
 
         for color in colors:
             if color is None:
-                print('THREE.BufferAttribute.copyColorsArray(): color is undefined', i)
+                print('THREE.BufferAttribute.copyColorsArray(): color is undefined')
                 color = Color()
 
             array[offset] = color.r
@@ -112,23 +114,13 @@ class BufferAttribute(pyOpenGLObject):
             
         return self
 
-    def copyIndicesArray(self, indices):
-        array = self.array; offset = 0
-
-        for index in indices:
-            array[offset] = index.a
-            array[offset + 1] = index.b
-            array[offset + 2] = index.c
-            offset += 3
-
-        return self
-
     def copyVector2sArray(self, vectors):
-        array = self.array; offset = 0
+        array = self.array
+        offset = 0
 
         for vector in vectors:
             if vector is None:
-                print('THREE.BufferAttribute.copyVector2sArray(): vector is undefined', i)
+                print('THREE.BufferAttribute.copyVector2sArray(): vector is undefined')
                 vector = Vector2()
 
             array[offset] = vector.x
@@ -157,7 +149,7 @@ class BufferAttribute(pyOpenGLObject):
 
         for vector in vectors:
             if vector is None:
-                print('THREE.BufferAttribute.copyVector4sArray(): vector is undefined', i)
+                print('THREE.BufferAttribute.copyVector4sArray(): vector is undefined')
                 vector = Vector4()
 
             array[offset] = vector.x
@@ -235,75 +227,75 @@ class BufferAttribute(pyOpenGLObject):
 
         
 class Int8BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'b'), itemSize)
+            super().__init__(np.array(arrayx, 'b'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx, 'b').shape, itemSize)
+            super().__init__(np.zeros(arrayx, 'b').shape, itemSize, normalized)
 
 
 class Uint8BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'B'), itemSize)
+            super().__init__(np.array(arrayx, 'B'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx, 'B').shape, itemSize)
+            super().__init__(np.zeros(arrayx, 'B').shape, itemSize, normalized)
 
 
 class Uint8ClampedBufferAttribute(BufferAttribute):
-    def __init__(self,  arrayx, itemSize):
+    def __init__(self,  arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'B'), itemSize)
+            super().__init__(np.array(arrayx, 'B'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'B'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'B'), itemSize, normalized)
 
 
 class Int16BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'l'), itemSize)
+            super().__init__(np.array(arrayx, 'l'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'l'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'l'), itemSize, normalized)
 
 
 class Uint16BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'L'), itemSize)
+            super().__init__(np.array(arrayx, 'L'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'L'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'L'), itemSize, normalized)
 
 
 class Int32BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, dtype=np.int32), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.int32), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, dtype=np.int32), itemSize)
+            super().__init__(np.zeros(arrayx.shape, dtype=np.int32), itemSize, normalized)
 
 
 class Uint32BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, dtype=np.uint32), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.uint32), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, dtype=np.uint32), itemSize)
+            super().__init__(np.zeros(arrayx.shape, dtype=np.uint32), itemSize, normalized)
 
 
 class Float32BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, dtype=np.float32), itemSize)
+            super().__init__(np.array(arrayx, dtype=np.float32), itemSize, normalized)
         elif isinstance(arrayx, int):
-            super().__init__(np.zeros(arrayx, dtype=np.float32), itemSize)
+            super().__init__(np.zeros(arrayx, dtype=np.float32), itemSize, normalized)
         else:
             a = np.zeros(arrayx.shape, dtype=np.float32)
             super().__init__(a, itemSize)
 
 
 class Float64BufferAttribute(BufferAttribute):
-    def __init__(self, arrayx, itemSize):
+    def __init__(self, arrayx, itemSize, normalized=False):
         if isinstance(arrayx, list):
-            super().__init__(np.array(arrayx, 'd'), itemSize)
+            super().__init__(np.array(arrayx, 'd'), itemSize, normalized)
         else:
-            super().__init__(np.zeros(arrayx.shape, 'd'), itemSize)
+            super().__init__(np.zeros(arrayx.shape, 'd'), itemSize, normalized)

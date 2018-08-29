@@ -9,16 +9,30 @@
  */
 """
 import THREE._Math as _Math
-from THREE.Face3 import *
-from THREE.BufferGeometry import *
+from THREE.core.Face3 import *
+from THREE.math.Matrix3 import *
+from THREE.math.Sphere import *
+from THREE.math.Box3 import *
+from THREE.math.Vector3 import *
+from THREE.math.Matrix4 import *
+from THREE.math.Vector2 import *
+from THREE.math.Color import *
+from THREE.core.Object3D import *
+from THREE.core.BufferGeometry import *
 import numpy as np
+
+
+_geometryId = 0     #Geometry uses even numbers as Id
+_v3 = Vector3()
 
 
 class Geometry(pyOpenGLObject):
     isGeometry = True
     
     def __init__(self):
-        self.id = GeometryIdCount()
+        global _geometryId
+        self.id = _geometryId
+        _geometryId += 2
 
         super().__init__()
         self.set_class(isGeometry)
@@ -223,13 +237,14 @@ class Geometry(pyOpenGLObject):
         return self
 
     def center(self):
+        global _v3
         self.computeBoundingBox()
 
-        offset = self.boundingBox.getCenter().negate()
+        self.boundingBox.getCenter(_v3).negate()
 
-        self.translate( offset.x, offset.y, offset.z )
+        self.translate( _v3.x, _v3.y, _v3.z )
 
-        return offset
+        return _v3
 
     def normalize(self):
         self.computeBoundingSphere()
@@ -424,16 +439,6 @@ class Geometry(pyOpenGLObject):
             face.normal = face.__originalFaceNormal
             face.vertexNormals = face.__originalVertexNormals
 
-    def computeLineDistances(self):
-        d = 0
-        vertices = self.vertices
-
-        for i in range(len(vertices)):
-            if i > 0:
-                d += vertices[ i ].distanceTo( vertices[ i - 1 ] )
-
-            self.lineDistances[ i ] = d
-
     def computeBoundingBox(self):
         if self.boundingBox == None:
             self.boundingBox = Box3()
@@ -599,6 +604,14 @@ class Geometry(pyOpenGLObject):
         diff = len(self.vertices) - len(unique)
         self.vertices = np.array(unique, object)
         return diff
+
+    def setFromPoints(self, points):
+        self.vertices = []
+
+        for point in points:
+            self.vertices.append( Vector3( point.x, point.y, point.z or 0 ) )
+
+        return self
 
     def sortFacesByMaterialIndex(self):
         faces = self.faces

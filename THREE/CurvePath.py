@@ -6,7 +6,7 @@
 """
 from THREE.Curve import *
 from THREE.Bezier import *
-from THREE.Geometry import *
+from THREE.core.Geometry import *
 
 
 """

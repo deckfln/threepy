@@ -10,8 +10,8 @@ import random
 
 from THREE.materials.MeshBasicMaterial import *
 from THREE.math.Triangle import *
-from THREE.BufferGeometry import *
-from THREE.Face3 import *
+from THREE.core.BufferGeometry import *
+from THREE.core.Face3 import *
 from THREE.Ray import *
 import THREE.renderers.pyOpenGL.pyOpenGLObjects as pyOpenGLObjects
 

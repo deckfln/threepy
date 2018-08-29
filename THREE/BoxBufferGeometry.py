@@ -1,4 +1,4 @@
-from THREE.Geometry import *
+from THREE.core.Geometry import *
 
 
 class BoxGeometry(Geometry):

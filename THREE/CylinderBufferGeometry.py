@@ -5,8 +5,8 @@
  */
 """
 
-from THREE.Geometry import *
-from THREE.BufferGeometry import *
+from THREE.core.Geometry import *
+from THREE.core.BufferGeometry import *
 
 
 # // CylinderGeometry

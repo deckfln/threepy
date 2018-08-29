@@ -4,7 +4,7 @@
  * @author alteredq / http://alteredqualia.com/
  */
 """
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 from THREE.math.Color import *
 from THREE.math.Vector2 import *
 from THREE.math.Matrix4 import *

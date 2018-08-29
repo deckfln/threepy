@@ -4,7 +4,7 @@
  * @author ikerr / http://verold.com
 """
 
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 
 
 class Bone(Object3D):

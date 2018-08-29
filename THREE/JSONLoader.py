@@ -7,7 +7,7 @@
 import json as JSON
 
 from THREE.Loader import *
-from THREE.Geometry import *
+from THREE.core.Geometry import *
 from THREE.MorphTarget import *
 from THREE.AnimationClip import *
 

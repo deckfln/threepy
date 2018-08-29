@@ -6,9 +6,8 @@
  * based on http:# //www.blackpawn.com/texts/pqtorus/
  */
 """
-import math
-from THREE.Geometry import *
-from THREE.BufferGeometry import *
+from THREE.core.Geometry import *
+from THREE.core.BufferGeometry import *
 
 
 # // TorusKnotGeometry

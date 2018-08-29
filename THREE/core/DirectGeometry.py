@@ -29,7 +29,6 @@ class morphTargets:
 
 class DirectGeometry:
     def __init__(self):
-        self.indices = []
         self.vertices = []
         self.normals = []
         self.colors = []
@@ -123,6 +122,9 @@ class DirectGeometry:
 
         hasSkinIndices = len(skinIndices) == len(vertices)
         hasSkinWeights = len(skinWeights) == len(vertices)
+
+        if len(vertices) > 0 and len(faces) == 0:
+            raise RuntimeWarning( 'THREE.DirectGeometry: Faceless geometries are not supported.' )
 
         # //
 

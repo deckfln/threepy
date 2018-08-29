@@ -23,7 +23,7 @@
  * }
  */
 """
-from THREE.Geometry import *
+from THREE.core.Geometry import *
 import THREE.ShapeUtils as ShapeUtils
 
 

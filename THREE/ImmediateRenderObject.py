@@ -3,7 +3,7 @@
      * @author alteredq / http://alteredqualia.com/
      */
 """
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 
 
 class ImmediateRenderObject(Object3D):

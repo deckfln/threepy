@@ -1,7 +1,7 @@
 """
  * @author benaadams / https://twitter.com/ben_a_adams
 """
-from THREE.BufferAttribute import *
+from THREE.core.BufferAttribute import *
 
 
 class InstancedBufferAttribute(BufferAttribute):

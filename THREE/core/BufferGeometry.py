@@ -8,9 +8,9 @@ import THREE._Math as _Math
 from THREE.arrayMax import *
 from THREE.math.Box3 import *
 from THREE.BoundingSphere import *
-from THREE.Object3D import *
-from THREE.BufferAttribute import *
-from THREE.DirectGeometry import *
+from THREE.core.Object3D import *
+from THREE.core.BufferAttribute import *
+from THREE.core.DirectGeometry import *
 
 _gIdcount = 0
 _box = Box3()
@@ -46,13 +46,19 @@ class _groups:
         self.materialIndex = mi
 
 
+_bufferGeometryId = 1   # BufferGeometry uses odd numbers as Id
+_v3 = Vector3()
+
+
 class BufferGeometry(pyOpenGLObject):
-    MaxIndex = 65535
     count = 0
     isBufferGeometry = True
 
     def __init__(self):
-        self.id = GeometryIdCount()
+        global _bufferGeometryId
+
+        self.id = _bufferGeometryId
+        _bufferGeometryId += 2
 
         super().__init__()
         self.set_class(isBufferGeometry)
@@ -70,6 +76,7 @@ class BufferGeometry(pyOpenGLObject):
         self.drawRange = _drawRange(0, float('+inf'))
         self.callback = None
         self.bones = None
+        self.userData = {}
 
     def dispose(self):
         return
@@ -89,15 +96,15 @@ class BufferGeometry(pyOpenGLObject):
     def addAttribute(self, name, attribute):
         if not ( attribute and attribute.my_class(isBufferAttribute) ) and not ( attribute and attribute.my_class(isInterleavedBufferAttribute)):
             print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
-            self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
-            return
+            return self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
 
         if name == 'index':
             print( 'THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.' )                
             self.setIndex( attribute )
-            return
+            return self
 
         self.attributes.__dict__[name] = attribute
+        return self
 
     def getAttribute(self, name ):
         return self.attributes.__dict__[name]
@@ -179,10 +186,12 @@ class BufferGeometry(pyOpenGLObject):
         self.applyMatrix( obj.matrix )
 
     def center(self):
+        global _v3
+        offset = _v3
         self.computeBoundingBox()
-        offset = self.boundingBox.getCenter().negate()
+        self.boundingBox.getCenter(offset).negate()
         self.translate( offset.x, offset.y, offset.z )
-        return offset
+        return self
         
     def setFromObject(self, object ):
         # // console.log( 'THREE.BufferGeometry.setFromObject(). Converting', object, self )
@@ -206,7 +215,17 @@ class BufferGeometry(pyOpenGLObject):
                 self.fromGeometry( geometry )
 
         return self
-        
+
+    def setFromPoints(self, points):
+        position = []
+
+        for point in points:
+            position.append( point.x, point.y, point.z or 0 )
+
+        self.addAttribute( 'position', Float32BufferAttribute( position, 3 ) )
+
+        return self
+
     def updateFromObject(self, object ):
         geometry = object.geometry
         if object.my_class(isMesh):
@@ -299,13 +318,6 @@ class BufferGeometry(pyOpenGLObject):
         if len(geometry.uvs2) > 0:
             uvs2 = np.zeros( len(geometry.uvs2) * 2, 'f' )
             self.addAttribute( 'uv2', BufferAttribute( uvs2, 2 ).copyVector2sArray( geometry.uvs2 ) )
-
-        if len(geometry.indices) > 0:
-            if geometry.indices.count > 65535:
-                indices = np.zeros(len(geometry.indices) * 3, "L" )
-            else:
-                indices = np.zeros(len(geometry.indices) * 3, "S" )
-            self.setIndex( BufferAttribute( indices, 1 ).copyIndicesArray( geometry.indices ) )
 
         # // groups
         self.groups = geometry.groups
@@ -504,6 +516,11 @@ class BufferGeometry(pyOpenGLObject):
 
             geometry2.addAttribute( name, BufferAttribute( array2, itemSize ) )
 
+        groups = self.groups
+
+        for group in groups:
+            geometry2.addGroup( group.start, group.count, group.materialIndex )
+
         return geometry2
         
     def toJSON(self, meta=None):
@@ -519,6 +536,9 @@ class BufferGeometry(pyOpenGLObject):
         data['type'] = self.type
         if self.name != '':
             data['name'] = self.name
+        if len(self.userData) > 0:
+            data['userData'] = self.userData
+
         if self.parameters is not None:
             parameters = self.parameters
             for key in parameters:
@@ -617,6 +637,9 @@ class BufferGeometry(pyOpenGLObject):
         # // draw range
         self.drawRange.start = source.drawRange.start
         self.drawRange.count = source.drawRange.count
+
+        # user data
+        self.userData = self.userData
 
         return self
 

@@ -66,19 +66,13 @@ class Raycaster:
         else:
             raise RuntimeError( 'THREE.Raycaster: Unsupported camera type.' )
 
-
-    def intersectObject(self, object, recursive ):
-        intersects = []
-
-        intersectObject( object, self, intersects, recursive )
-
+    def intersectObject(self, object, recursive, intersects=[]):
+        intersectObject( object, self, intersects, recursive)
         intersects.sort( ascSort )
 
         return intersects
 
-    def intersectObjects(self, objects, recursive=False ):
-        intersects = []
-
+    def intersectObjects(self, objects, recursive=False, intersects=[] ):
         if isinstance(objects, list) == False:
             print( 'THREE.Raycaster.intersectObjects: objects is not an Array.' )
             return intersects

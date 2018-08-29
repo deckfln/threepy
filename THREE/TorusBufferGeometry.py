@@ -5,9 +5,8 @@
  * @author Mugen87 / https:# //github.com/Mugen87
  */
 """
-import math
-from THREE.Geometry import *
-from THREE.BufferGeometry import *
+from THREE.core.Geometry import *
+from THREE.core.BufferGeometry import *
 
 
 # // TorusGeometry

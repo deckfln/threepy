@@ -4,7 +4,7 @@
  */
 """
 
-from THREE.Object3D import *
+from THREE.core.Object3D import *
 
 
 class Scene(Object3D):
