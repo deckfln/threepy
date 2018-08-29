@@ -6,10 +6,11 @@
 """
 from THREE.javascriparray import *
 from THREE.math.Matrix4 import *
+from THREE.math.Matrix4 import *
 
-_offsetMatrix = THREE.Matrix4()
-_identityMatrix = THREE.Matrix4()
-_matrix4 = THREE.Matrix4()
+_offsetMatrix = Matrix4()
+_identityMatrix = Matrix4()
+_matrix4 = Matrix4()
 
 
 class Skeleton:
@@ -90,3 +91,10 @@ class Skeleton:
 
     def clone(self):
         return Skeleton( self.bones, self.boneInverses )
+
+    def getBoneByName(self, name):
+        for bone in self.bones:
+            if bone.name == name:
+                return bone
+
+        return None

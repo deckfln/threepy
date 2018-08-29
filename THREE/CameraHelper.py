@@ -9,7 +9,7 @@
  *        http:# //evanw.github.com/lightgl.js/tests/shadowmap.html
  */
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 from THREE.Camera import *
 
 

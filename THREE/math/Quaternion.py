@@ -12,7 +12,7 @@ from THREE.Constants import *
 from THREE.cython.cthree import *
 
 cython = True
-
+_v1 = Vector3()
 
 class Quaternion:
     def __init__(self, x=0, y=0, z=0, w=1 ):
@@ -259,23 +259,24 @@ class Quaternion:
         return self
 
     def setFromUnitVectors(self, vFrom, vTo):
+        global _v1
+
         # // assumes direction vectors vFrom and vTo are normalized
         EPS = 0.000001
-        v1 = THREE.Vector3()
         r = vFrom.dot( vTo ) + 1
 
         if r < EPS:
             r = 0
             if abs( vFrom.x ) > abs( vFrom.z ):
-                v1.set( - vFrom.y, vFrom.x, 0 )
+                _v1.set( - vFrom.y, vFrom.x, 0 )
             else:
-                v1.set( 0, - vFrom.z, vFrom.y )
+                _v1.set( 0, - vFrom.z, vFrom.y )
         else:
-            v1.crossVectors( vFrom, vTo )
+            _v1.crossVectors( vFrom, vTo )
 
-        self._x = v1.x
-        self._y = v1.y
-        self._z = v1.z
+        self._x = _v1.x
+        self._y = _v1.y
+        self._z = _v1.z
         self._w = r
 
         return self.normalize()
@@ -289,7 +290,7 @@ class Quaternion:
         if angle == 0:
             return self
 
-        t = math.min(1, step / angle)
+        t = min(1, step / angle)
 
         self.slerp(q, t)
 

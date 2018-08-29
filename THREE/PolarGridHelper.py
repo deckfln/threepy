@@ -5,7 +5,7 @@
  * @author Hectate / http:# //www.github.com/Hectate
  */
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 
 
 class PolarGridHelper(LineSegments):

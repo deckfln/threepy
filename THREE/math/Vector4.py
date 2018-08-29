@@ -392,7 +392,7 @@ class Vector4(pyOpenGLObject):
     def length(self):
         return math.sqrt( self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w )
 
-    def lengthManhattan(self):
+    def manhattanLength(self):
         return abs( self.x ) + abs( self.y ) + abs( self.z ) + abs( self.w )
 
     def normalize(self):

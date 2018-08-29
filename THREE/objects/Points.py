@@ -103,12 +103,13 @@ class Points(Object3D):
         localThreshold = threshold / ( ( self.scale.x + self.scale.y + self.scale.z ) / 3 )
         localThresholdSq = localThreshold * localThreshold
         position = Vector3()
+        intersectPoint = Vector3()
 
         def testPoint( point, index ):
             rayPointDistanceSq = ray.distanceSqToPoint( point )
 
             if rayPointDistanceSq < localThresholdSq:
-                intersectPoint = ray.closestPointToPoint( point )
+                ray.closestPointToPoint(point, intersectPoint)
                 intersectPoint.applyMatrix4( matrixWorld )
 
                 distance = raycaster.ray.origin.distanceTo( intersectPoint )

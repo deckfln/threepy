@@ -16,68 +16,6 @@ from THREE.Ray import *
 import THREE.renderers.pyOpenGL.pyOpenGLObjects as pyOpenGLObjects
 
 
-def _uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ):
-    tr = Triangle(p1, p2, p3)
-    barycoord = tr.barycoordFromPoint( point )
-
-    uv1.multiplyScalar( barycoord.x )
-    uv2.multiplyScalar( barycoord.y )
-    uv3.multiplyScalar( barycoord.z )
-
-    uv1.add( uv2 ).add( uv3 )
-
-    return uv1.clone()
-
-    
-def _checkIntersection( object, material, raycaster, ray, pA, pB, pC, point ):
-    if material.side == BackSide:
-        intersect = ray.intersectTriangle( pC, pB, pA, True, point )
-    else:
-        intersect = ray.intersectTriangle( pA, pB, pC, material.side != DoubleSide, point )
-
-    if intersect is None:
-        return None
-
-    intersectionPointWorld = point.clone()
-    intersectionPointWorld.applyMatrix4( object.matrixWorld )
-
-    distance = raycaster.ray.origin.distanceTo( intersectionPointWorld )
-
-    if distance < raycaster.near or distance > raycaster.far:
-        return None
-
-    class _intersection:
-        def __init__(self, distance, point, object):
-            self.distance = distance
-            self.point = point
-            self.object = object
-            self.uv = None
-
-    return _intersection(distance, intersectionPointWorld.clone(), object)
-
-    
-def _checkBufferGeometryIntersection( object, raycaster, ray, position, uv, a, b, c ):
-    vA = Vector3().fromBufferAttribute( position, a )
-    vB = Vector3().fromBufferAttribute( position, b )
-    vC = Vector3().fromBufferAttribute( position, c )
-
-    intersection = _checkIntersection( object, object.material, raycaster, ray, vA, vB, vC, Vector3() )
-
-    if intersection:
-        if uv:
-            uvA = Vector2().fromBufferAttribute( uv, a )
-            uvB = Vector2().fromBufferAttribute( uv, b )
-            uvC = Vector2().fromBufferAttribute( uv, c )
-
-            intersection.uv = _uvIntersection( Vector3(), vA, vB, vC, uvA, uvB, uvC )
-
-        triangle = Triangle(vA, vB, vC)
-        intersection.face = Face3( a, b, c, triangle.normal( ) )
-        intersection.faceIndex = a
-
-    return intersection
-
-    
 class Mesh(Object3D):
     isMesh = True
     
@@ -112,6 +50,12 @@ class Mesh(Object3D):
         super().copy( source )
 
         self.drawMode = source.drawMode
+
+        if source.morphTargetInfluences is not None:
+            self.morphTargetInfluences = source.morphTargetInfluences.slice()
+
+        if source.morphTargetDictionary is not None:
+            self.morphTargetDictionary = source.morphTargetDictionary
 
         return self
 
@@ -169,6 +113,66 @@ class Mesh(Object3D):
         intersectionPoint = Vector3()
         intersectionPointWorld = Vector3()
 
+        def _uvIntersection(point, p1, p2, p3, uv1, uv2, uv3):
+            tr = Triangle(p1, p2, p3)
+            barycoord = tr.getBarycoord(point, p1, p2, p3, barycoord)
+
+            uv1.multiplyScalar(barycoord.x)
+            uv2.multiplyScalar(barycoord.y)
+            uv3.multiplyScalar(barycoord.z)
+
+            uv1.add(uv2).add(uv3)
+
+            return uv1.clone()
+
+        def _checkIntersection(object, material, raycaster, ray, pA, pB, pC, point):
+            if material.side == BackSide:
+                intersect = ray.intersectTriangle(pC, pB, pA, True, point)
+            else:
+                intersect = ray.intersectTriangle(pA, pB, pC, material.side != DoubleSide, point)
+
+            if intersect is None:
+                return None
+
+            intersectionPointWorld = point.clone()
+            intersectionPointWorld.applyMatrix4(object.matrixWorld)
+
+            distance = raycaster.ray.origin.distanceTo(intersectionPointWorld)
+
+            if distance < raycaster.near or distance > raycaster.far:
+                return None
+
+            class _intersection:
+                def __init__(self, distance, point, object):
+                    self.distance = distance
+                    self.point = point
+                    self.object = object
+                    self.uv = None
+
+            return _intersection(distance, intersectionPointWorld.clone(), object)
+
+        def _checkBufferGeometryIntersection(object, material, raycaster, ray, position, uv, a, b, c):
+            vA = Vector3().fromBufferAttribute(position, a)
+            vB = Vector3().fromBufferAttribute(position, b)
+            vC = Vector3().fromBufferAttribute(position, c)
+
+            intersection = _checkIntersection(object, object.material, raycaster, ray, vA, vB, vC, Vector3())
+
+            if intersection:
+                if uv:
+                    uvA = Vector2().fromBufferAttribute(uv, a)
+                    uvB = Vector2().fromBufferAttribute(uv, b)
+                    uvC = Vector2().fromBufferAttribute(uv, c)
+
+                    intersection.uv = _uvIntersection(Vector3(), vA, vB, vC, uvA, uvB, uvC)
+
+                triangle = Triangle(vA, vB, vC)
+                face = Face3(a, b, c)
+                Triangle.getNormal(vA, vB, vC, face.normal)
+
+                intersection.face = face
+            return intersection
+
         geometry = self.geometry
         material = self.material
         matrixWorld = self.matrixWorld
@@ -202,31 +206,79 @@ class Mesh(Object3D):
             index = geometry.index
             position = geometry.attributes.position
             uv = geometry.attributes.uv
+            groups = geometry.groups
+            drawRange = geometry.drawRange
 
             if index is not None:
                 # // indexed buffer geometry
-                for i in range(0, index.count, 3):
-                    a = index.getX( i )
-                    b = index.getX( i + 1 )
-                    c = index.getX( i + 2 )
+                if type(material) is list:
+                    for group in groups:
+                        groupMaterial = material[ group.materialIndex ]
 
-                    intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+                        start = max( group.start, drawRange.start )
+                        end = min( ( group.start + group.count ), ( drawRange.start + drawRange.count ) )
 
-                    if intersection:
-                        intersection.faceIndex = math.floor( i / 3 ); # // triangle number in indices buffer semantics
-                        intersects.push( intersection )
-            else:
+                        for j in range(start, end, 3):
+                            a = index.getX( j )
+                            b = index.getX( j + 1 )
+                            c = index.getX( j + 2 )
+
+                            intersection = _checkBufferGeometryIntersection( self, groupMaterial, raycaster, ray, position, uv, a, b, c )
+
+                            if intersection:
+                                intersection.faceIndex = math.floor( j / 3 )    # triangle number in indexed buffer semantics
+                                intersects.append( intersection )
+
+                else:
+                    start = max(0, drawRange.start)
+                    end = min(index.count, (drawRange.start + drawRange.count))
+
+                    for i in range(start, end, 3):
+                        a = index.getX( i )
+                        b = index.getX( i + 1 )
+                        c = index.getX( i + 2 )
+
+                        intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+
+                        if intersection:
+                            intersection.faceIndex = math.floor( i / 3 )    # // triangle number in indices buffer semantics
+                            intersects.append( intersection )
+            elif position is not None:
                 # // non-indexed buffer geometry
-                for i in range(0, position.count, 3 ):
-                    a = i
-                    b = i + 1
-                    c = i + 2
+                if type(material) is list:
+                    for group in groups:
+                        groupMaterial = material[group.materialIndex]
 
-                    intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+                        start = max(group.start, drawRange.start)
+                        end = min((group.start + group.count), (drawRange.start + drawRange.count))
 
-                    if intersection:
-                        intersection.index = a  #// triangle number in positions buffer semantics
-                        intersects.push( intersection )
+                        for j in range(start, end, 3):
+                            a = j
+                            b = j + 1
+                            c = j + 2
+
+                            intersection = _checkBufferGeometryIntersection(self, groupMaterial, raycaster, ray,
+                                                                            position, uv, a, b, c)
+
+                            if intersection:
+                                intersection.faceIndex = math.floor(
+                                    j / 3)  # triangle number in non-indexed buffer semantics
+                                intersects.append(intersection)
+                else:
+                    start = max(0, drawRange.start)
+                    end = min(index.count, (drawRange.start + drawRange.count))
+
+                    for i in range(start, end, 3):
+                        a = i
+                        b = i + 1
+                        c = i + 2
+
+                        intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+
+                        if intersection:
+                            intersection.faceIndex = math.floor(i / 3)  # triangle number in non - indexed buffer semantics
+                            intersects.append( intersection )
+
         elif geometry.my_class(isGeometry):
             isMultiMaterial = isinstance(material, list)
 

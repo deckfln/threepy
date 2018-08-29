@@ -5,7 +5,7 @@
  * @author ikerr / http://verold.com
  * @author Mugen87 / https://github.com/Mugen87
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 
 
 def getBoneList( object ):

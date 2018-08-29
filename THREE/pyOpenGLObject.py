@@ -57,6 +57,8 @@ isPointsMaterial = np.uint64(274877906944)
 isShadowMaterial = np.uint64(549755813888)
 isMeshPhysicalMaterial = np.uint64(9007199254740992)
 
+isGroup = np.uint64(72057594037927936)
+
 isLineSegments = np.uint64(17179869184)
 isLineLoop = np.uint64(34359738368)
 isCamera = np.uint64(1099511627776)

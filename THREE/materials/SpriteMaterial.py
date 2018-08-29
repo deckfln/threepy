@@ -19,7 +19,7 @@ from THREE.math.Color import *
 class SpriteMaterial(Material):
     isSpriteMaterial = True
     
-    def __init__(self, parameters):
+    def __init__(self, parameters=None):
         super().__init__()
 
         self.type = 'SpriteMaterial'

@@ -4,7 +4,7 @@
  * @author Mugen87 / http://github.com/Mugen87
  */
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 from THREE.javascriparray import *
 
 

@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 
 
 class GridHelper(LineSegments):

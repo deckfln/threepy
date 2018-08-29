@@ -126,7 +126,7 @@ class _state:
         _countLights += 1
         self.hash = LightHash()
 
-        self.ambient = THREE.Color(0, 0, 0)
+        self.ambient = Color(0, 0, 0)
         self.directional = []
         self.directionalShadowMap = []
         self.directionalShadowMatrix = []

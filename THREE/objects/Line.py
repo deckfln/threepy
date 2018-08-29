@@ -17,13 +17,48 @@ class Line(Object3D):
         self.set_class(isLine)
 
         if mode == 1:
-            print( 'THREE.Line: parameter THREE.LinePieces no longer supported. Created THREE.LineSegments instead.' )
-            return LineSegments( geometry, material )
+            raise RuntimeWarning( 'THREE.Line: parameter THREE.LinePieces no longer supported. Created THREE.LineSegments instead.' )
 
         self.type = 'Line'
 
         self.geometry = geometry if geometry else BufferGeometry()
         self.material = material if material else LineBasicMaterial( { 'color': random.random() * 0xffffff } )
+
+    def computeLineDistances(self):
+        start = Vector3()
+        end = Vector3()
+        geometry = self.geometry
+
+        if geometry.is_class(isBufferGeometry):
+            # we assume non-indexed geometry
+
+            if geometry.index is None:
+                positionAttribute = geometry.attributes.position
+                lineDistances = [ 0 ]
+
+                for i in range(1, positionAttribute.count):
+                    start.fromBufferAttribute( positionAttribute, i - 1 )
+                    end.fromBufferAttribute( positionAttribute, i )
+
+                    lineDistances[ i ] = lineDistances[ i - 1 ]
+                    lineDistances[ i ] += start.distanceTo( end )
+
+                geometry.addAttribute( 'lineDistance', Float32BufferAttribute( lineDistances, 1 ) )
+
+            else:
+                raise RuntimeWarning( 'THREE.Line.computeLineDistances(): Computation only possible with non-indexed BufferGeometry.' )
+
+        elif geometry.is_class(isGeometry):
+            vertices = geometry.vertices
+            lineDistances = geometry.lineDistances
+
+            lineDistances[ 0 ] = 0
+
+            for i in range(1, len(vertices)):
+                lineDistances[ i ] = lineDistances[ i - 1 ]
+                lineDistances[ i ] += vertices[ i - 1 ].distanceTo( vertices[ i ] )
+
+        return self
 
     def raycast(self, raycaster, intersects):
         inverseMatrix = Matrix4()

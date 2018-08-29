@@ -11,7 +11,7 @@ from THREE.math.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
 
-_v1 = Vector3()
+_v1 = None
 
 
 class Matrix3(pyOpenGLObject):

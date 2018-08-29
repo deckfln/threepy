@@ -5,6 +5,7 @@
      */
 """
 from THREE.math.Sphere import *
+from THREE.math.Vector3 import *
 
 
 class Box3:

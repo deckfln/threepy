@@ -3,9 +3,9 @@
  * @author alteredq / http:#alteredqualia.com/
  * @author ikerr / http:#verold.com
 """
-from THREE.Mesh import *
-from THREE.Bone import *
-from THREE.Skeleton import *
+from THREE.objects.Mesh import *
+from THREE.objects.Bone import *
+from THREE.objects.Skeleton import *
 
 
 class SkinnedMesh(Mesh):
@@ -85,7 +85,7 @@ class SkinnedMesh(Mesh):
     def normalizeSkinWeights(self):
         if self.geometry and self.geometry.my_class(isGeometry):
             for sw in self.geometry.skinWeights:
-                scale = 1.0 / sw.lengthManhattan()
+                scale = 1.0 / sw.manhattanLength()
 
                 if scale != float("+inf"):
                     sw.multiplyScalar( scale )
@@ -104,7 +104,7 @@ class SkinnedMesh(Mesh):
                 vec.z = skinWeight.getZ( i )
                 vec.w = skinWeight.getW( i )
 
-                scale = 1.0 / vec.lengthManhattan()
+                scale = 1.0 / vec.manhattanLength()
 
                 if scale != float("+inf"):
                     vec.multiplyScalar( scale )

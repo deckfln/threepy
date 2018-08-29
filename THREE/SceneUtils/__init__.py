@@ -3,8 +3,8 @@
      * @author alteredq / http://alteredqualia.com/
      */
 """
-from THREE.Group import *
-from THREE.Mesh import *
+from THREE.objects.Group import *
+from THREE.objects.Mesh import *
 from THREE.math.Matrix4 import *
 
 

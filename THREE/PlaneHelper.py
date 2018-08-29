@@ -3,8 +3,8 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 """
-from THREE.Line import *
-from THREE.Mesh import *
+from THREE.objects.Line import *
+from THREE.objects.Mesh import *
 
 
 class PlaneHelper(Line):

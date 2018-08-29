@@ -1,7 +1,7 @@
 """
 
 """
-from THREE.Group import *
+from THREE.objects.Group import *
 from THREE.math.Sphere import *
 import THREE.MeshUtils as MeshUtils
 

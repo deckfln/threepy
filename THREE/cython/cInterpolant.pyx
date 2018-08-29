@@ -19,7 +19,7 @@ import numpy as np
 cimport numpy as np
 from libc.math cimport sqrt, atan2, sin
 
-import THREE.Interpolant
+import THREE.math.Interpolant
 from THREE.cython.cthree import cQuaternion_slerpFlat
 
 

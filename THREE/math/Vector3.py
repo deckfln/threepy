@@ -9,8 +9,6 @@
      */
 """
 
-from THREE.math.Quaternion import *
-
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
@@ -484,3 +482,4 @@ class Vector3(pyOpenGLObject):
 
 
 from THREE.math.Matrix4 import *
+from THREE.math.Quaternion import *

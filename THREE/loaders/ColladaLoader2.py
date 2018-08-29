@@ -6,7 +6,7 @@
 """
 from xml.dom import minidom
 
-from THREE.SkinnedMesh import *
+from THREE.objects.SkinnedMesh import *
 from THREE.Loader import *
 
 import THREE._Math as _Math

@@ -17,7 +17,10 @@
 # //    Pan - right mouse, or arrow keys / touch: three finger swipe
 """
 from THREE.pyOpenGL.EventManager import *
+from THREE.math.Vector2 import *
 from THREE.math.Vector3 import *
+from THREE.math.Spherical import *
+from THREE.Constants import *
 
 
 class OrbitControls(EventManager):
@@ -39,7 +42,7 @@ class OrbitControls(EventManager):
         self.enabled = True
 
         # // "target" sets the location of focus, where the object orbits around
-        self.target = THREE.Vector3()
+        self.target = Vector3()
 
         # // How far you can dolly in and out ( PerspectiveCamera only )
         self.minDistance = 0
@@ -89,7 +92,7 @@ class OrbitControls(EventManager):
         self.keys = { 'LEFT': 37, 'UP': 38, 'RIGHT': 39, 'BOTTOM': 40 }
 
         # // Mouse buttons
-        self.mouseButtons = { 'ORBIT': THREE.MOUSE['LEFT'], 'ZOOM': THREE.MOUSE['MIDDLE'], 'PAN': THREE.MOUSE['RIGHT'] }
+        self.mouseButtons = { 'ORBIT': MOUSE['LEFT'], 'ZOOM': MOUSE['MIDDLE'], 'PAN': MOUSE['RIGHT'] }
 
         # // for reset
         self.target0 = self.target.clone()
@@ -108,24 +111,24 @@ class OrbitControls(EventManager):
         self.EPS = 0.000001
 
         # // current position in self.spherical coordinates
-        self.spherical = THREE.Spherical()
-        self.sphericalDelta = THREE.Spherical()
+        self.spherical = Spherical()
+        self.sphericalDelta = Spherical()
 
         self.scale = 1
-        self.panOffset = THREE.Vector3()
+        self.panOffset = Vector3()
         self.zoomChanged = False
 
-        self.rotateStart = THREE.Vector2()
-        self.rotateEnd = THREE.Vector2()
-        self.rotateDelta = THREE.Vector2()
+        self.rotateStart = Vector2()
+        self.rotateEnd = Vector2()
+        self.rotateDelta = Vector2()
 
-        self.panStart = THREE.Vector2()
-        self.panEnd = THREE.Vector2()
-        self.panDelta = THREE.Vector2()
+        self.panStart = Vector2()
+        self.panEnd = Vector2()
+        self.panDelta = Vector2()
 
-        self.dollyStart = THREE.Vector2()
-        self.dollyEnd = THREE.Vector2()
-        self.dollyDelta = THREE.Vector2()
+        self.dollyStart = Vector2()
+        self.dollyEnd = Vector2()
+        self.dollyDelta = Vector2()
 
         # //
         # //
@@ -354,14 +357,14 @@ class OrbitControls(EventManager):
 
     # // self method is exposed, but perhaps it would be better if we can make it private...
     def update(self):
-        offset = THREE.Vector3()
+        offset = Vector3()
 
         # // so camera.up is the orbit axis
-        quat = THREE.Quaternion().setFromUnitVectors( self.object.up, THREE.Vector3( 0, 1, 0 ) )
+        quat = Quaternion().setFromUnitVectors( self.object.up, Vector3( 0, 1, 0 ) )
         quatInverse = quat.clone().inverse()
 
-        lastPosition = THREE.Vector3()
-        lastQuaternion = THREE.Quaternion()
+        lastPosition = Vector3()
+        lastQuaternion = Quaternion()
 
         position = self.object.position
 
@@ -450,7 +453,7 @@ class OrbitControls(EventManager):
         self.sphericalDelta.phi -= angle
 
     def panLeft(self, distance, objectMatrix):
-        v = THREE.Vector3()
+        v = Vector3()
 
         v.setFromMatrixColumn( objectMatrix, 0 )     # // get X column of objectMatrix
         v.multiplyScalar( - distance )
@@ -458,7 +461,7 @@ class OrbitControls(EventManager):
         self.panOffset.add( v )
 
     def panUp(self, distance, objectMatrix):
-        v = THREE.Vector3()
+        v = Vector3()
 
         v.setFromMatrixColumn( objectMatrix, 1 )     # // get Y column of objectMatrix
         v.multiplyScalar( distance )
@@ -467,7 +470,7 @@ class OrbitControls(EventManager):
 
     # // deltaX and deltaY are in pixels; right and down are positive
     def pan(self, deltaX, deltaY):
-        offset = THREE.Vector3()
+        offset = Vector3()
 
         element = self.domElement
 

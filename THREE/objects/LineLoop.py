@@ -3,7 +3,7 @@
      * @author mgreter / http://github.com/mgreter
      */
 """
-from THREE.Line import *
+from THREE.objects.Line import *
 
 
 class LineLoop(Line):

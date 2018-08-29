@@ -2,7 +2,7 @@
  @author mrdoob / http://mrdoob.com/
  @author WestLangley / http://github.com/WestLangley
 """
-from THREE.LineSegments import *
+from THREE.objects.LineSegments import *
 from THREE.materials.LineBasicMaterial import *
 
 

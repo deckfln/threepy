@@ -7,7 +7,7 @@ from THREE.Camera import *
 from THREE.BoxBufferGeometry import *
 from THREE.PlaneBufferGeometry import *
 from THREE.renderers.shaders.ShaderLib import *
-from THREE.Mesh import *
+from THREE.objects.Mesh import *
 
 
 class pyOpenGLBackground:
