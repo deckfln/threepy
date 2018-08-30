@@ -3,7 +3,7 @@
  * @author daron1337 / http://daron1337.github.io/
  */
 """
-from THREE.PlaneBufferGeometry import *
+from THREE.geometries.PlaneGeometry import *
 from THREE.materials.MeshBasicMaterial import *
 
 from PIL import Image, ImageDraw, ImageFont

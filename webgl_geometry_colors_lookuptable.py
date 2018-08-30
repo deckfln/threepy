@@ -148,7 +148,8 @@ def loadModel (colorMap, numberOfColors, legendLayout):
 
         geometry.computeBoundingBox()
         boundingBox = geometry.boundingBox
-        center = boundingBox.getCenter()
+        center = Vector3()
+        boundingBox.getCenter(center)
 
         if position is None:
             params.position = THREE.Vector3(center.x, center.y, center.z)

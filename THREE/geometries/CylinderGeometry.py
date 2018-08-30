@@ -31,10 +31,12 @@ class CylinderGeometry(Geometry):
         self.fromBufferGeometry( CylinderBufferGeometry( radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength ) )
         self.mergeVertices()
 
+
 # // CylinderBufferGeometry
 
+
 class CylinderBufferGeometry(BufferGeometry):
-    def __init__(self, radiusTop=50, radiusBottom=20, height=100, radialSegments=8, heightSegments=1, openEnded=False, thetaStart=0, thetaLength=2*math.pi ):
+    def __init__(self, radiusTop=1, radiusBottom=1, height=1, radialSegments=8, heightSegments=1, openEnded=False, thetaStart=0, thetaLength=2*math.pi ):
         super().__init__()
         self.type = 'CylinderBufferGeometry'
 

@@ -15,7 +15,7 @@
  *  headWidth - Number
  */
 """
-from THREE.CylinderBufferGeometry import *
+from THREE.geometries.CylinderGeometry import *
 from THREE.objects.Line import *
 from THREE.objects.Mesh import *
 

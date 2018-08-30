@@ -87,10 +87,10 @@ class Geometry(pyOpenGLObject):
             for j in range(len(face.vertexNormals)):
                 face.vertexNormals[ j ].applyMatrix3( normalMatrix ).normalize()
 
-        if self.boundingBox != None:
+        if self.boundingBox is not None:
             self.computeBoundingBox()
 
-        if self.boundingSphere != None:
+        if self.boundingSphere is not None:
             self.computeBoundingSphere()
 
         self.verticesNeedUpdate = True
@@ -105,14 +105,12 @@ class Geometry(pyOpenGLObject):
         self.applyMatrix( m1 )
         return self
 
-
     def rotateY(self, angle):
         # // rotate geometry around world y-axis
         m1 = Matrix4()
         m1.makeRotationY( angle )
         self.applyMatrix( m1 )
         return self
-
 
     def rotateZ(self, angle):
         # // rotate geometry around world z-axis
@@ -157,10 +155,10 @@ class Geometry(pyOpenGLObject):
             self.faceVertexUvs[ 1 ] = []
 
         l = int(attributes.position.count)
-        tempNormals = np.empty(l, THREE.Vector3) # []
-        tempUVs = np.empty(l, THREE.Vector2) # []
-        tempUVs2 = np.empty(l, THREE.Vector2) # []
-        tempVertices = np.empty(l, THREE.Vector3)
+        tempNormals = np.empty(l, Vector3) # []
+        tempUVs = np.empty(l, Vector2) # []
+        tempUVs2 = np.empty(l, Vector2) # []
+        tempVertices = np.empty(l, Vector3)
 
         j = 0
         k = 0

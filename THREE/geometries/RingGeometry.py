@@ -32,7 +32,7 @@ class RingGeometry(Geometry):
 
 
 class RingBufferGeometry(BufferGeometry):
-    def __init__(self, innerRadius=20, outerRadius=50, thetaSegments=8, phiSegments=1, thetaStart=0, thetaLength=math.pi*2 ):
+    def __init__(self, innerRadius=0.5, outerRadius=1, thetaSegments=8, phiSegments=1, thetaStart=0, thetaLength=math.pi*2 ):
         super().__init__(  )
 
         self.type = 'RingBufferGeometry'

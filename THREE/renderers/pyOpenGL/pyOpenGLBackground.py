@@ -4,8 +4,8 @@
  */
 """
 from THREE.Camera import *
-from THREE.BoxBufferGeometry import *
-from THREE.PlaneBufferGeometry import *
+from THREE.geometries.BoxBufferGeometry import *
+from THREE.geometries.PlaneGeometry import *
 from THREE.renderers.shaders.ShaderLib import *
 from THREE.objects.Mesh import *
 

@@ -1,3 +1,9 @@
+"""
+/**
+ * @author mrdoob / http://mrdoob.com/
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+"""
 from THREE.core.Geometry import *
 
 
@@ -32,7 +38,7 @@ class BoxBufferGeometry(BufferGeometry):
      * @author Mugen87 / https://github.com/Mugen87
      */
     """
-    def __init__(self, width, height, depth, widthSegments=1, heightSegments=1, depthSegments=1 ):
+    def __init__(self, width=1, height=1, depth=1, widthSegments=1, heightSegments=1, depthSegments=1 ):
         super().__init__()
 
         self.type = 'BoxBufferGeometry'

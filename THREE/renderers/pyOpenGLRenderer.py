@@ -15,7 +15,7 @@ from ctypes import c_void_p
 from threading import Thread
 import queue
 
-import THREE.pyOpenGL.OpenGL as cOpenGL
+from OpenGL import *
 
 from THREE import *
 from THREE.Constants import *
@@ -703,8 +703,7 @@ class pyOpenGLRenderer:
                         pointer = None
                     else:
                         pointer = c_void_p(pointer)
-                    cOpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
-
+                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
 
             elif materialDefaultAttributeValues is not None:
                 if name in materialDefaultAttributeValues:
@@ -1766,7 +1765,7 @@ class pyOpenGLRenderer:
             restore = False
 
             if framebuffer != self._currentFramebuffer:
-                glbindFramebuffer( GL_FRAMEBUFFER, framebuffer )
+                glBindFramebuffer( GL_FRAMEBUFFER, framebuffer )
                 restore = True
 
                 texture = renderTarget.texture
@@ -1781,14 +1780,14 @@ class pyOpenGLRenderer:
                     not ( textureType == HalfFloatType ):
                     raise RuntimeError( 'THREE.WebGLRenderer.readRenderTargetPixels: renderTarget is not in UnsignedByteType or implementation defined type.' )
 
-                if glcheckFramebufferStatus(GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE:
+                if glCheckFramebufferStatus(GL_FRAMEBUFFER ) == GL_FRAMEBUFFER_COMPLETE:
                     # the following if statement ensures valid read requests (no out-of-bounds pixels, see #8604)
 
                     if ( x >= 0 and x <= ( renderTarget.width - width ) ) and ( y >= 0 and y <= ( renderTarget.height - height ) ):
-                        glreadPixels( x, y, width, height, utils.convert( textureFormat ), utils.convert( textureType ), buffer )
+                        glReadPixels( x, y, width, height, utils.convert( textureFormat ), utils.convert( textureType ), buffer )
 
             if restore:
-                glbindFramebuffer(GL_FRAMEBUFFER, _currentFramebuffer)
+                glBindFramebuffer(GL_FRAMEBUFFER, self._currentFramebuffer)
 
     def copyFramebufferToTexture(self, position, texture, level ):
         width = texture.image.width
@@ -1797,7 +1796,7 @@ class pyOpenGLRenderer:
 
         self.setTexture2D( texture, 0 )
 
-        glcopyTexImage2D( _gl.TEXTURE_2D, level or 0, glFormat, position.x, position.y, width, height, 0 )
+        glCopyTexImage2D( _gl.TEXTURE_2D, level or 0, glFormat, position.x, position.y, width, height, 0 )
 
     def copyTextureToTexture(self, position, srcTexture, dstTexture, level ):
         width = srcTexture.image.width
@@ -1808,10 +1807,10 @@ class pyOpenGLRenderer:
         self.setTexture2D( dstTexture, 0 )
 
         if srcTexture.my_class(isDataTexture):
-            gltexSubImage2D( GL_TEXTURE_2D, level or 0, position.x, position.y, width, height, glFormat, glType, srcTexture.image.data )
+            glTexSubImage2D( GL_TEXTURE_2D, level or 0, position.x, position.y, width, height, glFormat, glType, srcTexture.image.data )
 
         else:
-            gltexSubImage2D( GL_TEXTURE_2D, level or 0, position.x, position.y, glFormat, glType, srcTexture.image )
+            glTexSubImage2D( GL_TEXTURE_2D, level or 0, position.x, position.y, glFormat, glType, srcTexture.image )
 
     # FDE extensions
 

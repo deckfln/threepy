@@ -8,6 +8,8 @@ from THREE.core.BufferGeometry import *
 from THREE.core.InterleavedBufferAttribute import *
 from THREE.materials.SpriteMaterial import *
 from THREE.javascriparray import *
+from THREE.core.InterleavedBuffer import *
+
 
 _geometry = None
 

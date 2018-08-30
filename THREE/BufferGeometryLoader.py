@@ -49,7 +49,7 @@ class BufferGeometryLoader:
             attribute = attributes[ key ]
             typedArray = TYPED_ARRAYS[ attribute['type'] ]( attribute['array'] )
 
-            normalized = attribute['normalized'] if 'normalized' in attribute else None
+            normalized = attribute['normalized'] if 'normalized' in attribute else False
             geometry.addAttribute( key, BufferAttribute( typedArray, attribute['itemSize'], normalized ) )
 
         groups = None

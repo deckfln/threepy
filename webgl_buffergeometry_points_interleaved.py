@@ -7,6 +7,7 @@ from datetime import datetime
 
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.core.InterleavedBuffer import *
 
 
 class Params:
@@ -68,22 +69,22 @@ def init(p):
         interleaved_buffer_uint8[ j + 2 ] = int(color.b * 255)
         interleaved_buffer_uint8[ j + 3 ] = 0
 
-    ibp = THREE.InterleavedBuffer( interleaved_buffer_float32, 4 )
-    ibc = THREE.InterleavedBuffer( interleaved_buffer_uint8, 16 )
+    ibp = InterleavedBuffer( interleaved_buffer_float32, 4 )
+    ibc = InterleavedBuffer( interleaved_buffer_uint8, 16 )
 
-    geometry.addAttribute( 'position', THREE.InterleavedBufferAttribute( ibp, 3, 0, False ) )
-    geometry.addAttribute( 'color', THREE.InterleavedBufferAttribute( ibc, 3, 12, True ) )
+    geometry.addAttribute( 'position', InterleavedBufferAttribute( ibp, 3, 0, False ) )
+    geometry.addAttribute( 'color', InterleavedBufferAttribute( ibc, 3, 12, True ) )
     # // geometry.computeBoundingSphere()
 
     # //
 
-    material = THREE.PointsMaterial( { 'size': 15, 'vertexColors': THREE.VertexColors } )
+    material = PointsMaterial( { 'size': 15, 'vertexColors': VertexColors } )
 
-    p.points = THREE.Points( geometry, material )
+    p.points = Points( geometry, material )
     p.scene.add( p.points )
 
     # //
-    p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
+    p.renderer = pyOpenGLRenderer({'antialias': True})
     p.renderer.setSize( window.innerWidth, window.innerHeight )
     p.container.addEventListener( 'resize', onWindowResize, False )
 

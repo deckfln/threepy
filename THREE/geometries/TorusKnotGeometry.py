@@ -37,7 +37,7 @@ class TorusKnotGeometry(Geometry):
 # // TorusKnotBufferGeometry
 
 class TorusKnotBufferGeometry(BufferGeometry):
-    def __init__(self, radius=100, tube=40, tubularSegments=64, radialSegments=8, p=2, q=2 ):
+    def __init__(self, radius=1, tube=0.4, tubularSegments=64, radialSegments=8, p=2, q=2 ):
         super().__init__()
 
         self.type = 'TorusKnotBufferGeometry'

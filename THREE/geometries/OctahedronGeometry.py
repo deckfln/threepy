@@ -4,7 +4,7 @@
  * @author Mugen87 / https:# //github.com/Mugen87
  */
 """
-from THREE.PolyhedronBufferGeometry import *
+from THREE.geometries.PolyhedronGeometry import *
 
 
 # // OctahedronGeometry

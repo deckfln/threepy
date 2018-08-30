@@ -583,13 +583,13 @@ class BufferGeometry(pyOpenGLObject):
         return data
         
     def clone(self):
-        return type(self)().copy( self )
+        return type(self)().copy(self)
         
-    def copy(self, source ):
+    def copy(self, source):
         # // reset
         self.index = None
-        self.attributes = {}
-        self.morphAttributes = {}
+        self.attributes = _attributesList()
+        self.morphAttributes = _attributesList()
         self.groups = []
         self.boundingBox = None
         self.boundingSphere = None
@@ -600,29 +600,30 @@ class BufferGeometry(pyOpenGLObject):
         # // index
         index = source.index
         if index is not None:
-            self.setIndex( index.clone() )
+            self.setIndex(index.clone())
 
         # // attributes
         attributes = source.attributes
-        for name in attributes:
-            attribute = attributes[ name ]
-            self.addAttribute( name, attribute.clone() )
+        for name in attributes.__dict__:
+            attribute = attributes.__dict__[name]
+            if attribute is not None:
+                self.addAttribute(name, attribute.clone())
 
         # // morph attributes
         morphAttributes = source.morphAttributes
         for name in morphAttributes:
             array = []
-            morphAttribute = morphAttributes[ name ]; # // morphAttribute: array of Float32BufferAttributes
+            morphAttribute = morphAttributes[name]     # // morphAttribute: array of Float32BufferAttributes
 
             for morphAttribut in morphAttribute:
-                array.append( morphAttribut.clone() )
+                array.append(morphAttribut.clone())
 
-            self.morphAttributes[ name ] = array
+            self.morphAttributes.__dict__[name] = array
 
         # // groups
         groups = source.groups
         for group in groups:
-            self.addGroup( group.start, group.count, group.materialIndex )
+            self.addGroup(group.start, group.count, group.materialIndex)
 
         # // bounding box
         boundingBox = source.boundingBox

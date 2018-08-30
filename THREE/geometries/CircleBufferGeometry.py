@@ -32,7 +32,7 @@ class CircleGeometry(Geometry):
 # // CircleBufferGeometry
 
 class CircleBufferGeometry(BufferGeometry):
-    def __init__(self, radius=50, segments=8, thetaStart=0, thetaLength=math.pi*2 ):
+    def __init__(self, radius=1, segments=8, thetaStart=0, thetaLength=math.pi*2 ):
         super().__init__(  )
 
         self.type = 'CircleBufferGeometry'

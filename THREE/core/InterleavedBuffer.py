@@ -4,7 +4,7 @@
  */
 """
 from THREE.pyOpenGLObject import *
-import THREE._Math
+import THREE._Math as _Math
 
 
 class _updateRange:

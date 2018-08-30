@@ -5,7 +5,7 @@
 """
 from THREE.core.Geometry import *
 from THREE.core.BufferGeometry import *
-from THREE.geometries.QuickHull import *
+from examples.js.QuickHull import *
 
 
 #    # // ConvexGeometry
@@ -61,5 +61,5 @@ class ConvexBufferGeometry(BufferGeometry):
 
             # // build geometry
 
-            self.addAttribute( 'position', THREE.Float32BufferAttribute( vertices, 3 ) )
-            self.addAttribute( 'normal', THREE.Float32BufferAttribute( normals, 3 ) )
+            self.addAttribute( 'position', Float32BufferAttribute( vertices, 3 ) )
+            self.addAttribute( 'normal', Float32BufferAttribute( normals, 3 ) )

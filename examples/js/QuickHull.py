@@ -10,6 +10,9 @@ import numpy
 
 from THREE.math.Vector3 import *
 from THREE.Constants import *
+from THREE.math.Line3 import *
+from THREE.math.Plane import *
+from THREE.math.Triangle import *
 
 
 Visible = 0
@@ -77,7 +80,7 @@ class QuickHull:
                     attribute = geometry.attributes.position
                     if attribute is not None:
                         for i in range(attribute.count):
-                            point = THREE.Vector3()
+                            point = Vector3()
                             point.fromBufferAttribute( attribute, i ).applyMatrix4( node.matrixWorld )
                             points.append( point )
 
@@ -219,8 +222,8 @@ class QuickHull:
     # // Computes the extremes of a simplex which will be the initial hull
 
     def computeExtremes(self):
-        mi = THREE.Vector3()
-        ma = THREE.Vector3()
+        mi = Vector3()
+        ma = Vector3()
 
         # // initially assume that the first vertex is the min/max
 
@@ -264,9 +267,9 @@ class QuickHull:
     # // that are candidates to form part of the hull
 
     def computeInitialHull(self):
-        line3 = THREE.Line3()
-        plane = THREE.Plane()
-        closestPoint = THREE.Vector3()
+        line3 = Line3()
+        plane = Plane()
+        closestPoint = Vector3()
 
         vertices = self.vertices
         extremes = self.computeExtremes()
@@ -311,7 +314,7 @@ class QuickHull:
 
         # // 3. The next vertex 'v3' is the one farthest to the plane 'v0', 'v1', 'v2'
 
-        maxDistance = 0
+        maxDistance = -1
         plane.setFromCoplanarPoints( v0.point, v1.point, v2.point )
 
         for i in range(len(self.vertices)):
@@ -573,8 +576,8 @@ class QuickHull:
 
 class Face:
     def __init__(self):
-        self.normal = THREE.Vector3()
-        self.midpoint = THREE.Vector3()
+        self.normal = Vector3()
+        self.midpoint = Vector3()
         self.area = 0
 
         self.constant = 0     # // signed distance from face to the origin
@@ -615,7 +618,7 @@ class Face:
         return edge
 
     def compute(self):
-        triangle = THREE.Triangle()
+        triangle = Triangle()
 
         a = self.edge.tail()
         b = self.edge.head()
@@ -623,9 +626,9 @@ class Face:
 
         triangle.set( a.point, b.point, c.point )
 
-        triangle.normal( self.normal )
-        triangle.midpoint( self.midpoint )
-        self.area = triangle.area()
+        triangle.getNormal( self.normal )
+        triangle.getMidpoint( self.midpoint )
+        self.area = triangle.getArea()
 
         self.constant = self.normal.dot( self.midpoint )
 
@@ -634,7 +637,9 @@ class Face:
     def distanceToPoint(self, point ):
         return self.normal.dot( point ) - self.constant
 
+
 # // Entity for a Doubly-Connected Edge List (DCEL).
+
 
 class HalfEdge:
     def __init__(self, vertex, face ):

@@ -101,7 +101,7 @@ class pyOpenGLGeometries:
 
         # // morph targets
         for array in geometry.morphAttributes.__dict__.values():
-            if not len(array):
+            if array is None or not len(array):
                 continue
 
             for morphAttribute in array:

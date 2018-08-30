@@ -32,7 +32,7 @@ class TorusGeometry(Geometry):
 # // TorusBufferGeometry
 
 class TorusBufferGeometry(BufferGeometry):
-    def __init__(self, radius=400, tube=40, radialSegments=8, tubularSegments=6, arc=math.pi ):
+    def __init__(self, radius=1, tube=0.4, radialSegments=8, tubularSegments=6, arc=math.pi ):
         super().__init__()
 
         self.type = 'TorusBufferGeometry'
