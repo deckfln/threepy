@@ -11,8 +11,6 @@ from THREE.math.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
 
-_v1 = None
-
 
 class Matrix3(pyOpenGLObject):
     isMatrix3 = True
@@ -73,6 +71,7 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def applyToBufferAttribute(self, attribute):
+        global _v1
         for i in range(0, len(attribute.array), 3):
             _v1.np[0] = attribute.array[i]
             _v1.np[1] = attribute.array[i + 1]
@@ -293,3 +292,6 @@ class Matrix3(pyOpenGLObject):
         array[ offset + 8 ] = te[ 8 ]
 
         return array
+
+
+_v1 = Vector3()

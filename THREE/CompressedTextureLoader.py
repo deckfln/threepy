@@ -3,8 +3,7 @@
  *
  * Abstract Base class to block based textures loader (dds, pvr, ...)
 """
-from THREE.Constants import *
-from THREE.CompressedTexture import *
+from THREE.textures.CompressedTexture import *
 from THREE.FileLoader import *
 
 

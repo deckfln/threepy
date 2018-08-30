@@ -31,7 +31,7 @@ from THREE.Javascript import *
 from THREE.renderers.pyOpenGLSpriteRenderer import *
 from THREE.renderers.pyOpenGLGuiRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLMorphtargets import *
-from THREE.DataTexture import *
+from THREE.textures.DataTexture import *
 from THREE.Shader import *
 from THREE.OcTree import *
 from THREE.renderers.pyOpenGL.pyOpenGLUtils import *
@@ -455,7 +455,7 @@ class pyOpenGLRenderer:
             glBufferData(GL_ARRAY_BUFFER, object.positionArray, GL_DYNAMIC_DRAW)
 
             self.state.enableAttribute(programAttributes.position)
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, None)
+            OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttributes.position, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasNormals:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.normal)
@@ -463,7 +463,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.normal)
 
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, None)
+            OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttributes.normal, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasUvs:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.uv)
@@ -471,7 +471,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.uv)
 
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, None)
+            OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttributes.uv, 2, GL_FLOAT, GL_FALSE, 0, None)
 
         if object.hasColors:
             glBindBuffer(GL_ARRAY_BUFFER, buffers.color)
@@ -479,7 +479,7 @@ class pyOpenGLRenderer:
 
             self.state.enableAttribute(programAttributes.color)
 
-            pyOpenGL.OpenGL.glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, None)
+            OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttributes.color, 3, GL_FLOAT, GL_FALSE, 0, None)
 
         self.state.disableUnusedAttributes()
 
@@ -687,7 +687,7 @@ class pyOpenGLRenderer:
                         glEnableVertexAttribArray(programAttribute)
 
                     glBindBuffer(GL_ARRAY_BUFFER, buffer)
-                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(offset * bytesPerElement))
+                    OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttribute, size, type, normalized, stride * bytesPerElement, c_void_p(offset * bytesPerElement))
                 else:
                     if geometryAttribute.my_class(isInstancedBufferAttribute):
                         self.state.enableAttributeAndDivisor(programAttribute, geometryAttribute.meshPerAttribute, vao)
@@ -703,7 +703,7 @@ class pyOpenGLRenderer:
                         pointer = None
                     else:
                         pointer = c_void_p(pointer)
-                    pyOpenGL.OpenGL.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
+                    OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
 
             elif materialDefaultAttributeValues is not None:
                 if name in materialDefaultAttributeValues:

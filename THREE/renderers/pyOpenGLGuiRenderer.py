@@ -8,7 +8,7 @@ from ctypes import c_void_p
 
 from PIL import Image, ImageDraw
 from THREE.javascriparray import *
-from THREE.CanvasTexture import *
+from THREE.textures.CanvasTexture import *
 from THREE.renderers.pyOpenGL.pyOpenGLProgram import pyOpenGLShader
 from THREE.renderers.pyOpenGL.pyOpenGLUniforms import *
 

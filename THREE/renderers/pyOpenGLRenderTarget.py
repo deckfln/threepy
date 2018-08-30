@@ -15,7 +15,7 @@
 """
 import THREE._Math as _Math
 from THREE.math.Vector4 import*
-from THREE.Texture import *
+from THREE.textures.Texture import *
 
 
 class pyOpenGLRenderTarget(pyOpenGLObject):

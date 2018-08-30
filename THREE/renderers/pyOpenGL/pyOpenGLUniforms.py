@@ -50,12 +50,10 @@
  *
  */
 """
-import numpy as np
-from OpenGL.GL import *
-import THREE.pyOpenGL.OpenGL as cOpenGL
 import re
-from THREE.Texture import *
-from THREE.CubeTexture import *
+
+from OpenGL.GL import *
+from THREE.textures.CubeTexture import *
 import OpenGL.raw.GL.VERSION.GL_2_0
 
 

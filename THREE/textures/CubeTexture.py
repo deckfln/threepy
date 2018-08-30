@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Texture import *
+from THREE.textures.Texture import *
 
 
 class CubeTexture(Texture):

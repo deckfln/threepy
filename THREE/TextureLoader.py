@@ -4,12 +4,10 @@
  */
 """
 import re
-import numpy
 
 from THREE.ImageLoader import *
-from THREE.Texture import *
+from THREE.textures.Texture import *
 from THREE.Constants import *
-from THREE.LoadingManager import *
 
 
 def _onLoad(url, texture):
@@ -20,26 +18,26 @@ def _onLoad(url, texture):
 
 
 class TextureLoader:
-    def __init__(self, manager=None ):
+    def __init__(self, manager=None):
         global DefaultLoadingManager
         self.manager = manager if manager else DefaultLoadingManager
         self.path = None
 
-    def load(self, url, onLoad=None, onProgress=None, onError=None ):
-        loader = ImageLoader( self.manager )
-        loader.setPath( self.path )
+    def load(self, url, onLoad=None, onProgress=None, onError=None):
+        loader = ImageLoader(self.manager)
+        loader.setPath(self.path)
 
         texture = Texture()
         texture.unpackAlignment = 1
         loader.setTarget(texture)
-        texture.image = loader.load( url, _onLoad, onProgress, onError )
+        texture.image = loader.load(url, _onLoad, onProgress, onError)
         texture.format = RGBFormat if texture.image.mode == 'RGB' else RGBAFormat
         texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
         texture.name = url
 
         return texture
 
-    def setPath(self, value ):
+    def setPath(self, value):
         self.path = value
         return self
 

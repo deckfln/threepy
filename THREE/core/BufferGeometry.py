@@ -17,12 +17,6 @@ _box = Box3()
 _vector = Vector3()
 
 
-def GeometryIdCount():
-    global _gIdcount
-    _gIdcount += 1
-    return _gIdcount
-
-
 class _attributesList:
     def __init__(self):
         self.position = None
@@ -611,14 +605,15 @@ class BufferGeometry(pyOpenGLObject):
 
         # // morph attributes
         morphAttributes = source.morphAttributes
-        for name in morphAttributes:
+        for name in morphAttributes.__dict__:
             array = []
-            morphAttribute = morphAttributes[name]     # // morphAttribute: array of Float32BufferAttributes
+            morphAttribute = morphAttributes.__dict__[name]     # // morphAttribute: array of Float32BufferAttributes
 
-            for morphAttribut in morphAttribute:
-                array.append(morphAttribut.clone())
+            if morphAttribute is not None:
+                for morphAttribut in morphAttribute:
+                    array.append(morphAttribut.clone())
 
-            self.morphAttributes.__dict__[name] = array
+                self.morphAttributes.__dict__[name] = array
 
         # // groups
         groups = source.groups
@@ -652,4 +647,7 @@ class BufferGeometry(pyOpenGLObject):
             return self.callback(self)
 
     def rebuild_id(self):
-        self.id = GeometryIdCount()
+        global _bufferGeometryId
+
+        self.id = _bufferGeometryId
+        _bufferGeometryId += 2

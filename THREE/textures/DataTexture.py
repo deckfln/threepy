@@ -1,7 +1,7 @@
 """
  * @author alteredq / http://alteredqualia.com/
 """
-from THREE.Texture import *
+from THREE.textures.Texture import *
 from THREE.Constants import *
 
 

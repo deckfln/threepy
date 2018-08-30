@@ -4,7 +4,6 @@
  */
 """
 
-import THREE.pyOpenGL as pyOpenGL
 from OpenGL import *
 from OpenGL_accelerate import *
 from OpenGL.GL import *
@@ -44,10 +43,10 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         glBindBuffer(bufferType, buffer)
         if attribute.dynamic:
-            pyOpenGL.OpenGL.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
+            OpenGL.raw.GL.GL_1_5.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
             # glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.dtype.itemsize, array)
         else:
-            pyOpenGL.OpenGL.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
+            OpenGL.raw.GL.VERSION.GL_1_5.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
 
         attribute.onUploadCallback()
 

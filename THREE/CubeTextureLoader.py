@@ -3,9 +3,8 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.LoadingManager import *
 from THREE.ImageLoader import *
-from THREE.CubeTexture import *
+from THREE.textures.CubeTexture import *
 
 
 class CubeTextureLoader:

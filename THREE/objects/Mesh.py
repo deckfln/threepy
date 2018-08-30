@@ -51,11 +51,11 @@ class Mesh(Object3D):
 
         self.drawMode = source.drawMode
 
-        if source.morphTargetInfluences is not None:
-            self.morphTargetInfluences = source.morphTargetInfluences.slice()
+        if hasattr(source, 'morphTargetInfluences'):
+            self.morphTargetInfluences = source.morphTargetInfluences[:]
 
-        if source.morphTargetDictionary is not None:
-            self.morphTargetDictionary = source.morphTargetDictionary
+        if hasattr(source, 'morphTargetDictionary'):
+            self.morphTargetDictionary = source.morphTargetDictionary[:]
 
         return self
 
