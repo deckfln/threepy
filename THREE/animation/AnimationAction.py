@@ -315,13 +315,17 @@ class AnimationAction:
 
     def _updateTime(self, deltaTime ):
         time = self.time + deltaTime
-
-        if deltaTime == 0:
-            return time
         duration = self._clip.duration
-
         loop = self.loop
         loopCount = self._loopCount
+
+        pingPong = (loop == LoopPingPong);
+
+        if deltaTime == 0:
+            if loopCount == - 1:
+                return time
+
+            return duration - time if (pingPong and (loopCount & 1) == 1) else time
 
         if loop == LoopOnce:
             if loopCount == -1:
@@ -351,8 +355,6 @@ class AnimationAction:
                 } )
 
         else:     # repetitive Repeat or PingPong
-            pingPong = ( loop == LoopPingPong )
-
             if loopCount == -1:
                 # just started
 
@@ -378,7 +380,7 @@ class AnimationAction:
 
                 pending = self.repetitions - loopCount
 
-                if pending < 0:
+                if pending <= 0:
                     # have to stop (switch state, clamp time, fire event)
 
                     if self.clampWhenFinished:
@@ -397,7 +399,7 @@ class AnimationAction:
                 else:
                     # keep running
 
-                    if pending == 0:
+                    if pending == 1:
                         # entering the last round
 
                         atStart = deltaTime < 0

@@ -7,14 +7,12 @@
  * @author David Sarno / http:#lighthaus.us/
  * @author tschw
 """
-import numpy as np
 
 from THREE.pyOpenGL.EventManager import *
-from THREE.javascriparray import *
-from THREE.AnimationClip import *
+from THREE.animation.AnimationClip import *
 from THREE.PropertyMixer import *
 from THREE.PropertyBinding import *
-from THREE.AnimationAction import *
+from THREE.animation.AnimationAction import *
 
 
 class _stat:

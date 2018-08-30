@@ -5,10 +5,65 @@
  * @author Ben Houston / http:#clara.io/
  * @author David Sarno / http:#lighthaus.us/
 """
-import re
 import THREE._Math as _Math
-from THREE.KeyframeTrack import *
-from THREE.AnimationUtils import *
+from THREE.animation.KeyframeTrack import *
+from THREE.animation.AnimationUtils import *
+from THREE.animation.tracks.QuaternionKeyframeTrack import *
+from THREE.animation.tracks.NumberKeyframeTrack import *
+from THREE.animation.tracks.VectorKeyframeTrack import *
+from THREE.animation.tracks.ColorKeyframeTrack  import *
+from THREE.animation.tracks.BooleanKeyframeTrack import *
+from THREE.animation.tracks.StringKeyframeTrack import *
+
+
+_types = {
+    'scalar': NumberKeyframeTrack,
+    'double': NumberKeyframeTrack,
+    'float': NumberKeyframeTrack,
+    'number': NumberKeyframeTrack,
+    'integer': NumberKeyframeTrack,
+    'vector': VectorKeyframeTrack,
+    'vector2': VectorKeyframeTrack,
+    'vector3': VectorKeyframeTrack,
+    'vector4': VectorKeyframeTrack,
+    'color': ColorKeyframeTrack,
+    'quaternion': QuaternionKeyframeTrack,
+    'bool': BooleanKeyframeTrack,
+    'boolean': BooleanKeyframeTrack,
+    'string': StringKeyframeTrack
+}
+
+
+def _getTrackTypeForValueTypeName(typeName):
+    tlc = typeName.lower()
+
+    if tlc in _types:
+       return _types[tlc]
+
+    raise RuntimeWarning( 'THREE.KeyframeTrack: Unsupported typeName: ' + typeName )
+
+
+def _parseKeyframeTrack(json):
+    if json['type'] is None:
+        raise RuntimeWarning( 'THREE.KeyframeTrack: track type undefined, can not parse' )
+
+    trackType = _getTrackTypeForValueTypeName( json['type'] )
+
+    if json['times'] is None:
+        times = []
+        values = []
+
+        AnimationUtils.flattenJSON( json['keys'], times, values, 'value' )
+
+        json['times'] = times
+        json['values'] = values
+
+    # derived classes can define a static parse method
+    if trackType.parse is not None:
+        return trackType.parse(json)
+
+    # by default, we assume a constructor compatible with the base
+    return trackType( json['name'], json['times'], json['values'], json['interpolation'] )
 
 
 class AnimationClip:
@@ -23,15 +78,13 @@ class AnimationClip:
         if self.duration < 0:
             self.resetDuration()
 
-        self.optimize()
-
     def parse( json ):
         tracks = []
         jsonTracks = json.tracks,
         frameTime = 1.0 / ( json.fps or 1.0 )
 
         for i in range(len(jsonTracks)):
-            tracks.append( KeyframeTrack.parse( jsonTracks[ i ] ).scale( frameTime ) )
+            tracks.append( _parseKeyframeTrack( jsonTracks[ i ] ).scale( frameTime ) )
 
         return AnimationClip( json.name, json.duration, tracks )
 
@@ -42,7 +95,8 @@ class AnimationClip:
         json = {
             'name': clip.name,
             'duration': clip.duration,
-            'tracks': tracks
+            'tracks': tracks,
+            'uuid': clip.uuid
         }
 
         for i in range(len(clipTracks)):
@@ -220,6 +274,8 @@ class AnimationClip:
             duration = max( duration, track.times[ len(track.times) - 1 ] )
 
         self.duration = duration
+
+        return self
 
     def trim(self):
         for i in range(len(self.tracks)):

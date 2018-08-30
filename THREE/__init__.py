@@ -99,7 +99,7 @@ from THREE.SkeletonHelper import *
 from THREE.Ray import *
 from THREE.core.Raycaster import *
 from THREE.objects.Sprite import *
-from THREE.AnimationMixer import *
+from THREE.animation.AnimationMixer import *
 from THREE.renderers.pyOpenGL.pyOpenGLCapabilities import *
 from THREE.renderers.pyOpenGL.pyOpenGLAttributes import *
 from THREE.renderers.pyOpenGL.pyOpenGLBackground import *
