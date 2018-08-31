@@ -5,7 +5,7 @@
 """
 import THREE._Math as _Math
 from THREE.lights.Light import *
-from THREE.Camera import *
+from THREE.cameras.Camera import *
 
 
 class _power:

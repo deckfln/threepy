@@ -10,7 +10,7 @@
  */
 """
 from THREE.objects.LineSegments import *
-from THREE.Camera import *
+from THREE.cameras.Camera import *
 
 
 class CameraHelper(LineSegments):

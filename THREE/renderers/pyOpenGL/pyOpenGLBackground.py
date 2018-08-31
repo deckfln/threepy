@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.Camera import *
+from THREE.cameras.Camera import *
 from THREE.geometries.BoxBufferGeometry import *
 from THREE.geometries.PlaneGeometry import *
 from THREE.renderers.shaders.ShaderLib import *

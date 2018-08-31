@@ -1,173 +1,19 @@
 """
     /**
      * @author mrdoob / http://mrdoob.com/
-     * @author mikael emtinger / http://gomo.se/
-     * @author WestLangley / http://github.com/WestLangley
-    */
-"""
-import THREE._Math as _Math
-from THREE.core.Object3D import *
-from THREE.math.Quaternion import *
-
-
-class Camera(Object3D):
-    isCamera = True
-
-    def __init__(self):
-        super().__init__()
-        self.set_class(isCamera)
-
-        self.type = 'Camera'
-
-        self.matrixWorldInverse = Matrix4()
-        self.projectionMatrix = Matrix4()
-
-
-    def copy(self, source, recursive=True):
-        super().copy(source, recursive)
-        self.matrixWorldInverse.copy(source.matrixWorldInverse)
-        self.projectionMatrix.copy(source.projectionMatrix)
-        return self
-
-    def getWorldDirection(self, optionalTarget=None):
-        quaternion = Quaternion()
-        result = optionalTarget or Vector3()
-
-        self.getWorldQuaternion(quaternion)
-
-        return result.set(0, 0, - 1).applyQuaternion(quaternion)
-
-    def updateMatrixWorld(self, force=False):
-        super().updateMatrixWorld(force)
-
-        self.matrixWorldInverse.updated = False
-        if self.matrixWorld.updated:
-            self.matrixWorldInverse.getInverse(self.matrixWorld)
-            self.matrixWorldInverse.updated = True
-
-    def clone(self, recursive=True):
-        return type(self)().copy(self, recursive)
-
-
-"""
-    /**
-     * @author alteredq / http://alteredqualia.com/
-     * @author arose / http://github.com/arose
-     */
-"""
-
-
-class _View:
-    def __init__(self, fullWidth, fullHeight, x, y, width, height):
-        self.fullWidth = fullWidth
-        self.fullHeight = fullHeight
-        self.offsetX = x
-        self.offsetY = y
-        self.width = width
-        self.height = height
-
-        
-class OrthographicCamera(Camera):
-    isOrthographicCamera = True
-        
-    def __init__(self, left, right, top, bottom, near=0.1, far=2000):
-        super().__init__()
-
-        self.type = 'OrthographicCamera'
-
-        self.zoom = 1
-        self.view = None
-
-        self.left = left
-        self.right = right
-        self.top = top
-        self.bottom = bottom
-
-        self.near = near
-        self.far = far
-
-        self.updateProjectionMatrix()
-
-    def copy(self, source, recursive=True):
-        super().copy(source, recursive)
-
-        self.left = source.left
-        self.right = source.right
-        self.top = source.top
-        self.bottom = source.bottom
-        self.near = source.near
-        self.far = source.far
-
-        self.zoom = source.zoom
-        self.view = None
-        if source.view is not None :
-            self.view = source.view
-        
-        return self
-
-    def setViewOffset(self, fullWidth, fullHeight, x, y, width, height):
-        self.view = _View(fullWidth, fullHeight, x, y, width, height)
-        self.updateProjectionMatrix()
-
-    def clearViewOffset(self):
-        self.view = None
-        self.updateProjectionMatrix()
-
-    def updateProjectionMatrix(self):
-        dx = (self.right - self.left) / (2 * self.zoom)
-        dy = (self.top - self.bottom) / (2 * self.zoom)
-        cx = (self.right + self.left) / 2
-        cy = (self.top + self.bottom) / 2
-
-        left = cx - dx
-        right = cx + dx
-        top = cy + dy
-        bottom = cy - dy
-
-        if self.view is not None:
-            zoomW = self.zoom / (self.view.width / self.view.fullWidth)
-            zoomH = self.zoom / (self.view.height / self.view.fullHeight)
-            scaleW = (self.right - self.left) / self.view.width
-            scaleH = (self.top - self.bottom) / self.view.height
-
-            left += scaleW * (self.view.offsetX / zoomW)
-            right = left + scaleW * (self.view.width / zoomW)
-            top -= scaleH * (self.view.offsetY / zoomH)
-            bottom = top - scaleH * (self.view.height / zoomH)
-
-        self.projectionMatrix.makeOrthographic(left, right, top, bottom, self.near, self.far)
-
-        return self.projectionMatrix.is_updated()
-
-    def toJSON(self, meta):
-        data = super().toJSON(meta)
-
-        data.object.zoom = self.zoom
-        data.object.left = self.left
-        data.object.right = self.right
-        data.object.top = self.top
-        data.object.bottom = self.bottom
-        data.object.near = self.near
-        data.object.far = self.far
-
-        if self.view is not None:
-            data.object.view = self.view
-
-        return data
-
-"""        
-    /**
-     * @author mrdoob / http://mrdoob.com/
      * @author greggman / http://games.greggman.com/
      * @author zz85 / http://www.lab4games.net/zz85/blog
      * @author tschw
      */
 """
+from THREE.cameras.Camera import *
+from THREE.core.Object3D import *
+import THREE._Math as _Math
 
 
 class PerspectiveCamera(Camera):
     isPerspectiveCamera = True
-        
+
     def __init__(self, fov=50, aspect=1, near=0.1, far=2000):
         super().__init__()
         self.type = 'PerspectiveCamera'
@@ -182,8 +28,8 @@ class PerspectiveCamera(Camera):
         self.aspect = aspect
         self.view = None
 
-        self.filmGauge = 35    # // width of the film (default in millimeters)
-        self.filmOffset = 0    # // horizontal film offset (same unit as gauge)
+        self.filmGauge = 35  # // width of the film (default in millimeters)
+        self.filmOffset = 0  # // horizontal film offset (same unit as gauge)
 
         self.updateProjectionMatrix()
 
@@ -201,7 +47,7 @@ class PerspectiveCamera(Camera):
         self.view = None
         if source.view is not None:
             self.view = source.view
-            
+
         self.filmGauge = source.filmGauge
         self.filmOffset = source.filmOffset
 
@@ -218,7 +64,7 @@ class PerspectiveCamera(Camera):
          * Values for focal length and film gauge must have the same unit.
          */
         """
-        
+
         # // see http://www.bobatkins.com/photography/technical/field_of_view.html
         vExtentSlope = 0.5 * self.getFilmHeight() / focalLength
 
@@ -236,8 +82,8 @@ class PerspectiveCamera(Camera):
         return 0.5 * self.getFilmHeight() / vExtentSlope
 
     def getEffectiveFOV(self):
-            return _Math.RAD2DEG * 2 * math.atan(
-                    math.tan(_Math.DEG2RAD * 0.5 * self.fov) / self.zoom)
+        return _Math.RAD2DEG * 2 * math.atan(
+            math.tan(_Math.DEG2RAD * 0.5 * self.fov) / self.zoom)
 
     def getFilmWidth(self):
         # // film not completely covered in portrait format (aspect < 1)
@@ -283,16 +129,27 @@ class PerspectiveCamera(Camera):
          *   camera.setOffset(fullWidth, fullHeight, w * 2, h * 1, w, h)
          *
          *   Note there is no reason monitors have to be the same size or in a grid.
-         */        
+         */
         """
         self.aspect = fullWidth / fullHeight
 
-        self.view = _View(fullWidth,fullHeight, x, y, width, height)
+        if self.view is None:
+            self.view = CameraView(True, 1, 1, 0, 0, 1, 1)
+
+        self.view.enabled = True
+        self.view.fullWidth = fullWidth
+        self.view.fullHeight = fullHeight
+        self.view.offsetX = x
+        self.view.offsetY = y
+        self.view.width = width
+        self.view.height = height
 
         self.updateProjectionMatrix()
 
     def clearViewOffset(self):
-        self.view = None
+        if self.view is not None:
+            self.view.enabled = False
+
         self.updateProjectionMatrix()
 
     def updateProjectionMatrix(self):
@@ -303,7 +160,7 @@ class PerspectiveCamera(Camera):
         left = - 0.5 * width
         view = self.view
 
-        if view is not None:
+        if self.view is not None and self.view.enabled:
             fullWidth = view.fullWidth
             fullHeight = view.fullHeight
 
@@ -332,7 +189,7 @@ class PerspectiveCamera(Camera):
 
         data.object.aspect = self.aspect
 
-        if self.view is not None: 
+        if self.view is not None:
             data.object.view = self.view
 
         data.object.filmGauge = self.filmGauge

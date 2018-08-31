@@ -4,12 +4,12 @@
  */
 """
 from THREE.lights.Light import *
-from THREE.Camera import *
+from THREE.cameras.OrthographicCamera import *
 
 
 class DirectionalLightShadow(LightShadow):
     def __init__(self):
-        super().__init__(OrthographicCamera( - 5, 5, 5, - 5, 0.5, 500 ))
+        super().__init__(OrthographicCamera(-5, 5, 5, -5, 0.5, 500))
 
 
 """
@@ -23,19 +23,18 @@ class DirectionalLightShadow(LightShadow):
 class DirectionalLight(Light):
     isDirectionalLight = True
     
-    def __init__(self, color=0xffffff, intensity = 1 ):
-        super().__init__( color, intensity )
+    def __init__(self, color=0xffffff, intensity=1):
+        super().__init__(color, intensity)
         self.set_class(isDirectionalLight)
 
         self.type = 'DirectionalLight'
 
-        self.position.copy( Object3D.DefaultUp )
+        self.position.copy(Object3D.DefaultUp)
         self.updateMatrix()
 
         self.target = Object3D()
 
         self.shadow = DirectionalLightShadow()
-
 
     def copy(self, source):
         super().copy(source)

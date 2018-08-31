@@ -49,8 +49,8 @@ from THREE.CurvePath import *
 from THREE.CatmullRomCurve3 import *
 from THREE.Shape import *
 from THREE.geometries.ExtrudeGeometry import *
-from THREE.Camera import *
-from THREE.ArrayCamera import *
+from THREE.cameras.Camera import *
+from THREE.cameras.ArrayCamera import *
 from THREE.renderers.shaders.ShaderChunk import *
 from THREE.materials.Material import *
 from THREE.materials.ShadowMaterial import *

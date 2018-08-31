@@ -6,7 +6,7 @@
  * @author kaypiKun
  */
 """
-from THREE.Camera import *
+from THREE.cameras.Camera import *
 from THREE.shaders.BokehShader2 import *
 import THREE.pyOpenGL.pyOpenGL
 import THREE.pyOpenGL.window as window
