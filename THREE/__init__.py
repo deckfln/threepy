@@ -76,11 +76,11 @@ from THREE.lights.PointLight import *
 from THREE.core.Face3 import *
 from THREE.objects.Points import *
 from THREE.objects.Mesh import *
-from THREE.Scene import *
+from THREE.scenes.Scene import *
 from THREE.textures.Texture import *
 from THREE.textures.CanvasTexture import *
 from THREE.textures.CubeTexture import *
-from THREE.Fog import *
+from THREE.scenes.Fog import *
 from THREE.materials.LineBasicMaterial import *
 from THREE.objects.Line import *
 from THREE.objects.LineSegments import *

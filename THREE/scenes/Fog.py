@@ -28,7 +28,7 @@ class Fog(pyOpenGLObject):
         self.far = far
 
     def clone(self):
-        return type(self)( self.color.getHex(), self.near, self.far )
+        return type(self)( self.color, self.near, self.far )
 
     def toJSON(self):
         return {

@@ -20,9 +20,9 @@ class FogExp2(pyOpenGLObject):
         self.density = density if density is not None else 0.00025
 
     def clone(self):
-        return type(self)( self.color.getHex(), self.density )
+        return type(self)( self.color, self.density )
 
-    def toJSON(self, meta ):
+    def toJSON(self):
         return {
             'type': 'FogExp2',
             'color': self.color.getHex(),
