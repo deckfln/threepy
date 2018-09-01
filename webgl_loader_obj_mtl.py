@@ -3,7 +3,6 @@
 """
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
-from THREE.LoadingManager import *
 from THREE.loaders.OBJLoader import *
 from THREE.loaders.MTLLoader import *
 from THREE.loaders.DDSLoader import *

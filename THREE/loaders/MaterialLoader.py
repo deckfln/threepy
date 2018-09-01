@@ -4,7 +4,7 @@
  */
 """
 
-from THREE.FileLoader import *
+from THREE.loaders.FileLoader import *
 from THREE.materials.ShadowMaterial import *
 from THREE.materials.SpriteMaterial import *
 from THREE.materials.RawShaderMaterial import *
@@ -129,6 +129,24 @@ class MaterialLoader:
             material.wireframeLinecap = json['wireframeLinecap']
         if 'wireframeLinejoin' in json:
             material.wireframeLinejoin = json['wireframeLinejoin']
+        if 'rotation' in json:
+            material.rotation = json['rotation']
+        if 'linewidth' in json and json['linewidth'] != 1:
+            material.linewidth = json['linewidth']
+        if 'dashSize' in json:
+            material.dashSize = json['dashSize']
+        if 'gapSize' in json:
+            material.gapSize = json['gapSize']
+        if 'scale' in json:
+            material.scale = json['scale']
+
+        if 'polygonOffset' in json:
+            material.polygonOffset = json['polygonOffset']
+        if 'polygonOffsetFactor' in json:
+            material.polygonOffsetFactor = json['polygonOffsetFactor']
+        if 'polygonOffsetUnits' in json:
+            material.polygonOffsetUnits = json['polygonOffsetUnits']
+
         if 'skinning' in json:
             material.skinning = json['skinning']
         if 'morphTargets' in json:
@@ -150,6 +168,8 @@ class MaterialLoader:
 
         if 'map' in json:
             material.map = getTexture( json['map'] )
+        if 'normalMapType' in json:
+            material.normalMapType = json['normalMapType']
 
         if 'alphaMap' in json:
             material.alphaMap = getTexture( json['alphaMap'] )

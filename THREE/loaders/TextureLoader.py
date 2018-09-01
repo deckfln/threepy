@@ -3,11 +3,11 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-import re
 
-from THREE.ImageLoader import *
+from THREE.loaders.ImageLoader import *
 from THREE.textures.Texture import *
 from THREE.Constants import *
+import numpy
 
 
 def _onLoad(url, texture):

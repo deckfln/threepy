@@ -1,8 +1,8 @@
 """
 
 """
+from THREE.loaders.Loader import *
 import os
-from THREE.Loader import *
 
 
 _currentModule = os.path.dirname(__file__)

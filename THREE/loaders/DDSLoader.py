@@ -1,10 +1,8 @@
 """
  * @author mrdoob / http:#mrdoob.com/
 """
-import numpy as np
 
-from THREE.Constants import *
-from THREE.CompressedTextureLoader import *
+from THREE.loaders.CompressedTextureLoader import *
 from THREE.javascriparray import *
 
 

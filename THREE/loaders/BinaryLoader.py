@@ -5,7 +5,7 @@
 """
 
 from THREE.core.Geometry import *
-from THREE.Loader import *
+from THREE.loaders.Loader import *
 
 
 class _Model(Geometry):

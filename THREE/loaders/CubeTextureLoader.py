@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from THREE.ImageLoader import *
+from THREE.loaders.ImageLoader import *
 from THREE.textures.CubeTexture import *
 
 

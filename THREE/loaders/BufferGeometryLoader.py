@@ -6,7 +6,7 @@
 
 from THREE.core.BufferGeometry import *
 from THREE.javascriparray import *
-from THREE.FileLoader import *
+from THREE.loaders.FileLoader import *
 
 
 TYPED_ARRAYS = {

@@ -7,7 +7,7 @@
 from xml.dom import minidom
 
 from THREE.objects.SkinnedMesh import *
-from THREE.Loader import *
+from THREE.loaders.Loader import *
 
 import THREE._Math as _Math
 

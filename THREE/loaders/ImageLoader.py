@@ -4,9 +4,8 @@
  * @author fde
  */
 """
-from THREE.LoadingManager import *
+from THREE.loaders.LoadingManager import *
 from PIL import Image
-import numpy
 
 
 class ImageLoader:

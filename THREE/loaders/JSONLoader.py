@@ -6,7 +6,7 @@
 """
 import json as JSON
 
-from THREE.Loader import *
+from THREE.loaders.Loader import *
 from THREE.core.Geometry import *
 from THREE.MorphTarget import *
 from THREE.animation.AnimationClip import *
@@ -39,9 +39,6 @@ class JSONLoader:
                     if type.tolower() == 'object':
                         raise RuntimeError( 'THREE.JSONLoader: ' + url + ' should be loaded with THREE.ObjectLoader instead.' )
 
-                    if type.tolower() == 'scene':
-                        raise RuntimeError( 'THREE.JSONLoader: ' + url + ' should be loaded with THREE.SceneLoader instead.' )
-
             object = self.parse( json, texturePath )
             onLoad( object['geometry'], object['materials'] )
 
@@ -49,6 +46,7 @@ class JSONLoader:
 
     def setTexturePath(self, value ):
         self.texturePath = value
+        return self
 
     def parse(self, json, texturePath):
 

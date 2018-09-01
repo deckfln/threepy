@@ -3,7 +3,7 @@
  * @author mrdoob / http:# //mrdoob.com/
  */
 """
-from THREE.LoadingManager import *
+from THREE.loaders.LoadingManager import *
 
 
 class FileLoader:

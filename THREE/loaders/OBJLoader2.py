@@ -3,7 +3,6 @@
   * Development repository: https:#github.com/kaisalmen/WWOBJLoader
 """
 import THREE
-from THREE.LoadingManager import *
 from THREE.javascriparray import *
 
 

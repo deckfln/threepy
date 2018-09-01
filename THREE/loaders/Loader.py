@@ -4,8 +4,8 @@
  */
 """
 import THREE._Math as _Math
-from THREE.TextureLoader import *
-from THREE.MaterialLoader import *
+from THREE.loaders.TextureLoader import *
+from THREE.loaders.MaterialLoader import *
 
 
 class Handlers:

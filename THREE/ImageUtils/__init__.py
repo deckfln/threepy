@@ -1,8 +1,8 @@
 """
 
 """
-from THREE.TextureLoader import *
-from THREE.CubeTextureLoader import *
+from THREE.loaders.TextureLoader import *
+from THREE.loaders.CubeTextureLoader import *
 
 
 def loadTexture( url, mapping=None, onLoad=None, onError=None ):
