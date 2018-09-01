@@ -638,7 +638,7 @@ class StructuredUniform( UniformContainer):
         super().__init__(  ) # // mix-in
 
     def setValue(self, value, renderer):
-        # // Note: Don't need an extra 'renderer' parameter, since samplers
+        # // Note: Don't need an extras 'renderer' parameter, since samplers
         # // are not allowed in structured uniforms.
         seq = self.seq
 

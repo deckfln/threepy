@@ -1,17 +1,13 @@
 """
 /**
- * @author zz85 / http:# //www.lab4games.net/zz85/blog
- * Defines a 2d shape plane using paths.
+ * @author zz85 / http://www.lab4games.net/zz85/blog
+ * minimal class for proxing functions to Path. Replaces old "extractSubpaths()"
  **/
-
-# // STEP 1 Create a path.
-# // STEP 2 Turn path into shape.
-# // STEP 3 ExtrudeGeometry takes in Shape/Shapes
-# // STEP 3a - Extract points from each shape, turn to vertices
-# // STEP 3b - Triangulate each shape, add faces.
 """
-from THREE.Path import *
-import THREE.ShapeUtils as ShapeUtils
+
+from THREE.math.Color import *
+from THREE.extras.core.Path import *
+from THREE.extras.core.Shape import *
 
 
 def _toShapesNoHoles(inSubpaths):
@@ -84,40 +80,11 @@ def _isPointInsidePolygon(inPt, inPolygon):
     return inside
 
 
-class Shape(Path):
-    def __init__(self, pts=None):
-        super().__init__(pts )
-        self.holes = []
-
-    def getPointsHoles(self, divisions ):
-        holesPts = [None for i in range(len(self.holes))]
-
-        for i in range(len(self.holes)):
-            holesPts[ i ] = self.holes[ i ].getPoints( divisions )
-
-        return holesPts
-
-    # // Get points of shape and holes (keypoints based on segments parameter)
-
-    def extractAllPoints(self, divisions ):
-        return {
-            'shape': self.getPoints( divisions ),
-            'holes': self.getPointsHoles( divisions )
-        }
-
-    def extractPoints(self, divisions ):
-        return self.extractAllPoints( divisions )
-
-"""
-/**
- * @author zz85 / http:# //www.lab4games.net/zz85/blog
- * minimal class for proxing functions to Path. Replaces old "extractSubpaths()"
- **/
-"""
-
-
 class ShapePath:
     def __init__(self):
+        self.type = 'ShapePath'
+
+        self.color = Color()
         self.subPaths = []
         self.currentPath = None
 

@@ -21,7 +21,11 @@ def area( contour ):
 
     return a * 0.5
 
-    
+
+def isClockWise( pts ):
+    return area( pts ) < 0
+
+
 def triangulate(contour, indices):
     """
     /**

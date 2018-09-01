@@ -52,13 +52,13 @@ def init(p):
         THREE.Vector3(  60, -100, -60 )
     ] )
 
-    closedSpline.type = 'catmullrom'
+    closedSpline.curveType = 'catmullrom'
     closedSpline.closed = True
 
     extrudeSettings = {
-        'steps'            : 100,
-        'bevelEnabled'    : False,
-        'extrudePath'        : closedSpline
+        'steps': 100,
+        'bevelEnabled': False,
+        'extrudePath': closedSpline
     }
 
     pts = []
@@ -70,7 +70,7 @@ def init(p):
         pts.append( THREE.Vector2 ( math.cos( a ) * l, math.sin( a ) * l ) )
 
     shape = THREE.Shape( pts )
-    geometry = THREE.ExtrudeGeometry( shape, extrudeSettings )
+    geometry = THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
 
     material = THREE.MeshLambertMaterial( { 'color': 0xb00000, 'wireframe': False } )
 
@@ -78,25 +78,22 @@ def init(p):
 
     p.scene.add( mesh )
 
-
     # //
-
 
     randomPoints = []
 
     for i in range(10):
         randomPoints.append( THREE.Vector3( ( i - 4.5 ) * 50, _Math.randFloat( - 50, 50 ), _Math.randFloat( - 50, 50 ) ) )
 
-    randomSpline =  THREE.CatmullRomCurve3( randomPoints )
+    randomSpline = THREE.CatmullRomCurve3( randomPoints )
 
     # //
 
     extrudeSettings = {
-        'steps'            : 200,
-        'bevelEnabled'    : False,
-        'extrudePath'        : randomSpline
+        'steps': 200,
+        'bevelEnabled': False,
+        'extrudePath': randomSpline
     }
-
 
     pts = []
     numPts = 5
@@ -110,7 +107,7 @@ def init(p):
 
     shape = THREE.Shape( pts )
 
-    geometry = THREE.ExtrudeGeometry( shape, extrudeSettings )
+    geometry = THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
 
     material2 = THREE.MeshLambertMaterial( { 'color': 0xff8000, 'wireframe': False } )
 
@@ -118,24 +115,21 @@ def init(p):
 
     p.scene.add( mesh )
 
-
     # //
 
 
     materials = [ material, material2 ]
 
     extrudeSettings = {
-        'amount'            : 20,
-        'steps'            : 1,
-        'material'        : 1,
-        'extrudeMaterial' : 0,
+        'depth': 20,
+        'steps': 1,
         'bevelEnabled'    : True,
         'bevelThickness'  : 2,
         'bevelSize'       : 4,
         'bevelSegments'   : 1
     }
 
-    geometry = THREE.ExtrudeGeometry( shape, extrudeSettings )
+    geometry = THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
 
     mesh = THREE.Mesh( geometry, materials )
 

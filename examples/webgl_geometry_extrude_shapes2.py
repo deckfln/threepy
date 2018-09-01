@@ -10,9 +10,10 @@
 """
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.extras.curves.ShapePath import *
 
 
-class d3threeD():
+class d3threeD:
     DEGS_TO_RADS = math.pi / 180
     UNIT_SIZE = 100
 
@@ -27,7 +28,7 @@ class d3threeD():
         self.name="d3threeD"
 
     def transformSVGPath(self, pathStr):
-        path = THREE.ShapePath()
+        path = ShapePath()
 
         idx = 1
         l = len(pathStr)
@@ -250,33 +251,34 @@ d3g = d3threeD()
 
 def addGeoObject( group, svgObject ):
     results = []
-    thePaths = svgObject['paths']
-    theAmounts = svgObject['amounts']
-    theColors = svgObject['colors']
-    theCenter = svgObject['center']
+    paths = svgObject['paths']
+    depths = svgObject['depths']
+    colors = svgObject['colors']
+    center = svgObject['center']
 
-    l = len(thePaths)
+    l = len(paths)
     for i in range(l):
-        path = d3g.transformSVGPath( thePaths[i] )
-        color = THREE.Color( theColors[i] )
+        path = d3g.transformSVGPath( paths[i] )
+        color = THREE.Color( colors[i] )
         material = THREE.MeshLambertMaterial({
             'color': color,
             'emissive': color
         })
-        amount = theAmounts[i]
+        depth = depths[i]
         simpleShapes = path.toShapes(True)
         len1 = len(simpleShapes)
         for j in range(len1):
             simpleShape = simpleShapes[j]
-            shape3d = ExtrudeGeometry (simpleShape, {
-                'amount': amount,
-                'bevelEnabled': False
-            })
+            shape3d = THREE.ExtrudeBufferGeometry( simpleShape, {
+                    'depth': depth,
+                    'bevelEnabled': False
+                } )
+
             mesh = THREE.Mesh(shape3d, material)
             mesh.rotation.x = math.pi
-            mesh.translateZ( - amount - 1)
-            mesh.translateX( - theCenter['x'])
-            mesh.translateY( - theCenter['y'])
+            mesh.translateZ( - depth - 1)
+            mesh.translateX( - center['x'])
+            mesh.translateY( - center['y'])
             group.add(mesh)
 
 # // Main
@@ -319,13 +321,11 @@ def init(p):
     p.group = THREE.Group()
     p.scene.add( p.group )
 
-    # /// direct light
-    light = THREE.DirectionalLight( 0x404040 )
-    light.position.set( 0.75, 0.75, 1.0 ).normalize()
-    p.scene.add( light )
+    directionalLight = THREE.DirectionalLight(0xffffff, 0.6)
+    directionalLight.position.set(0.75, 0.75, 1.0).normalize()
+    p.scene.add(directionalLight)
 
-    # /// ambient light
-    ambientLight = THREE.AmbientLight(0x404040)
+    ambientLight = THREE.AmbientLight(0xcccccc, 0.2)
     p.scene.add( ambientLight )
 
     # /// backgroup grids
@@ -378,7 +378,7 @@ def initSVGObject():
         "L368.1217,110.4867 L366.5152,109.2554 L361.9554,112.3435 L358.1163,117.8678 L361.7218,120.2192 " +
         "L360.7261,126.3232 L362.8064,125.5221 Z"]
 
-    obj['amounts'] = [ 19, 20, 21 ]
+    obj['depths'] = [ 19, 20, 21 ]
     obj['colors'] =  [ 0xC07000, 0xC08000, 0xC0A000 ]
     obj['center'] = { 'x':365, 'y':125 }
 

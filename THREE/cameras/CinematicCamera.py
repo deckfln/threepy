@@ -46,7 +46,7 @@ class CinematicCamera(PerspectiveCamera):
 
     def setLens(self, focalLength=35, filmGauge=None, fNumber=8, coc=0.019 ):
         """
-        # // providing fnumber and coc(Circle of Confusion) as extra arguments
+        # // providing fnumber and coc(Circle of Confusion) as extras arguments
         """
         # // In case of cinematicCamera, having a default lens set is important
         if filmGauge is not None:

@@ -50,9 +50,9 @@ class Curve(pyOpenGLObject):
         self.arcLengthDivisions = 200
         self.needsUpdate = False
         self.cacheArcLengths = None
-        self.type = None
+        self.type = 'Curve'
 
-    def getPoint(self, t):
+    def getPoint(self, t, optionalTarget=None):
         """
         # // Virtual base class method to overwrite and implement in subclasses
         # //    - t [0 .. 1]
@@ -60,13 +60,13 @@ class Curve(pyOpenGLObject):
         print( 'THREE.Curve: .getPoint() not implemented.' )
         return None
 
-    def getPointAt(self, u ):
+    def getPointAt(self, u,  optionalTarget=None):
         """
         # // Get point at relative position in curve according to arc length
         # // - u [0 .. 1]
         """
         t = self.getUtoTmapping( u )
-        return self.getPoint( t )
+        return self.getPoint( t,  optionalTarget)
 
     def getPoints(self, divisions ):
         """
@@ -306,33 +306,29 @@ class Curve(pyOpenGLObject):
             'binormals': binormals
         }
 
+    def clone(self):
+        return type(self)().copy(self)
 
-class LineCurve(Curve):
-    isLineCurve = True
+    def copy(self, source):
+        self.arcLengthDivisions = source.arcLengthDivisions
 
-    def __init__(self, v1, v2 ):
-        super().__init__()
-        self.set_class(isLineCurve)
+        return self
 
-        self.v1 = v1
-        self.v2 = v2
+    def toJSON(self):
+        data = {
+            'metadata': {
+                'version': 4.5,
+                'type': 'Curve',
+                'generator': 'Curve.toJSON'
+            }
+        }
 
-    def getPoint(self, t ):
-        if t == 1:
-            return self.v2.clone()
+        data['arcLengthDivisions'] = self.arcLengthDivisions
+        data['type'] = self.type
 
-        point = self.v2.clone().sub( self.v1 )
-        point.multiplyScalar( t ).add( self.v1 )
+        return data
 
-        return point
+    def fromJSON(self, json):
+        self.arcLengthDivisions = json['arcLengthDivisions']
 
-    def getPointAt(self, u ):
-        """
-        # // Line curve is linear, so we can overwrite default getPointAt
-        """
-        return self.getPoint( u )
-
-    def getTangent(self, t ):
-        tangent = self.v2.clone().sub( self.v1 )
-
-        return tangent.normalize()
+        return self

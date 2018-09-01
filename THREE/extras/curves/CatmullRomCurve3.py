@@ -22,9 +22,7 @@ but for three.js curve use, it could be possible inlined and flatten into a sing
 which can be placed in CurveUtils.
 */
 """
-from THREE.Curve import *
-from THREE.Bezier import *
-from THREE.CurvePath import *
+from THREE.extras.core.Curve import *
 
 
 class CubicPoly():
@@ -61,26 +59,34 @@ pz = CubicPoly()
 
 
 class CatmullRomCurve3(Curve):
-    def __init__(self, points=None ):
+    isCatmullRomCurve3 = True
+
+    def __init__(self, points=None, closed=False, curveType='centripetal', tension=0.5):
         super().__init__( )
+        self.type = 'CatmullRomCurve3'
 
         if len(points) < 2:
             raise RuntimeError( 'THREE.CatmullRomCurve3: Points array needs at least two entries.' )
 
         self.points = points or []
-        self.closed = False
-        self.tension = None
+        self.closed = closed
+        self.curveType = curveType
+        self.tension = tension
 
-    def getPoint(self, t ):
+    def getPoint(self, t, optionalTarget=None):
+        if optionalTarget is None:
+            optionalTarget = Vector3()
+
+        point = optionalTarget
         points = self.points
         l = len(points)
 
-        point = ( l - ( 0 if self.closed else 1 ) ) * t
-        intPoint = math.floor( point )
-        weight = point - intPoint
+        p = ( l - ( 0 if self.closed else 1 ) ) * t
+        intPoint = math.floor( p )
+        weight = p - intPoint
 
         if self.closed:
-            intPoint += 0 if intPoint > 0 else ( math.floor( abs( intPoint ) / len(points) ) + 1 ) * len(points)
+            intPoint += 0 if intPoint > 0 else ( math.floor( abs( intPoint ) / l ) + 1 ) * l
 
         elif weight == 0 and intPoint == l - 1:
             intPoint = l - 2
@@ -107,9 +113,9 @@ class CatmullRomCurve3(Curve):
             tmp.subVectors( points[ l - 1 ], points[ l - 2 ] ).add( points[ l - 1 ] )
             p3 = tmp
 
-        if self.type is None or self.type == 'centripetal' or self.type == 'chordal':
+        if self.curveType == 'centripetal' or self.curveType == 'chordal':
             # // init Centripetal / Chordal Catmull-Rom
-            pow = 0.5 if self.type == 'chordal' else 0.25
+            pow = 0.5 if self.curveType == 'chordal' else 0.25
             dt0 = math.pow( p0.distanceToSquared( p1 ), pow )
             dt1 = math.pow( p1.distanceToSquared( p2 ), pow )
             dt2 = math.pow( p2.distanceToSquared( p3 ), pow )
@@ -126,80 +132,51 @@ class CatmullRomCurve3(Curve):
             py.initNonuniformCatmullRom( p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2 )
             pz.initNonuniformCatmullRom( p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2 )
 
-        elif self.type == 'catmullrom':
+        elif self.curveType == 'catmullrom':
+            px.initCatmullRom( p0.x, p1.x, p2.x, p3.x, self.tension )
+            py.initCatmullRom( p0.y, p1.y, p2.y, p3.y, self.tension )
+            pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z, self.tension )
 
-            tension = self.tension if self.tension is not None else 0.5
-            px.initCatmullRom( p0.x, p1.x, p2.x, p3.x, tension )
-            py.initCatmullRom( p0.y, p1.y, p2.y, p3.y, tension )
-            pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z, tension )
+        return point.set( px.calc( weight ), py.calc( weight ), pz.calc( weight ) )
 
-        return Vector3( px.calc( weight ), py.calc( weight ), pz.calc( weight ) )
+    def copy(self, source):
+        super().copy(source)
 
-        
-class CubicBezierCurve3(Curve):
-    def __init__(self, v0, v1, v2, v3 ):
-        super().__init__( )
+        self.points = []
 
-        self.v0 = v0
-        self.v1 = v1
-        self.v2 = v2
-        self.v3 = v3
+        for point in source.points:
+            self.points.append( point.clone() )
 
+        self.closed = source.closed
+        self.curveType = source.curveType
+        self.tension = source.tension
 
-    def getPoint(self, t ):
-        v0 = self.v0
-        v1 = self.v1
-        v2 = self.v2
-        v3 = self.v3
+        return self
 
-        return Vector3(
-            CubicBezier( t, v0.x, v1.x, v2.x, v3.x ),
-            CubicBezier( t, v0.y, v1.y, v2.y, v3.y ),
-            CubicBezier( t, v0.z, v1.z, v2.z, v3.z )
-        )
+    def toJSON(self):
+        data = super().toJSON()
 
-        
-class QuadraticBezierCurve3(Curve):
-    def __init__(self, v0, v1, v2 ):
-        super().__init__( )
-        
-        self.v0 = v0
-        self.v1 = v1
-        self.v2 = v2
+        data['points'] = []
 
-    def getPoint(self, t ):
-        v0 = self.v0
-        v1 = self.v1
-        v2 = self.v2
+        for point in self.points:
+            data['points'].append( point.toArray() )
 
-        return Vector3(
-            QuadraticBezier( t, v0.x, v1.x, v2.x ),
-            QuadraticBezier( t, v0.y, v1.y, v2.y ),
-            QuadraticBezier( t, v0.z, v1.z, v2.z )
-        )
+        data['closed'] = self.closed
+        data['curveType'] = self.curveType
+        data['tension'] = self.tension
 
-        
-class LineCurve3(Curve):
-    def __init__(self, v1, v2 ):
-        super().__init__()
+        return data
 
-        self.v1 = v1
-        self.v2 = v2
+    def fromJSON(self, json):
+        super().fromJSON(json)
 
-    def getPoint(self, t ):
-        if t == 1:
-            return self.v2.clone()
+        self.points = []
 
-        vector = Vector3()
+        for point in json['points']:
+            self.points.append( Vector3().fromArray( point ) )
 
-        vector.subVectors( self.v2, self.v1 )    # // diff
-        vector.multiplyScalar( t )
-        vector.add( self.v1 )
+        self.closed = json['closed']
+        self.curveType = json['curveType']
+        self.tension = json['tension']
 
-        return vector
-
-
-class ArcCurve(EllipseCurve):
-    def __init__(self, aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise ):
-        super().__init__( aX, aY, aRadius, aRadius, aStartAngle, aEndAngle, aClockwise )
-
+        return self

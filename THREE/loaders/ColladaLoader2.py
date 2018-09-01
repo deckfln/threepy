@@ -984,7 +984,7 @@ class ColladaLoader:
                 if child.nodeType != 1:
                     continue
 
-                if child.nodeName == 'extra':
+                if child.nodeName == 'extras':
                     parseEffectParameterTextureExtra(child, data)
 
             return data
@@ -2023,7 +2023,7 @@ class ColladaLoader:
                     data.matrix.scale(vector.fromArray(array))
                     data.transforms[child.getAttribute('sid')] = child.nodeName
 
-                elif child.nodeName == 'extra':
+                elif child.nodeName == 'extras':
                         pass
 
                 else:

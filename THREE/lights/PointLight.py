@@ -4,7 +4,7 @@
  */
 """
 from THREE.lights.Light import *
-from THREE.cameras.Camera import *
+from THREE.cameras.PerspectiveCamera import *
 
 
 class PointLight(Light):

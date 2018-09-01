@@ -16,7 +16,7 @@ def _allocateBones(object, capabilities):
         # // default for when object is not specified
         # // ( for example when prebuilding shader to be used with multiple objects )
         # //
-        # //  - leave some extra space for other uniforms
+        # //  - leave some extras space for other uniforms
         # //  - limit here is ANGLE's 254 max uniform vectors
         # //    (up to 54 should be safe)
         nVertexUniforms = capabilities.maxVertexUniforms

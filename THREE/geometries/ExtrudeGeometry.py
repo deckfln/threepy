@@ -24,7 +24,7 @@
  */
 """
 from THREE.core.Geometry import *
-import THREE.ShapeUtils as ShapeUtils
+import THREE.extras.ShapeUtils as ShapeUtils
 
 
 class _WorldUVGenerator:

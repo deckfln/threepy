@@ -9,6 +9,7 @@ from THREE.Constants import *
 
 import THREE.pyOpenGL.window as window
 
+
 class pyOpenGL(EventManager):
     def __init__(self, params=None):
         super().__init__([

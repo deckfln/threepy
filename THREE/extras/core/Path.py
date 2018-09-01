@@ -4,23 +4,24 @@
  * Creates free form 2d path using series of points, lines or curves.
  **/
 """
-from THREE.CurvePath import *
+from THREE.extras.core.CurvePath import *
 from THREE.math.Vector2 import *
 
 
 class Path(CurvePath):
     def __init__(self, points=None ):
         super().__init__( )
+        self.type = 'Path'
         self.currentPoint = Vector2()
 
         if points:
-            self.fromPoints( points )
+            self.setFromPoints( points )
 
-    def fromPoints(self, vectors ):
-        self.moveTo( vectors[ 0 ].x, vectors[ 0 ].y )
+    def setFromPoints(self, points ):
+        self.moveTo( points[ 0 ].x, points[ 0 ].y )
 
-        for i in range(1, len(vectors)):
-            self.lineTo( vectors[ i ].x, vectors[ i ].y )
+        for i in range(1, len(points)):
+            self.lineTo( points[ i ].x, points[ i ].y )
 
     def moveTo(self, x, y ):
         self.currentPoint.set( x, y )    # // TODO consider referencing vectors instead of copying?
@@ -62,7 +63,6 @@ class Path(CurvePath):
 
         self.currentPoint.copy( pts[ pts.length - 1 ] )
 
-
     def arc(self, aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise ):
         x0 = self.currentPoint.x
         y0 = self.currentPoint.y
@@ -92,3 +92,24 @@ class Path(CurvePath):
 
         lastPoint = curve.getPoint( 1 )
         self.currentPoint.copy( lastPoint )
+
+    def copy(self, source):
+        super().copy(source)
+
+        self.currentPoint.copy( source.currentPoint )
+
+        return self
+
+    def toJSON(self):
+        data = super().toJSON()
+
+        data['currentPoint'] = self.currentPoint.toArray()
+
+        return data
+
+    def fromJSON(self, json):
+        super().fromJSON(json)
+
+        self.currentPoint.fromArray( json['currentPoint'] )
+
+        return self
