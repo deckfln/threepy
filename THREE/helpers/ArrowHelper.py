@@ -23,6 +23,7 @@ from THREE.objects.Mesh import *
 lineGeometry = None
 coneGeometry = None
 
+
 class  ArrowHelper(Object3D):
     def __init__(self, dir, origin, length=1, color=0xffff00, headLength=None, headWidth=None):
         # // dir is assumed to be normalized

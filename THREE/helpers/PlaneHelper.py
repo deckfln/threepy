@@ -36,11 +36,7 @@ class PlaneHelper(Line):
 
         self.add( Mesh( geometry2, MeshBasicMaterial( { 'color': color, 'opacity': 0.2, 'transparent': True, 'depthWrite': False } ) ) )
 
-        # //
-
-        self.onBeforeRender()
-
-    def onBeforeRender(self, renderer=None, scene=None, camera=None, geometry=None, material=None, group=None):
+    def updateMatrixWorld(self, force=False):
         scale = - self.plane.constant
 
         if abs( scale ) < 1e-8:
@@ -48,6 +44,9 @@ class PlaneHelper(Line):
 
         self.scale.set( 0.5 * self.size, 0.5 * self.size, scale )
 
+        # renderer flips side when determinant < 0; flipping not wantet here
+        self.children[0].material.side = BackSide if scale < 0 else FrontSide\
+
         self.lookAt( self.plane.normal )
 
-        self.updateMatrixWorld()
+        super().updateMatrixWorld(force)

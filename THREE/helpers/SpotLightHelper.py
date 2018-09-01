@@ -4,6 +4,7 @@
  * @author WestLangley / http://github.com/WestLangley
 """
 from THREE.core.Object3D import *
+from THREE.core.BufferGeometry import *
 
 
 class SpotLightHelper(Object3D):

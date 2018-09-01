@@ -24,7 +24,7 @@ class SkeletonHelper(LineSegments):
     def __init__(self, object ):
         bones = getBoneList( object )
 
-        geometry = ufferGeometry()
+        geometry = BufferGeometry()
 
         vertices = []
         colors = []
@@ -52,16 +52,14 @@ class SkeletonHelper(LineSegments):
         self.matrix = object.matrixWorld
         self.matrixAutoUpdate = False
 
-        self.onBeforeRender()
-
-    def onBeforeRender(self):
+    def updateMatrixWorld(self, force=False):
         vector = Vector3()
 
         boneMatrix = Matrix4()
         matrixWorldInv = Matrix4()
 
         bones = self.bones
-        geometry = self.geometry;
+        geometry = self.geometry
         position = geometry.getAttribute( 'position' )
 
         matrixWorldInv.getInverse( self.root.matrixWorld )
@@ -80,3 +78,5 @@ class SkeletonHelper(LineSegments):
                 j += 2
 
         geometry.getAttribute( 'position' ).needsUpdate = True
+
+        super().updateMatrixWorld(force)

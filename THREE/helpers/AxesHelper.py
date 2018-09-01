@@ -7,7 +7,7 @@
 from THREE.objects.LineSegments import *
 
 
-class AxisHelper(LineSegments):
+class AxesHelper(LineSegments):
     def __init__(self, size=1 ):
         vertices = [
             0, 0, 0,  size, 0, 0,
