@@ -6,7 +6,7 @@
  */
 """
 from THREE.math.Plane import *
-from THREE.BoundingSphere import *
+from THREE.objects.BoundingSphere import *
 
 cython = True
 

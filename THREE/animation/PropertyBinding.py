@@ -1,7 +1,18 @@
 """
+ *
+ * A reference to a real property in the scene graph.
+ *
+ *
+ * @author Ben Houston / http://clara.io/
+ * @author David Sarno / http://lighthaus.us/
+ * @author tschw
 """
 import re
 from THREE.pyOpenGLObject import *
+
+
+# Characters [].:/ are reserved for track binding syntax.
+_RESERVED_CHARS_RE = u'\[\]\.:\/'
 
 
 class PropertyBinding:
@@ -41,23 +52,33 @@ class PropertyBinding:
          * @return {string}
         """
         r = re.sub("\s", '_', name )
-        return re.sub("[^\w-]", '', r )
+        return re.sub("["+_RESERVED_CHARS_RE+"]", '', r )
 
     def parseTrackName(trackName):
+        # Attempts to allow node names from any language. ES5's `\w` regexp matches
+        # only latin characters, and the unicode \p{L} is not yet supported. So
+        # instead, we exclude reserved characters and match everything else.
+        wordChar = '[^' + _RESERVED_CHARS_RE + ']'
+        wordCharOrDot = '[^' + _RESERVED_CHARS_RE.replace( '\\.', '' ) + ']'
+
         # Parent directories, delimited by '/' or ':'. Currently unused, but must
         # be matched to parse the rest of the track name.
-        directoryRe = '((?:[\w-]+[\/:])*)'
+        #directoryRe = '((?:[\w-]+[\/:])*)'
+        directoryRe = re.sub('WC', wordChar, '((?:WC+[\/:])*)')
 
         # Target node. May contain word characters (a-zA-Z0-9_) and '.' or '-'.
-        nodeRe = '([\w\-\.]+)?'
+        #nodeRe = '([\w\-\.]+)?'
+        nodeRe = re.sub('WCOD', wordCharOrDot, '(WCOD+)?')
 
         # Object on target node, and accessor. Name may contain only word
         # characters. Accessor may contain any character except closing bracket.
-        objectRe = '(?:\.([\w-]+)(?:\[(.+)\])?)?'
+        #objectRe = '(?:\.([\w-]+)(?:\[(.+)\])?)?'
+        objectRe = re.sub('WC', wordChar, '(?:\.(WC+)(?:\[(.+)\])?)?')
 
         # Property and accessor. May contain only word characters. Accessor may
         # contain any non-bracket characters.
-        propertyRe = '\.([\w-]+)(?:\[(.+)\])?'
+        #propertyRe = '\.([\w-]+)(?:\[(.+)\])?'
+        propertyRe = re.sub('WC', wordChar, '\.(WC+)(?:\[(.+)\])?')
 
         trackRe = '^' + directoryRe + nodeRe + objectRe + propertyRe + '$'
 
@@ -101,16 +122,9 @@ class PropertyBinding:
 
         # search into skeleton bones.
         if root.skeleton:
-            def searchSkeleton( skeleton ):
-                for bone in skeleton.bones:
-                    if bone.name == nodeName:
-                        return bone
+            bone = root.skeleton.getBoneByName(nodeName)
 
-                return None
-
-            bone = searchSkeleton( root.skeleton )
-
-            if bone:
+            if bone is not None:
                 return bone
 
         # search into node subtree.
@@ -358,14 +372,14 @@ class PropertyBinding:
         self.resolvedProperty.toArray(buffer, offset)  # Direct
 
     def setValue_direct(self, buffer, offset):
-        self.node[self.propertyName] = buffer[offset]
+        self.targetObject[self.propertyName] = buffer[offset]
 
     def setValue_direct_setNeedsUpdate(self, buffer, offset):
-        self.node[self.propertyName] = buffer[offset]
+        self.targetObject[self.propertyName] = buffer[offset]
         self.targetObject.needsUpdate = True
 
     def setValue_direct_setMatrixWorldNeedsUpdate(self, buffer, offset):
-        self.node[self.propertyName] = buffer[offset]
+        self.targetObject[self.propertyName] = buffer[offset]
         self.targetObject.matrixWorldNeedsUpdate = True  # EntireArray
 
     def setValue_array(self, buffer, offset):

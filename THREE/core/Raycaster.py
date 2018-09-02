@@ -5,7 +5,7 @@
  * @author stephomi / http:# //stephaneginier.com/
  */
 """
-from THREE.Ray import *
+from THREE.math.Ray import *
 
 
 def ascSort( a):

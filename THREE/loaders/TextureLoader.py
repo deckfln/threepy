@@ -8,6 +8,7 @@ from THREE.loaders.ImageLoader import *
 from THREE.textures.Texture import *
 from THREE.Constants import *
 import numpy
+import re
 
 
 def _onLoad(url, texture):

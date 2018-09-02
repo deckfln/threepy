@@ -12,7 +12,7 @@ from THREE.materials.MeshBasicMaterial import *
 from THREE.math.Triangle import *
 from THREE.core.BufferGeometry import *
 from THREE.core.Face3 import *
-from THREE.Ray import *
+from THREE.math.Ray import *
 import THREE.renderers.pyOpenGL.pyOpenGLObjects as pyOpenGLObjects
 
 

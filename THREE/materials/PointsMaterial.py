@@ -10,6 +10,8 @@
  *
  *  size: <float>,
  *  sizeAttenuation: <bool>
+ *
+ *  morphTargets: <bool>
  * }
  */
 """
@@ -33,7 +35,7 @@ class PointsMaterial(Material):
         self.sizeAttenuation = True
 
         self.lights = False
-
+        self.morphTargets = False
         self.setValues( parameters )
 
     def copy(self, source ):
@@ -45,5 +47,7 @@ class PointsMaterial(Material):
 
         self.size = source.size
         self.sizeAttenuation = source.sizeAttenuation
+
+        self.morphTargets = source.morphTargets
 
         return self

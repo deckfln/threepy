@@ -9,7 +9,7 @@ from THREE.materials.ShadowMaterial import *
 from THREE.materials.SpriteMaterial import *
 from THREE.materials.RawShaderMaterial import *
 from THREE.materials.ShaderMaterial import *
-from THREE.PointsMaterial import *
+from THREE.materials.PointsMaterial import *
 from THREE.materials.MeshPhysicalMaterial import *
 from THREE.materials.MeshStandardMaterial import *
 from THREE.materials.MeshToonMaterial import *

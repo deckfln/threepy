@@ -55,7 +55,7 @@ from THREE.materials.Material import *
 from THREE.materials.ShadowMaterial import *
 from THREE.materials.ShaderMaterial import *
 from THREE.materials.SpriteMaterial import *
-from THREE.PointsMaterial import *
+from THREE.materials.PointsMaterial import *
 from THREE.materials.MeshBasicMaterial import *
 from THREE.materials.MeshLambertMaterial import *
 from THREE.materials.MeshPhongMaterial import *
@@ -95,7 +95,7 @@ from THREE.helpers.PolarGridHelper import *
 from THREE.helpers.VertexNormalsHelper import *
 from THREE.helpers.SpotLightHelper import *
 from THREE.helpers.SkeletonHelper import *
-from THREE.Ray import *
+from THREE.math.Ray import *
 from THREE.core.Raycaster import *
 from THREE.objects.Sprite import *
 from THREE.animation.AnimationMixer import *

@@ -10,8 +10,8 @@
 
 from THREE.pyOpenGL.EventManager import *
 from THREE.animation.AnimationClip import *
-from THREE.PropertyMixer import *
-from THREE.PropertyBinding import *
+from THREE.animation.PropertyMixer import *
+from THREE.animation.PropertyBinding import *
 from THREE.animation.AnimationAction import *
 
 

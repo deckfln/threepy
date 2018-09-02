@@ -32,7 +32,7 @@ from THREE.renderers.pyOpenGLSpriteRenderer import *
 from THREE.renderers.pyOpenGLGuiRenderer import *
 from THREE.renderers.pyOpenGL.pyOpenGLMorphtargets import *
 from THREE.textures.DataTexture import *
-from THREE.Shader import *
+from THREE.renderers.shaders.Shader import *
 from THREE.OcTree import *
 from THREE.renderers.pyOpenGL.pyOpenGLUtils import *
 

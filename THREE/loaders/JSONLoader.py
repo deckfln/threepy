@@ -8,7 +8,7 @@ import json as JSON
 
 from THREE.loaders.Loader import *
 from THREE.core.Geometry import *
-from THREE.MorphTarget import *
+from THREE.objects.MorphTarget import *
 from THREE.animation.AnimationClip import *
 
 
@@ -300,7 +300,6 @@ class JSONLoader:
             if geometry.bones and len(geometry.bones) > 0 and ( len(geometry.skinWeights) != len(geometry.skinIndices) or len(geometry.skinIndices) != len(geometry.vertices) ):
                 print( 'When skinning, number of vertices (' + geometry.vertices.length + '), skinIndices (' +
                     geometry.skinIndices.length + '), and skinWeights (' + geometry.skinWeights.length + ') should match.' )
-
 
         def parseMorphing( json, geometry ):
             scale = json['scale']

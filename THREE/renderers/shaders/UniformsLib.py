@@ -7,7 +7,7 @@ from THREE.math.Color import *
 from THREE.math.Vector2 import *
 from THREE.math.Vector4 import *
 from THREE.math.Matrix3 import *
-from THREE.UniformValue import *
+from THREE.renderers.pyOpenGL.UniformValue import *
 
 UniformsLib = {
 
