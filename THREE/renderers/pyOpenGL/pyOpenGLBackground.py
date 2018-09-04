@@ -4,7 +4,7 @@
  */
 """
 from THREE.cameras.Camera import *
-from THREE.geometries.BoxBufferGeometry import *
+from THREE.geometries.BoxGeometry import *
 from THREE.geometries.PlaneGeometry import *
 from THREE.renderers.shaders.ShaderLib import *
 from THREE.objects.Mesh import *

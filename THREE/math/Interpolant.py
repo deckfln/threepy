@@ -25,7 +25,7 @@ _linear_scan = 3
 _validate_interval = 4
 
 from THREE.cython.cInterpolant import *
-
+cython = False
 
 class Interpolant:
     settings = None # optional, subclass-specific settings structure
@@ -47,7 +47,9 @@ class Interpolant:
         self.afterEnd_ = self.copySampleValue_
 
     def evaluate(self, t ):
-        return cInterpolant_evaluate(self, t)
+        if cython:
+            return cInterpolant_evaluate(self, t)
+        return self._evaluate(t)
 
     def _evaluate(self, t ):
         pp = self.parameterPositions

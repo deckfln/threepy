@@ -81,50 +81,45 @@ class AnimationUtils:
         # function for parsing AOS keyframe formats
         """
         i = 1
-        key = jsonKeys[ 0 ]
+        key = jsonKeys[0]
 
-        while key is not None and key[ valuePropertyName ] is None:
-            key = jsonKeys[ i ]
-            i+= 1
+        while key is not None and valuePropertyName not in key:
+            key = jsonKeys[i]
+            i += 1
 
         if key is None:
             return    # no data
 
-        value = key[ valuePropertyName] 
-        if value is None:
+        if valuePropertyName not in key:
             return    # no data
 
-        if isinstance(value, list ):
-            while key is not None:
-                value = key[ valuePropertyName ]
+        value = key[valuePropertyName]
+        if isinstance(value, list):
+            for k in range(i, len(jsonKeys) + 1):
+                key = jsonKeys[k - 1]
+                if valuePropertyName in key:
+                    value = key[valuePropertyName]
 
-                if value is not None:
-                    times.append( key.time )
-                    values.append.apply( values, value )    # // push all elements
+                    times.append(key['time'])
+                    for v in value:
+                       values.append(v)    # // push all elements
 
-                key = jsonKeys[ i ]
-                i += 1
-
-        elif value.toArray is not None:
+        elif 'toArray' in value:
             # ...assume THREE.Math-ish
-            while key is not None:
-                value = key[ valuePropertyName ]
+            for k in range(i, len(jsonKeys) + 1):
+                key = jsonKeys[k - 1]
+                if valuePropertyName in key:
+                    value = key[valuePropertyName]
 
-                if value is not None:
-                    times.append( key.time )
-                    value.toArray( values, len(values))
-
-                key = jsonKeys[ i ]
-                i += 1
+                    times.append(key['time'])
+                    value.toArray(values, len(values))
 
         else:
             # otherwise push as-is
-            while key is not None:
-                value = key[ valuePropertyName ]
+            for k in range(i, len(jsonKeys) + 1):
+                key = jsonKeys[k - 1]
+                value = key[valuePropertyName]
 
                 if value is not None:
-                    times.append( key.time )
-                    values.append( value )
-
-                key = jsonKeys[ i ]
-                i += 1
+                    times.append(key['time'])
+                    values.append(value)

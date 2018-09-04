@@ -18,7 +18,7 @@ class Texture(pyOpenGLObject):
     DEFAULT_MAPPING = UVMapping
     isTexture = True
     
-    def __init__(self, image=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, format=None, type=None, anisotropy=None, encoding=None ):
+    def __init__(self, image=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, format=None, gltype=None, anisotropy=None, encoding=None):
         global _textureId
         self.id = _textureId
         _textureId += 1
@@ -45,8 +45,18 @@ class Texture(pyOpenGLObject):
 
         self.anisotropy = anisotropy if anisotropy is not None else 1
 
-        self.format = format if format is not None else RGBAFormat
-        self.type = type if type is not None else UnsignedByteType
+        if image is not None:
+            if type(image) is list:
+                if image[0] is not None:
+                    self.format = RGBFormat if image[0].mode == 'RGB' else RGBAFormat
+                else:
+                    self.format = format if format is not None else RGBAFormat
+            else:
+                self.format = RGBFormat if image.mode == 'RGB' else RGBAFormat
+        else:
+            self.format = format if format is not None else RGBAFormat
+
+        self.type = gltype if gltype is not None else UnsignedByteType
 
         self.offset = Vector2(0, 0)
         self.repeat = Vector2(1, 1)

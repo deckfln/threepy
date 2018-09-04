@@ -6,6 +6,7 @@ from datetime import datetime
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 
+
 class Params:
     def __init__(self):
         self.camera = None

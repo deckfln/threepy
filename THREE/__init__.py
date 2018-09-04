@@ -24,7 +24,7 @@ from THREE.core.InstancedBufferAttribute import *
 from THREE.core.BufferGeometry import *
 from THREE.core.InstancedBufferGeometry import *
 from THREE.core.DirectGeometry import *
-from THREE.geometries.BoxBufferGeometry import *
+from THREE.geometries.BoxGeometry import *
 from THREE.geometries.PlaneGeometry import *
 from THREE.geometries.SphereGeometry import *
 from THREE.geometries.CylinderGeometry import *
@@ -34,7 +34,7 @@ from THREE.geometries.PolyhedronGeometry import *
 from THREE.geometries.IcosahedronGeometry import *
 from THREE.geometries.OctahedronGeometry import *
 from THREE.geometries.TetrahedronGeometry import *
-from THREE.geometries.CircleBufferGeometry import *
+from THREE.geometries.CircleGeometry import *
 from THREE.geometries.RingGeometry import *
 from THREE.geometries.LatheGeometry import *
 from THREE.geometries.DodecahedronGeometry import *

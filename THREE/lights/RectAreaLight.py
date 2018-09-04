@@ -25,10 +25,10 @@ class RectAreaLight(Light):
 
         return self
 
-	def toJSON(self, meta):
-		data = super().toJSON(meta)
+    def toJSON(self, meta):
+        data = super().toJSON(meta)
 
-		data.object.width = self.width
-		data.object.height = self.height
+        data.object.width = self.width
+        data.object.height = self.height
 
-		return data
+        return data

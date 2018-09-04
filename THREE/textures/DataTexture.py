@@ -15,8 +15,8 @@ class _DataTextureImage:
 class DataTexture(Texture):
     isDataTexture = True
     
-    def __init__(self, data, width, height, format, type, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, anisotropy=None, encoding=None ):
-        super().__init__(None, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy, encoding )
+    def __init__(self, data, width, height, format, gltype, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, anisotropy=None, encoding=None):
+        super().__init__(None, mapping, wrapS, wrapT, magFilter, minFilter, format, gltype, anisotropy, encoding)
 
         self.set_class(isDataTexture)
         self.format = RGBA32Format

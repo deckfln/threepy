@@ -49,7 +49,7 @@ def _parseKeyframeTrack(json):
 
     trackType = _getTrackTypeForValueTypeName( json['type'] )
 
-    if json['times'] is None:
+    if 'times' not in json:
         times = []
         values = []
 
@@ -80,13 +80,14 @@ class AnimationClip:
 
     def parse( json ):
         tracks = []
-        jsonTracks = json.tracks,
-        frameTime = 1.0 / ( json.fps or 1.0 )
+        jsonTracks = json['tracks']
+        frameTime = 1.0 / (json['fps'] or 1.0)
 
-        for i in range(len(jsonTracks)):
-            tracks.append( _parseKeyframeTrack( jsonTracks[ i ] ).scale( frameTime ) )
+        for track in jsonTracks:
+            tracks.append(_parseKeyframeTrack(track).scale(frameTime))
 
-        return AnimationClip( json.name, json.duration, tracks )
+        duration = json['duration'] if 'duration' in json else None
+        return AnimationClip(json['name'], duration, tracks)
 
     def toJSON( clip ):
         tracks = []

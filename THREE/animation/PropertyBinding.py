@@ -121,14 +121,14 @@ class PropertyBinding:
             return root
 
         # search into skeleton bones.
-        if root.skeleton:
+        if hasattr(root, 'skeleton') and root.skeleton is not None:
             bone = root.skeleton.getBoneByName(nodeName)
 
             if bone is not None:
                 return bone
 
         # search into node subtree.
-        if root.children:
+        if len(root.children) > 0:
             def searchNodeSubtree( children ):
                 for childNode in children:
                     if childNode.name == nodeName or childNode.uuid == nodeName:

@@ -96,9 +96,10 @@ class AnimationMixer(EventManager):
 
                 path = prototypeAction and prototypeAction._propertyBindings[ i ].binding.parsedPath
 
+                valueSize = track.getValueSize()
                 binding = PropertyMixer(
                     PropertyBinding.create( root, trackName, path ),
-                    track.ValueTypeName, track.getValueSize() )
+                    track.ValueTypeName, valueSize)
 
                 binding.referenceCount += 1
                 self._addInactiveBinding( binding, rootUuid, trackName )

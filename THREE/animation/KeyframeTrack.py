@@ -119,7 +119,7 @@ class KeyframeTrack:
             return InterpolateSmooth
 
     def getValueSize(self):
-        return int(len(self.values) / len(self.times))
+        return int(self.values.size / self.times.size)
 
     # move all keyframes either forwards or backwards in time
     def shift(self, timeOffset):
@@ -287,27 +287,30 @@ class KeyframeTrack:
         # Serialization (in static context, because of constructor invocation
         # and automatic invocation of .toJSON):
 
-        if json.type is None:
+        if 'type' not in json:
             raise RuntimeError( "track type undefined, can not parse" )
 
-        trackType = _getTrackTypeForValueTypeName( json.type )
+        trackType = _getTrackTypeForValueTypeName(json['type'])
 
-        if json.times is None:
+        if 'times' not in json:
             times = []
             values = []
 
-            AnimationUtils.flattenJSON( json.keys, times, values, 'value' )
+            AnimationUtils.flattenJSON(json['keys'], times, values, 'value')
 
-            json.times = times
-            json.values = values
+            json['times'] = times
+            json['values'] = values
 
         # derived classes can define a static parse method
-        if trackType.parse is not None:
-            return trackType.parse( json )
+        # FIXME FDE
+        #class_parse = getattr(trackType, "parse", None)
+        #if callable(class_parse):
+        #    return trackType.parse(json)
 
         else:
             # by default, we assume a constructor compatible with the base
-            return trackType(json.name, json.times, json.values, json.interpolation )
+            interpolation = json['interpolation'] if 'interpolation' in json else None
+            return trackType(json['name'], json['times'], json['values'], interpolation)
 
     def toJSON( track ):
         trackType = type(track)

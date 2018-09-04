@@ -57,7 +57,10 @@ class JSONLoader:
             faces = json['faces']
             vertices = json['vertices']
             normals = json['normals']
-            colors = json['colors']
+            if 'colors' in json:
+                colors = json['colors']
+            else:
+                colors = []
 
             scale = json['scale']
 
