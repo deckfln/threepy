@@ -43,7 +43,7 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         glBindBuffer(bufferType, buffer)
         if attribute.dynamic:
-            OpenGL.raw.GL.GL_1_5.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
+            OpenGL.raw.GL.VERSION.GL_1_5.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_DYNAMIC_DRAW)
             # glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.dtype.itemsize, array)
         else:
             OpenGL.raw.GL.VERSION.GL_1_5.glBufferData(bufferType, array.size * array.dtype.itemsize, array, GL_STATIC_DRAW)
@@ -75,7 +75,7 @@ class pyOpenGLAttributes(pyOpenGLObject):
             if attribute.my_class(isInstancedBufferAttribute):
                 # // Not using update ranges
                 # pyOpenGL.OpenGL.glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
-                pyOpenGL.OpenGL.glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
+                OpenGL.raw.GL.VERSION.GL_1_5.glBufferSubData(bufferType, 0, attribute.maxInstancedCount * attribute.itemSize * array.itemsize, array)
             else:
                 glBufferData(bufferType, array, GL_DYNAMIC_DRAW)
             return

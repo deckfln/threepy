@@ -145,8 +145,8 @@ mat2array = np.zeros( 4, 'f' )
 # // Flattening for arrays of vectors and matrices
 
 
-def flatten( array, nBlocks, blockSize ):
-    firstElem = array[ 0 ]
+def flatten(array, nBlocks, blockSize):
+    firstElem = array[0]
 
     if isinstance(firstElem, float) or isinstance(firstElem, np.float32):
         return array
@@ -161,29 +161,26 @@ def flatten( array, nBlocks, blockSize ):
         arrayCacheF32[n] = r
 
     if nBlocks != 0:
-        firstElem.toArray( r, 0 )
+        firstElem.toArray(r, 0)
         offset = 0
-        for i in range(1,nBlocks):
+        for i in range(1, nBlocks):
             offset += blockSize
-            array[ i ].toArray( r, offset )
+            array[i].toArray(r, offset)
 
     return r
 
 
 def arraysEqual(a, b):
-    if len(a) != len(b):
-        return False
-
-    for i in range(len(a)):
-        if a[i] != b[i]:
-            return False
-
-    return True
+    # lb = len(b)
+    # eq = (a[0:lb] == b[0:lb])
+    # return eq.all()
+    return np.array_equal(a, b)
 
 
 def copyArray(a, b):
-    for i in range(len(b)):
-        a[i] = b[i]
+    #lb = len(b)
+    #a[0:lb] = b[:]
+    np.copyto(a, b)
 
 # // Texture unit allocation
 
@@ -210,13 +207,34 @@ def allocTexUnits( renderer, n ):
 # // --- Uniform Classes ---
 
 
-class SingleUniform:
-    def __init__(self, id, activeInfo, addr ):
-        self.id = id
-        self.addr = addr
-        self.uploaded = False
-        self.cache = np.full(16, -99999999999999999999999999999, np.float32)
+_cache_size = {
+    0x1406: 1,  # // FLOAT
+    0x8b50: 2,  # // _VEC2
+    0x8b51: 3,  # // _VEC3
+    0x8b52: 4,  # // _VEC4
 
+    0x8b5a: 4,  # self.setValue2fm,  # // _MAT2
+    0x8b5b: 9,  # self.setValue3fm,  # // _MAT3
+    0x8b5c: 16,  # self.setValue4fm,  # // _MAT4
+
+    0x8b5e: 1,
+    0x8d66: 1,  # // SAMPLER_2D, SAMPLER_EXTERNAL_OES
+    0x8b60: 1,  # // SAMPLER_CUBE
+
+    0x1404: 1,
+    0x8b56: 1,  # // INT, BOOL
+    0x8b53: 0,  # self.setValue2iv,
+    0x8b57: 0,  # self.setValue2iv,  # // _VEC2
+    0x8b54: 0,  # self.setValue3iv,
+    0x8b58: 0,  # self.setValue3iv,  # // _VEC3
+    0x8b55: 0,  # self.setValue4iv,
+    0x8b59: 0,  # self.setValue4iv  # // _VEC4
+}
+
+
+class SingleUniform:
+    def __init__(self, id, activeInfo, addr):
+        global _cache_size
         _types = {
             0x1406: self.setValue1f,  # // FLOAT
             0x8b50: self.setValue2fv,  # // _VEC2
@@ -240,8 +258,14 @@ class SingleUniform:
             0x8b55: self.setValue4iv,
             0x8b59: self.setValue4iv  # // _VEC4
         }
-
         v = _types[activeInfo[2]]
+        cv = _cache_size[activeInfo[2]]
+
+        self.id = id
+        self.addr = addr
+        self.uploaded = False
+        self.cache = np.full(cv, -99999999999999999999999999999, np.float32)
+
         self.setValue = v
 
     # // Single scalar
@@ -252,7 +276,7 @@ class SingleUniform:
         if cache[0] == v:
             return
 
-        glUniform1f(self.addr, v)
+        OpenGL.raw.GL.VERSION.GL_2_0.glUniform1f(self.addr, v)
         cache[0] = v
 
     def setValue1i(self, v, renderer=None):
@@ -261,7 +285,7 @@ class SingleUniform:
         if cache[0] == v:
             return
 
-        glUniform1i(self.addr, v)
+        OpenGL.raw.GL.VERSION.GL_2_0.glUniform1i(self.addr, v)
         cache[0] = v
 
         # // Single float vector (from flat array or THREE.VectorN)
@@ -271,14 +295,14 @@ class SingleUniform:
 
         if v.x is not None:
             if cache[0] != v.x or cache[1] != v.y:
-                glUniform2f(self.addr, v.x, v.y)
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform2f(self.addr, v.x, v.y)
                 cache[0] = v.x
                 cache[1] = v.y
         else:
-            if arraysEqual( cache, v ):
+            if arraysEqual(cache, v):
                 return
 
-            glUniform2fv(self.addr, v)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniform2fv(self.addr, v)
 
             copyArray(cache, v)
 
@@ -286,24 +310,23 @@ class SingleUniform:
         cache = self.cache
 
         if v.my_class(isVector3):
-            if cache[0] != v.np[0] or cache[1] != v.np[1] or cache[2] != v.np[2]:
-                glUniform3f(self.addr, v.np[0], v.np[1], v.np[2])
-                cache[0] = v.np[0]
-                cache[1] = v.np[1]
-                cache[2] = v.np[2]
+            vnp = v.np
+            if cache[0] != vnp[0] or cache[1] != vnp[1] or cache[2] != vnp[2]:
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, vnp[0], vnp[1], vnp[2])
+                np.copyto(cache, vnp)
 
         elif v.my_class(isColor):
             if cache[0] != v.r or cache[1] != v.g or cache[2] != v.b:
-                glUniform3f(self.addr, v.r, v.g, v.b)
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, v.r, v.g, v.b)
                 cache[0] = v.r
                 cache[1] = v.g
                 cache[2] = v.b
 
         else:
-            if arraysEqual( cache, v ):
+            if arraysEqual(cache, v):
                 return
 
-            glUniform3fv(self.addr, 1, v)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniform3fv(self.addr, 1, v)
             copyArray(cache, v)
 
     def setValue4fv(self, v, renderer=None):
@@ -311,7 +334,7 @@ class SingleUniform:
 
         if hasattr(v, 'x') is not None:
             if cache[0] != v.x or cache[1] != v.y or cache[2] != v.z or cache[3] != v.w:
-                glUniform4f(self.addr, v.x, v.y, v.z, v.w)
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform4f(self.addr, v.x, v.y, v.z, v.w)
 
             cache[0] = v.x
             cache[1] = v.y
@@ -319,10 +342,10 @@ class SingleUniform:
             cache[3] = v.w
 
         else:
-            if arraysEqual( cache, v ):
+            if arraysEqual(cache, v):
                 return
 
-            glUniform4fv(self.addr, v)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniform4fv(self.addr, v)
 
             copyArray(cache, v)
 
@@ -335,7 +358,7 @@ class SingleUniform:
             if arraysEqual(cache, v):
                 return
 
-            glUniformMatrix2fv(self.addr, 1, GL_FALSE, v)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix2fv(self.addr, 1, GL_FALSE, v)
             copyArray(cache, v)
 
         else:
@@ -344,7 +367,7 @@ class SingleUniform:
                 return
 
             np.copyto(mat2array, elements)
-            glUniformMatrix2fv(self.addr, 1, GL_FALSE, mat2array)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix2fv(self.addr, 1, GL_FALSE, mat2array)
 
         copyArray(cache, elements)
 
@@ -364,9 +387,9 @@ class SingleUniform:
             if arraysEqual(cache, elements):
                 return
 
-            np.copyto(mat3array, elements)
+            # np.copyto(mat3array, elements)
 
-            glUniformMatrix3fv(self.addr, 1, GL_FALSE, mat3array)
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix3fv(self.addr, 1, GL_FALSE, elements)
             copyArray(cache, elements)
 
     def setValue4fm(self, v, renderer=None):
@@ -384,7 +407,7 @@ class SingleUniform:
             if arraysEqual(cache, elements):
                 return
 
-            np.copyto(mat4array, elements)
+            # np.copyto(mat4array, elements)
 
             OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, elements)
 
@@ -446,11 +469,6 @@ class SingleUniform:
 
 class PureArrayUniform():
     def __init__(self, id, activeInfo, addr ):
-        self.id = id
-        self.addr = addr
-        self.size = activeInfo[1]
-        self.cache = np.full(16, -99999999999999999999999999999, np.float32)
-
         # // Helper to pick the right setter for a pure (bottom-level) array
         _types = {
             0x1406: self.setValue1fv,  # // FLOAT
@@ -475,6 +493,12 @@ class PureArrayUniform():
             0x8b55: self.setValue4iv,
             0x8b59: self.setValue4iv  # // _VEC4
         }
+        cv = _cache_size[activeInfo[2]]
+
+        self.id = id
+        self.addr = addr
+        self.size = activeInfo[1]
+        self.cache = np.full(cv * self.size, -99999999999999999999999999999, np.float32)
 
         self.setValue = _types[activeInfo[2]]
 
