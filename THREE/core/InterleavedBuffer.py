@@ -22,7 +22,7 @@ class InterleavedBuffer(pyOpenGLObject):
         self.set_class(isInterleavedBuffer)
         self.array = array
         self.stride = stride
-        self.count = len(array) / stride if array is not None else 0
+        self.count = int(len(array) / stride) if array is not None else 0
 
         self.dynamic = False
         self.updateRange = _updateRange(0, - 1)
