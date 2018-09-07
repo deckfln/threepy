@@ -128,36 +128,36 @@ class CurvePath(Curve):
         for curve in self.curves:
             if curve and curve.my_class(isEllipseCurve):
                 resolution = divisions * 2
-            elif curve and curve.isLineCurve:
+            elif curve and curve.my_class(isLineCurve):
                 resolution = 1
-            elif curve and curve.isSplineCurve or curve.isLineCurve3:
+            elif curve and curve.my_class(isSplineCurve) or curve.my_class(isLineCurve3):
                 resolution = divisions * len(curve.points)
             else:
                 resolution = divisions
 
-            pts = curve.getPoints( resolution )
+            pts = curve.getPoints(resolution)
 
             for j in range(len(pts)):
-                point = pts[ j ]
+                point = pts[j]
 
-                if last and last.equals( point ):
+                if last and last.equals(point):
                     continue # // ensures no consecutive points are duplicates
 
-                points.append( point )
+                points.append(point)
                 last = point
 
-        if self.autoClose and len(points) > 1 and not points[ len(points) - 1 ].equals( points[ 0 ] ):
-            points.append( points[ 0 ] )
+        if self.autoClose and len(points) > 1 and not points[len(points) - 1].equals(points[ 0 ]):
+            points.append( points[0] )
 
         return points
 
     def copy(self, source):
-        super().copy( source )
+        super().copy(source)
 
         self.curves = []
 
         for curve in source.curves:
-            self.curves.append( curve.clone() )
+            self.curves.append(curve.clone())
 
         self.autoClose = source.autoClose
 

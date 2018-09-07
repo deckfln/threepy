@@ -11,6 +11,7 @@ class SplineCurve(Curve):
 
     def __init__(self, points=None):
         super().__init__()
+        self.set_class(isSplineCurve)
         self.type = 'SplineCurve'
 
         self.points = [] if points is None else points

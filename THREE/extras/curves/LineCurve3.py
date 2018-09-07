@@ -11,6 +11,7 @@ class LineCurve3(Curve):
 
     def __init__(self, v1=None, v2=None):
         super().__init__()
+        self.set_class(isLineCurve3)
 
         self.type = 'LineCurve3'
 
