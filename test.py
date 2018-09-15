@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-07-attrib.py
+07-attrib.extra
 
 OpenGL 2.0 rendering using vertex attributes
 

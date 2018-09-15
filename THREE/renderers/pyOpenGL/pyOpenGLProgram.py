@@ -110,10 +110,8 @@ def generateDefines(defines):
     for name in defines:
         value = defines[name]
 
-        if not value:
-            continue
-
-        chunks.append('#define %s %s' % (name, str(value)))
+        if value is not False:
+            chunks.append('#define %s %s' % (name, str(value)))
 
     return '\n'.join(chunks)
 
@@ -214,9 +212,22 @@ def _getAttributeLocations(program):
     return attributes
 
 
+_envmap_mapping = {
+    CubeReflectionMapping: 'ENVMAP_TYPE_CUBE',
+    CubeRefractionMapping: 'ENVMAP_TYPE_CUBE',
+    CubeUVReflectionMapping: 'ENVMAP_TYPE_CUBE_UV',
+    CubeUVRefractionMapping: 'ENVMAP_TYPE_CUBE_UV',
+    EquirectangularReflectionMapping: 'ENVMAP_TYPE_EQUIREC',
+    EquirectangularRefractionMapping: 'ENVMAP_TYPE_EQUIREC',
+    SphericalReflectionMapping: 'ENVMAP_TYPE_SPHERE'
+}
+
+
 class pyOpenGLProgram:
     def __init__(self, renderer, extensions, code, material, shader, parameters):
         global _programIdCount
+        global _envmap_mapping
+
         self.name = shader.name
         self.id = _programIdCount
         _programIdCount += 1
@@ -240,16 +251,7 @@ class pyOpenGLProgram:
         envMapModeDefine = 'ENVMAP_MODE_REFLECTION'
         envMapBlendingDefine = 'ENVMAP_BLENDING_MULTIPLY'
 
-        if parameters[ 'envMap' ]:
-            _envmap_mapping= {
-                CubeReflectionMapping: 'ENVMAP_TYPE_CUBE',
-                CubeRefractionMapping: 'ENVMAP_TYPE_CUBE',
-                CubeUVReflectionMapping: 'ENVMAP_TYPE_CUBE_UV',
-                CubeUVRefractionMapping: 'ENVMAP_TYPE_CUBE_UV',
-                EquirectangularReflectionMapping: 'ENVMAP_TYPE_EQUIREC',
-                EquirectangularRefractionMapping: 'ENVMAP_TYPE_EQUIREC',
-                SphericalReflectionMapping: 'ENVMAP_TYPE_SPHERE'
-            }
+        if parameters[ 'envMap' ] and material.envMap.mapping in _envmap_mapping:
             envMapTypeDefine = _envmap_mapping[material.envMap.mapping]
 
             if material.envMap.mapping == CubeRefractionMapping or material.envMap.mapping == EquirectangularRefractionMapping:
@@ -549,7 +551,7 @@ class pyOpenGLProgram:
             glBindAttribLocation(program, 0, 'position')
 
         glLinkProgram(program)
-        glValidateProgram(program)
+        #TODO FDE ? glValidateProgram(program)
 
         programLog = glGetProgramInfoLog(program)
         vertexLog = glGetShaderInfoLog(glVertexShader)

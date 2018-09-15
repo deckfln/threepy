@@ -237,7 +237,7 @@ class Object3D(pyOpenGLObject):
         if object == self:
             raise RuntimeError("THREE.Object3D.add: object can't be added as a child of itself.", object)
 
-        if object and object.isObject3D:
+        if object and object.my_class(isObject3D):
             if object.parent is not None:
                 object.parent.remove(object)
 

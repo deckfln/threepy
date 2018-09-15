@@ -66,7 +66,7 @@ def init(p):
     format = '.jpg'
     urls = [
             path + 'px' + format, path + 'nx' + format,
-            path + 'py' + format, path + 'ny' + format,
+            path + 'extra' + format, path + 'ny' + format,
             path + 'pz' + format, path + 'nz' + format
         ]
 

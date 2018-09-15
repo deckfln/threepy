@@ -356,14 +356,14 @@ class pyOpenGLRenderer:
     def getClearColor(self):
         return self.background.getClearColor()
 
-    def setClearColor(self):
-        return self.background.setClearColor()
+    def setClearColor(self, color, alpha ):
+        return self.background.setClearColor(color, alpha)
 
     def getClearAlpha(self):
         return self.background.getClearAlpha()
 
-    def setClearAlpha(self):
-        return self.background.setClearAlpha()
+    def setClearAlpha(self, alpha):
+        return self.background.setClearAlpha(alpha)
 
     def clear(self, color=True, depth=True, stencil=True):
         bits = 0
