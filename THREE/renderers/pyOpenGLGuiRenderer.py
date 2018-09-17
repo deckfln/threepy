@@ -39,11 +39,11 @@ class _Uniforms:
 
 
 class pyOpenGLGuiRenderer:
-    def __init__(self, renderer, state, textures, capabilities ):
+    def __init__(self, renderer, frame=None ):
         self.renderer = renderer
-        self.state = state
-        self.textures = textures
-        self.capabilities = capabilities
+        self.state = renderer.state
+        self.textures = renderer.textures
+        self.capabilities = renderer.capabilities
 
         self.vertexBuffer = None
         self.elementBuffer = None
@@ -53,17 +53,17 @@ class pyOpenGLGuiRenderer:
 
         self.vao = -1
 
-        if renderer.parameters['gui'] is None:
-            image = Image.new("RGBA", (8,8))
+        if frame is None:
+            image = Image.new("RGBA", (1024, 1024))
             d = ImageDraw.Draw(image)
-            d.rectangle((0, 0, 8, 8), "#00000000")
+            d.rectangle((0, 0, 1024, 1024), "#00000000")
 
             # context.fillStyle = 'white'
             # context.fillRect( 0, 0, 8, 8 )
 
             self.texture = CanvasTexture( image )
         else:
-            self.texture = renderer.parameters['gui']
+            self.texture = frame
 
     def init(self):
         vertices = Float32Array( [

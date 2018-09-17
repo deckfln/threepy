@@ -270,7 +270,7 @@ class pyOpenGLRenderer:
         self.bufferRenderer = pyOpenGLBufferRenderer(self.extensions, self.info, self.capabilities)
         self.indexedBufferRenderer = pyOpenGLIndexedBufferRenderer(self.extensions, self.info, self.capabilities)
 
-        self.guiRenderer = pyOpenGLGuiRenderer(self, self.state, self.textures, self.capabilities) if 'gui' in self.parameters else None
+        self.guiRenderer = None
 
         self.info.programs = self.programCache.programs
 

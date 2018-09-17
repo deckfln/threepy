@@ -5,6 +5,8 @@
  * @author szimek / https:# //github.com/szimek/
  */
 """
+import numpy as np
+
 import THREE._Math as _Math
 from THREE.math.Vector2 import *
 from THREE.math.Matrix3 import *
@@ -80,6 +82,12 @@ class Texture(pyOpenGLObject):
         self.version = 0
         self.onUpdate = None
         self.callback = None
+
+    def get_data(self):
+        if self.img_data is None:
+            self.img_data = np.fromstring(self.image.tobytes(), np.uint8)
+
+        return self.img_data
 
     def set(self, value ):
         if value:

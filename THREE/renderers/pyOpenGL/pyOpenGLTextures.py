@@ -331,7 +331,7 @@ class pyOpenGLTextures:
                 textureProperties._maxMipLevel = len(mipmaps) - 1
             else:
                 if texture.img_data is None:
-                    texture.img_data = numpy.fromstring(image.tobytes(), numpy.uint8)
+                    texture.get_data()
                 width, height = image.size
                 # self.state.texImage2D(GL_TEXTURE_2D, 0, glFormat,  width, height, 0, glFormat, glType, texture.img_data)
                 OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat,  width, height, 0, glFormat, glType, texture.img_data)

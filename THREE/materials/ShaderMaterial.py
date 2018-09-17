@@ -34,7 +34,7 @@ class ShaderMaterial(Material):
         self.type = 'ShaderMaterial'
 
         self.defines = {}
-        self.uniforms = {}
+        self.uniforms = Uniforms()
 
         self.vertexShader = 'void main() {\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n}'
         self.fragmentShader = 'void main() {\n\tgl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );\n}'
