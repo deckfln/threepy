@@ -31,7 +31,8 @@ class FileLoader:
 
         response = None
         flag = 'r'+self.responseType
-        with open(url, flag) as f:
+        print("FileLoader: warning utf8")
+        with open(url, flag, encoding='utf-8') as f:
             response = f.read()
             if onLoad:
                 onLoad( response )

@@ -15,16 +15,16 @@ class pyCache:
         if not os.path.exists("cache"):
             os.mkdir("cache")
 
-    def load(self):
+    def load(self, force=False):
         # if cached file doesn't exist
         if not os.path.isfile(self.fcached):
             return None
 
         # if cached file is older than the source file
-        if os.path.getmtime(self.file) > os.path.getmtime(self.fcached):
+        if not force and os.path.getmtime(self.file) > os.path.getmtime(self.fcached):
             return None
 
-        # cache is uptodate
+        # cache is up to date
         with open(self.fcached, "rb") as f:
             self.obj = pickle.load(f)
 

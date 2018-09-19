@@ -975,4 +975,6 @@ class Geometry(pyOpenGLObject):
             return self.callback(self)
 
     def rebuild_id(self):
-        self.id = GeometryIdCount()
+        global _geometryId
+        self.id = _geometryId
+        _geometryId += 2
