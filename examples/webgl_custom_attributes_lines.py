@@ -1,8 +1,6 @@
 """
 <title>three.js webgl - custom attributes [lines]</title>
 """
-#TODO the extruded bezel is not working as expected
-
 import math
 import random
 import math
@@ -97,7 +95,7 @@ def init(p):
     cached = pyCache(url)
     geometry = cached.load(True)
     if geometry is None:
-        geometry = TextGeometry('three.js', {
+        geometry = TextBufferGeometry('three.js', {
             'font': font,
 
             'size': 50,
@@ -115,34 +113,32 @@ def init(p):
     else:
         geometry.rebuild_id()
 
-    vertices = geometry.vertices
+    count = geometry.attributes.position.count
 
-    buffergeometry = THREE.BufferGeometry()
+    displacement = THREE.Float32BufferAttribute(count * 3, 3)
+    geometry.addAttribute('displacement', displacement)
+    """
+    array = geometry.attributes.displacement.array
+    for (var i = 0, l = array.length; i < l; i += 3) {
+        array[i] += 3 * ( 0.5 - Math.random() );
+    array[i + 1] += 3 * ( 0.5 - Math.random() );
+    array[i + 2] += 3 * ( 0.5 - Math.random() );
 
-    position = THREE.Float32BufferAttribute( len(vertices) * 3, 3 ).copyVector3sArray( vertices )
-    buffergeometry.addAttribute( 'position', position )
+    }
+    """
+    customColor = THREE.Float32BufferAttribute(count * 3, 3)
+    geometry.addAttribute('customColor', customColor)
 
-    displacement = THREE.Float32BufferAttribute( len(vertices) * 3, 3 )
-    buffergeometry.addAttribute( 'displacement', displacement )
-    array = buffergeometry.attributes.displacement.array
-    for i in range(0, len(array), 3):
-        array[ i     ] = 3 * ( 0.5 - random.random() )
-        array[ i + 1 ] = 3 * ( 0.5 - random.random() )
-        array[ i + 2 ] = 3 * ( 0.5 - random.random() )
-
-    customColor = THREE.Float32BufferAttribute( len(vertices) * 3, 3 )
-    buffergeometry.addAttribute( 'customColor', customColor )
-
-    color = THREE.Color( 0xffffff )
+    color = THREE.Color(0xffffff)
 
     l = customColor.count
     for i in range(l):
-        color.setHSL( i / l, 0.5, 0.5 )
+        color.setHSL(i / l, 0.5, 0.5)
         color.toArray( customColor.array, i * customColor.itemSize )
 
-    p.object = THREE.Line( buffergeometry, shaderMaterial )
+    p.object = THREE.Line(geometry, shaderMaterial)
     p.object.rotation.x = 0.2
-    p.scene.add( p.object )
+    p.scene.add(p.object)
 
     p.gui = pyGUI(p.renderer)
     p.gui.add(Stats())
@@ -160,7 +156,12 @@ def animate(p):
     p.gui.update()
 
 
+dim = lambda x: x + 0.3 * ( 0.5 - random.random())
+udim = np.frompyfunc(dim, 1, 1)
+
+
 def render(p):
+    global udim
     time = datetime.now().timestamp() * 1
 
     p.object.rotation.y = 0.25 * time
@@ -171,12 +172,16 @@ def render(p):
     attributes = p.object.geometry.attributes
     array = attributes.displacement.array
 
-    #for i in range(0, len(array), 3):
-    #    array[ i     ] += 0.3 * ( 0.5 - random.random() )
-    #    array[ i + 1 ] += 0.3 * ( 0.5 - random.random() )
-    #    array[ i + 2 ] += 0.3 * ( 0.5 - random.random() )
+    t = udim(array)
+    attributes.displacement.array = t.astype("float32")
 
-    #attributes.displacement.needsUpdate = True
+    """
+    for i in range(0, len(array), 3):
+        array[ i     ] += 0.3 * ( 0.5 - random.random() )
+        array[ i + 1 ] += 0.3 * ( 0.5 - random.random() )
+        array[ i + 2 ] += 0.3 * ( 0.5 - random.random() )
+    """
+    attributes.displacement.needsUpdate = True
 
     p.renderer.render( p.scene, p.camera )
 
