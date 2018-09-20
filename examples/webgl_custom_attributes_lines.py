@@ -1,6 +1,7 @@
 """
 <title>three.js webgl - custom attributes [lines]</title>
 """
+#TODO the extruded bezel is not working as expected
 
 import math
 import random
