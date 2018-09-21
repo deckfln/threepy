@@ -62,7 +62,7 @@ class Euler(pyOpenGLObject):
     z = property(getZ, setZ)
     order = property(getOrder, setOrder)
 
-    def set(self, x, y, z, order):
+    def set(self, x, y, z, order=None):
         self._x = x
         self._y = y
         self._z = z
