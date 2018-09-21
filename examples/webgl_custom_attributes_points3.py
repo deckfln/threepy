@@ -14,16 +14,26 @@ from THREE.pyOpenGL.widgets.Stats import *
 
 
 vertexshader = """
-    attribute float size;
+    attribute float indice;
     attribute vec4 ca;
 
     varying vec4 vColor;
 
+    uniform float time;
+    
     void main() {
 
         vColor = ca;
 
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+        float size;
+        if (indice > 0) {
+            size = max(0.0, 26.0 + 32.0 * sin(0.1 * indice + 0.6 * time));
+        }
+        else {
+            size = 40;
+        }
 
         gl_PointSize = size * (150.0 / -mvPosition.z);
 
@@ -67,7 +77,8 @@ class Params:
         self.uniforms = None
         self.attributes = None
         self.vertices1 = None
-        self.indices = None
+        self.uniforms = None
+
 
 def init(p):
     p.container = pyOpenGL(p)
@@ -144,7 +155,7 @@ def init(p):
     positions = Float32Array(vl * 3)
     colors = Float32Array(vl * 3)
     sizes = Float32Array(vl)
-    p.indices = Float32Array(vl)
+    indices = Uint32Array(vl)
 
     color = THREE.Color()
 
@@ -160,13 +171,18 @@ def init(p):
 
         color.toArray(colors, i * 3)
 
-        sizes[ i ] = 10 if i < p.vertices1 else 40
-        p.indices[ i ] = i
+        # sizes[ i ] = 10 if i < p.vertices1 else 40
+
+        if i < p.vertices1:
+            indices[i] = i
+        else:
+            indices[i] = 0
 
     geometry = THREE.BufferGeometry()
     geometry.addAttribute('position', THREE.BufferAttribute(positions, 3))
     geometry.addAttribute('ca', THREE.BufferAttribute(colors, 3))
     geometry.addAttribute('size', THREE.BufferAttribute(sizes, 1))
+    geometry.addAttribute('indice', THREE.BufferAttribute(indices, 1))
 
     #
 
@@ -176,6 +192,7 @@ def init(p):
 
     material = THREE.ShaderMaterial({
         'uniforms': {
+            'time': { 'value': 0.0 },
             'amplitude': { 'value': 1.0 },
             'color':     { 'value': THREE.Color(0xffffff) },
             'texture':   { 'value': texture }
@@ -183,6 +200,7 @@ def init(p):
         'vertexShader':   vertexshader,
         'fragmentShader': fragmentshader
     })
+    p.uniforms = material.uniforms
 
     #
 
@@ -209,10 +227,15 @@ def animate(p):
 
 def render(p):
     global time, limit
-    time = datetime.now().timestamp() * 1
-
+    time = datetime.now().timestamp() * 2
     p.object.rotation.y = p.object.rotation.z = 0.02 * time
 
+    time = time - int(time)
+    time *= math.pi
+
+    p.uniforms.time.value = time
+
+    """
     geometry = p.object.geometry
     attributes = geometry.attributes
     array = attributes.size.array
@@ -222,7 +245,7 @@ def render(p):
             array[i] = max(0, 26 + 32 * math.sin(0.1 * i + 0.6 * time))
 
     attributes.size.needsUpdate = True
-
+    """
     p.renderer.render(p.scene, p.camera)
 
     
