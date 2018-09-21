@@ -420,7 +420,7 @@ class pyOpenGLTextures:
             if isCube:
                 raise RuntimeError('target.depthTexture not supported in Cube render targets')
 
-            self.setupDepthTexture(renderTarget.properties.openglFrameBuffer, renderTarget)
+            self.setupDepthTexture(renderTargetProperties.openglFrameBuffer, renderTarget)
 
         else:
             if isCube:

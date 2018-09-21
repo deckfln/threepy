@@ -38,7 +38,7 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
         options = options or {}
 
         if 'minFilter' not in options:
-            options.minFilter = LinearFilter
+            options['minFilter'] = LinearFilter
 
         wrapS = options['wrapS'] if 'wrapS' in options else None
         wrapT = options['wrapT'] if 'wrapT' in options else None
