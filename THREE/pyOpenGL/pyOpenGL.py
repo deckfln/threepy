@@ -22,7 +22,8 @@ class pyOpenGL(EventManager):
             'touchend',
             'touchmove',
             'keydown',
-            'keyup'
+            'keyup',
+            'mousemove'
             ])
 
         self.flip = True

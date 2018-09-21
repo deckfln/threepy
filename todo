@@ -9,4 +9,4 @@ TODO    24/05/2018  webgl_clipping_intersection     display nothing
 TODO    24/05/2018  webgl_geometry_blender          display nothing
 TODO    24/05/2018  webgl_clipping_colors_lookuptable display nothing
 TODO    24/05/2018  webgl_geometry_convex           missing edges
-TODO    24/05/2018  webgl_material                  crash python
+TODO    21/09/2018  webgl_geometry_hiearchy         slow
