@@ -2,6 +2,12 @@
 <title>three.js webgl - geometry hierarchy</title>
 """
 
+import sys, os.path
+mango_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) )
+sys.path.append(mango_dir)
+
+
+
 import math
 import random
 import math
@@ -12,6 +18,7 @@ from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.pyOpenGL.pyGUI import *
 from THREE.pyOpenGL.widgets.Stats import *
+
 
 class Params:
     def __init__(self):
@@ -40,8 +47,12 @@ def init(p):
     p.scene.background = THREE.Color( 0xffffff )
     p.scene.fog = THREE.Fog( 0xffffff, 1, 10000 )
 
+    ambientLight = THREE.AmbientLight(0x222222)
+    p.scene.add(ambientLight)
+
     geometry = THREE.BoxBufferGeometry( 100, 100, 100 )
     material = THREE.MeshNormalMaterial()
+    material = THREE.MeshLambertMaterial({'color': THREE.Color(0.5,0.3,0.2)})
 
     p.group = THREE.Group()
 
@@ -110,6 +121,7 @@ def main(argv=None):
     params = Params()
 
     init(params)
+    params.container.start_benchmark()
     params.container.addEventListener('animationRequest', animate)
     return params.container.loop()
 

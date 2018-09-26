@@ -34,21 +34,21 @@ _ColorKeywords = { 'aliceblue': 0xF0F8FF, 'antiquewhite': 0xFAEBD7, 'aqua': 0x00
         'violet': 0xEE82EE, 'wheat': 0xF5DEB3, 'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32 }
 
 
-def _hue2rgb( p, q, t ):
+def _hue2rgb(p, q, t):
     if t < 0: t += 1
     if t > 1: t -= 1
-    if t < 1 / 6: return p + ( q - p ) * 6 * t
+    if t < 1 / 6: return p + (q - p) * 6 * t
     if t < 1 / 2: return q
-    if t < 2 / 3: return p + ( q - p ) * 6 * ( 2 / 3 - t )
+    if t < 2 / 3: return p + (q - p) * 6 * (2 / 3 - t)
     return p
 
 
-def _handleAlpha( string=None ):
+def _handleAlpha(string=None):
     if string is None:
         return
 
-    if float( string ) < 1:
-        print( 'THREE.Color: Alpha component of %s will be ignored.' % string)
+    if float(string) < 1:
+        print('THREE.Color: Alpha component of %s will be ignored.' % string)
 
 
 class HSL:
@@ -64,77 +64,103 @@ class Color(pyOpenGLObject):
     def __init__(self, r=None, g=None, b=None):
         super().__init__()
         self.set_class(isColor)
-        self.r = 1
-        self.g = 1
-        self.b = 1
+        self.elements = np.array([1, 1, 1], np.float32)
+        # self.r = 1
+        # self.g = 1
+        # self.b = 1
 
         if g is None and b is None:
             # // r is THREE.Color, hex or string
-            self.set( r )
+            self.set(r)
         else:
-            self.setRGB( r, g, b )
+            self.setRGB(r, g, b)
 
-    def set(self, value ):
+    def setR(self, r):
+        self.elements[0] = r
+        return self
+
+    def setG(self, g):
+        self.elements[1] = g
+        return self
+
+    def setB(self, b):
+        self.elements[2] = b
+        return self
+
+    def getR(self):
+        return self.elements[0]
+
+    def getG(self):
+        return self.elements[1]
+
+    def getB(self):
+        return self.elements[2]
+
+    r = property(getR, setR)
+    g = property(getG, setG)
+    b = property(getB, setB)
+
+    def set(self, value):
         if isinstance(value, float):
-            self.setHex( value )
+            self.setHex(value)
         elif isinstance(value, int):
-            self.setHex( value )
+            self.setHex(value)
         elif isinstance(value, str):
-            self.setStyle( value )
+            self.setStyle(value)
         elif value and value.my_class(isColor):
-            self.copy( value )
+            self.copy(value)
         return self
 
-    def setScalar(self, scalar ):
-        self.r = scalar
-        self.g = scalar
-        self.b = scalar
+    def setScalar(self, scalar):
+        self.elements[0] = scalar
+        self.elements[1] = scalar
+        self.elements[2] = scalar
 
         return self
 
-    def setHex(self, hex ):
+    def setHex(self, hex):
         if isinstance(hex, str):
             hex = float.fromhex(hex)
 
         hex = int(hex)
 
-        self.r = ( hex >> 16 & 255 ) / 255
-        self.g = ( hex >> 8 & 255 ) / 255
-        self.b = ( hex & 255 ) / 255
+        self.elements[0] = (hex >> 16 & 255) / 255
+        self.elements[1] = (hex >> 8 & 255) / 255
+        self.elements[2] = (hex & 255) / 255
 
         return self
 
-    def setRGB(self, r, g, b ):
-        self.r = r
-        self.g = g
-        self.b = b
+    def setRGB(self, r, g, b):
+        self.elements[0] = r
+        self.elements[1] = g
+        self.elements[2] = b
 
         return self
 
     def setHSL(self, h, s, l):
         # // h,s,l ranges are in 0.0 - 1.0
-        h = _Math.euclideanModulo( h, 1 )
-        s = _Math.clamp( s, 0, 1 )
-        l = _Math.clamp( l, 0, 1 )
+        h = _Math.euclideanModulo(h, 1)
+        s = _Math.clamp(s, 0, 1)
+        l = _Math.clamp(l, 0, 1)
 
         if s == 0:
-            self.r = self.g = self.b = l
+            self.elements[0] = self.elements[1] = self.elements[2] = l
         else:
-            p = l + s - ( l * s )
+            p = l + s - (l * s)
             if l <= 0.5:
-                p = l * ( 1 + s )
-            q = ( 2 * l ) - p
+                p = l * (1 + s)
+            q = (2 * l) - p
 
-            self.r = _hue2rgb( q, p, h + 1 / 3 )
-            self.g = _hue2rgb( q, p, h )
-            self.b = _hue2rgb( q, p, h - 1 / 3 )
+            self.elements[0] = _hue2rgb(q, p, h + 1 / 3)
+            self.elements[1] = _hue2rgb(q, p, h)
+            self.elements[2] = _hue2rgb(q, p, h - 1 / 3)
 
         return self
 
-    def setStyle(self, style ):
+    def setStyle(self, style):
         r = re.compile('/((?:rgb|hsl)a?)\(\s*([^\)]*)\)')
         r1 = re.compile('^\#([A-Fa-f0-9]+)$')
-        m = r.match(style )
+        m = r.match(style)
         m1 = r1.match(style)
         if m:
             # // rgb / hsl
@@ -143,40 +169,40 @@ class Color(pyOpenGLObject):
 
             if name == 'rgb' or name == 'rgba':
                 r = re.compile('^(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,\s*([0-9]*\.?[0-9]+)\s*)?$')
-                color = r.match( components )
+                color = r.match(components)
                 if color:
                     # // rgb(255,0,0) rgba(255,0,0,0.5)
-                    self.r = math.min( 255, int( color[ 1 ], 10 ) ) / 255
-                    self.g = math.min( 255, int( color[ 2 ], 10 ) ) / 255
-                    self.b = math.min( 255, int( color[ 3 ], 10 ) ) / 255
+                    self.elements[0] = math.min(255, int(color[ 1 ], 10)) / 255
+                    self.elements[1] = math.min(255, int(color[ 2 ], 10)) / 255
+                    self.elements[2] = math.min(255, int(color[ 3 ], 10)) / 255
 
-                    _handleAlpha( color[ 5 ] )
+                    _handleAlpha(color[ 5 ])
 
                     return self
 
                 r = re.compile('^(\d+)\%\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(,\s*([0-9]*\.?[0-9]+)\s*)?$')
-                color = r.match( components )
+                color = r.match(components)
                 if color:
                     # // rgb(100%,0%,0%) rgba(100%,0%,0%,0.5)
-                    self.r = min( 100, int( color[ 1 ], 10 ) ) / 100
-                    self.g = min( 100, int( color[ 2 ], 10 ) ) / 100
-                    self.b = min( 100, int( color[ 3 ], 10 ) ) / 100
+                    self.elements[0] = min(100, int(color[ 1 ], 10)) / 100
+                    self.elements[1] = min(100, int(color[ 2 ], 10)) / 100
+                    self.elements[2] = min(100, int(color[ 3 ], 10)) / 100
 
-                    _handleAlpha( color[ 5 ] )
+                    _handleAlpha(color[ 5 ])
 
                     return self
             elif name == 'hsl' or name == 'hsla':
                 r = re.compile('^([0-9]*\.?[0-9]+)\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(,\s*([0-9]*\.?[0-9]+)\s*)?$')
-                color = r.match( components )
+                color = r.match(components)
                 if color:
                     # // hsl(120,50%,50%) hsla(120,50%,50%,0.5)
-                    h = float( color[ 1 ] ) / 360
-                    s = int( color[ 2 ], 10 ) / 100
-                    l = int( color[ 3 ], 10 ) / 100
+                    h = float(color[ 1 ]) / 360
+                    s = int(color[ 2 ], 10) / 100
+                    l = int(color[ 3 ], 10) / 100
 
-                    _handleAlpha( color[ 5 ] )
+                    _handleAlpha(color[ 5 ])
 
-                    return self.setHSL( h, s, l )
+                    return self.setHSL(h, s, l)
         elif m1:
             # // hex color
             hex = m1[ 1 ]
@@ -184,15 +210,15 @@ class Color(pyOpenGLObject):
 
             if size == 3:
                 # // #ff0
-                self.r = int( hex.charAt( 0 ) + hex.charAt( 0 ), 16 ) / 255
-                self.g = int( hex.charAt( 1 ) + hex.charAt( 1 ), 16 ) / 255
-                self.b = int( hex.charAt( 2 ) + hex.charAt( 2 ), 16 ) / 255
+                self.elements[0] = int(hex.charAt(0) + hex.charAt(0), 16) / 255
+                self.elements[1] = int(hex.charAt(1) + hex.charAt(1), 16) / 255
+                self.elements[2] = int(hex.charAt(2) + hex.charAt(2), 16) / 255
                 return self
             elif size == 6:
                 # // #ff0000
-                self.r = int( hex.charAt( 0 ) + hex.charAt( 1 ), 16 ) / 255
-                self.g = int( hex.charAt( 2 ) + hex.charAt( 3 ), 16 ) / 255
-                self.b = int( hex.charAt( 4 ) + hex.charAt( 5 ), 16 ) / 255
+                self.elements[0] = int(hex.charAt(0) + hex.charAt(1), 16) / 255
+                self.elements[1] = int(hex.charAt(2) + hex.charAt(3), 16) / 255
+                self.elements[2] = int(hex.charAt(4) + hex.charAt(5), 16) / 255
 
                 return self
 
@@ -201,34 +227,34 @@ class Color(pyOpenGLObject):
             hex = _ColorKeywords[ style ]
             if hex is not None:
                 # // red
-                self.setHex( hex )
+                self.setHex(hex)
             else:
                 # // unknown color
-                print( 'THREE.Color: Unknown color ' + style )
+                print('THREE.Color: Unknown color ' + style)
 
         return self
 
     def clone(self):
-        return type(self)(self.r, self.g, self.b )
+        return type(self)(self.r, self.g, self.b)
 
-    def copy(self, color ):
-        self.r = color.r
-        self.g = color.g
-        self.b = color.b
+    def copy(self, color):
+        self.elements[0] = color.r
+        self.elements[1] = color.g
+        self.elements[2] = color.b
 
         return self
 
-    def copyGammaToLinear(self, color, gammaFactor ):
+    def copyGammaToLinear(self, color, gammaFactor):
         if gammaFactor is None:
             gammaFactor = 2.0
 
-        self.r = math.pow( color.r, gammaFactor )
-        self.g = math.pow( color.g, gammaFactor )
-        self.b = math.pow( color.b, gammaFactor )
+        self.elements[0] = math.pow(color.r, gammaFactor)
+        self.elements[1] = math.pow(color.g, gammaFactor)
+        self.elements[2] = math.pow(color.b, gammaFactor)
 
         return self
 
-    def copyLinearToGamma(self, color, gammaFactor ):
+    def copyLinearToGamma(self, color, gammaFactor):
         if gammaFactor is None:
             gammaFactor = 2.0
 
@@ -236,9 +262,9 @@ class Color(pyOpenGLObject):
         if gammaFactor > 0:
             safeInverse =  1.0 / gammaFactor
 
-        self.r = math.pow( color.r, safeInverse )
-        self.g = math.pow( color.g, safeInverse )
-        self.b = math.pow( color.b, safeInverse )
+        self.elements[0] = math.pow(color.r, safeInverse)
+        self.elements[1] = math.pow(color.g, safeInverse)
+        self.elements[2] = math.pow(color.b, safeInverse)
 
         return self
 
@@ -247,54 +273,54 @@ class Color(pyOpenGLObject):
         return self
 
     def convertLinearToGamma(self, gammaFactor):
-        self.copyLinearToGamma( self, gammaFactor )
+        self.copyLinearToGamma(self, gammaFactor)
         return self
 
     def copySRGBToLinear(self, color):
-        def SRGBToLinear( c ):
-            return c * 0.0773993808 if (c < 0.04045 ) else math.pow( c * 0.9478672986 + 0.0521327014, 2.4 )
+        def SRGBToLinear(c):
+            return c * 0.0773993808 if (c < 0.04045) else math.pow(c * 0.9478672986 + 0.0521327014, 2.4)
 
-        self.r = SRGBToLinear( color.r )
-        self.g = SRGBToLinear( color.g )
-        self.b = SRGBToLinear( color.b )
+        self.elements[0] = SRGBToLinear(color.r)
+        self.elements[1] = SRGBToLinear(color.g)
+        self.elements[2] = SRGBToLinear(color.b)
 
         return self
 
     def copyLinearToSRGB(self, color):
-        def LinearToSRGB( c ):
-            return c * 12.92 if ( c < 0.0031308 ) else 1.055 * ( math.pow( c, 0.41666 ) ) - 0.055
+        def LinearToSRGB(c):
+            return c * 12.92 if (c < 0.0031308) else 1.055 * (math.pow(c, 0.41666)) - 0.055
 
-        self.r = LinearToSRGB( color.r )
-        self.g = LinearToSRGB( color.g )
-        self.b = LinearToSRGB( color.b )
+        self.elements[0] = LinearToSRGB(color.r)
+        self.elements[1] = LinearToSRGB(color.g)
+        self.elements[2] = LinearToSRGB(color.b)
 
         return self
 
     def convertSRGBToLinear(self):
-        self.copySRGBToLinear( self )
+        self.copySRGBToLinear(self)
         return self
 
     def convertLinearToSRGB(self):
-        self.copyLinearToSRGB( self)
+        self.copyLinearToSRGB(self)
         return self
 
     def getHex(self):
-        return ( int(self.r * 255) ) << 16 ^ ( int(self.g * 255) ) << 8 ^ ( int(self.b * 255) ) << 0
+        return (int(self.r * 255)) << 16 ^ (int(self.g * 255)) << 8 ^ (int(self.b * 255)) << 0
 
     def getHexString(self):
         hx = str(self.getHex())
-        return ( '000000' + hx[:- 6] )
+        return ('000000' + hx[:- 6])
 
     def getHSL(self, target):
         # // h,s,l ranges are in 0.0 - 1.0
-        r = self.r
-        g = self.g
-        b = self.b
+        r = self.elements[0]
+        g = self.elements[1]
+        b = self.elements[2]
 
-        mx = max( r, g, b )
-        mn = min( r, g, b )
+        mx = max(r, g, b)
+        mn = min(r, g, b)
 
-        lightness = ( mn + mx ) / 2.0
+        lightness = (mn + mx) / 2.0
 
         if mn == mx:
             hue = 0
@@ -302,19 +328,19 @@ class Color(pyOpenGLObject):
         else:
             delta = mx - mn
 
-            saturation = delta / ( 2 - mx - mn )
+            saturation = delta / (2 - mx - mn)
             if lightness <= 0.5:
-                saturation =  delta / ( mx + mn )
+                saturation =  delta / (mx + mn)
 
             if mx == r:
                 hxx = 0
                 if g < b:
                     hxx = 6
-                hue = ( g - b ) / delta + hxx
+                hue = (g - b) / delta + hxx
             elif mx == g:
-                hue = ( b - r ) / delta + 2
+                hue = (b - r) / delta + 2
             elif mx == b:
-                hue = ( r - g ) / delta + 4
+                hue = (r - g) / delta + 4
 
             hue /= 6
 
@@ -325,9 +351,9 @@ class Color(pyOpenGLObject):
         return target
 
     def getStyle(self):
-        return 'rgb(%d,%d,%d)' % (int( self.r * 255 ) | 0 , int(self.g * 255 ) | 0, int( self.b * 255 ) | 0 )
+        return 'rgb(%d,%d,%d)' % (int(self.r * 255) | 0 , int(self.g * 255) | 0, int(self.b * 255) | 0)
 
-    def offsetHSL(self, h, s, l ):
+    def offsetHSL(self, h, s, l):
         hsl = HSL()
         self.getHSL(hsl)
         hsl.h += h
@@ -337,79 +363,63 @@ class Color(pyOpenGLObject):
 
         return self
 
-    def add(self, color ):
-        self.r += color.r
-        self.g += color.g
-        self.b += color.b
+    def add(self, color):
+        self.elements += color.np
 
         return self
 
-    def addColors(self, color1, color2 ):
-        self.r = color1.r + color2.r
-        self.g = color1.g + color2.g
-        self.b = color1.b + color2.b
+    def addColors(self, color1, color2):
+        self.elements = color1 + color2
 
         return self
 
-    def addScalar(self, s ):
-        self.r += s
-        self.g += s
-        self.b += s
+    def addScalar(self, s):
+        self.elements += s
 
         return self
 
-    def sub(self, color ):
-        self.r = max( 0, self.r - color.r )
-        self.g = max( 0, self.g - color.g )
-        self.b = max( 0, self.b - color.b )
+    def sub(self, color):
+        self.elements = max(0, self.elements - color.np)
 
         return self
 
     def subColors(self, color1, color2):
-        self.r = color1.r - color2.r
-        self.g = color1.g - color2.g
-        self.b = color1.b - color2.b
+        self.elements = color1.np - color2.np
 
         return self
 
-    def multiply(self, color ):
-        self.r *= color.r
-        self.g *= color.g
-        self.b *= color.b
+    def multiply(self, color):
+        self.elements *= color.np
 
         return self
 
-    def multiplyScalar(self, s ):
-        self.r *= s
-        self.g *= s
-        self.b *= s
+    def multiplyScalar(self, s):
+        self.elements *= s
 
         return self
 
-    def lerp(self, color, alpha ):
-        self.r += ( color.r - self.r ) * alpha
-        self.g += ( color.g - self.g ) * alpha
-        self.b += ( color.b - self.b ) * alpha
+    def lerp(self, color, alpha):
+        self.elements += (color.np - self.elements) * alpha
 
         return self
 
-    def equals(self, c ):
-        return ( c.r == self.r ) and ( c.g == self.g ) and ( c.b == self.b )
+    def equals(self, c):
+        return np.equal(self.elements, c.np)
 
-    def fromArray(self, array, offset=0 ):
-        self.r = array[ offset ]
-        self.g = array[ offset + 1 ]
-        self.b = array[ offset + 2 ]
+    def fromArray(self, array, offset=0):
+        self.elements[0] = array[ offset ]
+        self.elements[1] = array[ offset + 1 ]
+        self.elements[2] = array[ offset + 2 ]
 
         return self
 
-    def toArray(self, array=None, offset=0 ):
+    def toArray(self, array=None, offset=0):
         if array is None:
             array = []
 
-        array[ offset ] = self.r
-        array[ offset + 1 ] = self.g
-        array[ offset + 2 ] = self.b
+        array[ offset ] = self.elements[0]
+        array[ offset + 1 ] = self.elements[1]
+        array[ offset + 2 ] = self.elements[2]
 
         return array
 

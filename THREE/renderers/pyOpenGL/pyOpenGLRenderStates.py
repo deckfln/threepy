@@ -26,7 +26,7 @@ class pyOpenGLRenderState:
 		self.lights.setup( self.lightsArray, self.shadowsArray, camera)
 
 
-class pyOpenGLRenderStates():
+class pyOpenGLRenderStates:
 	def __init__(self):
 		self.renderStates = {}
 

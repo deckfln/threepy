@@ -294,6 +294,7 @@ class pyOpenGLRenderer:
         """
         //
         """
+        self.uniformBlocks = pyOpenGLUniformBlocks()
 
     def _getTargetPixelRatio(self):
         return self._pixelRatio if self._currentRenderTarget is None else 1
@@ -827,6 +828,11 @@ class pyOpenGLRenderer:
         self.shadowMap.render(shadowsArray, scene, camera)
         self.currentRenderState.setupLights(camera)
 
+        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
+        self.uniformBlocks.update()
+
         if self._clippingEnabled:
             self._clipping.endShadows()
 
@@ -1140,7 +1146,8 @@ class pyOpenGLRenderer:
 
         if material.lights:
             # // wire up the material to this renderer's lighting state
-            uniforms.ambientLightColor.value = lights.state.ambient
+            # migrated to uniform buffer object
+            # uniforms.ambientLightColor.value = lights.state.ambient
             uniforms.directionalLights.value = lights.state.directional
             uniforms.spotLights.value = lights.state.spot
             uniforms.rectAreaLights.value = lights.state.rectArea
@@ -1232,8 +1239,9 @@ class pyOpenGLRenderer:
             refreshMaterial = True
 
         if refreshProgram or camera != self._currentCamera:
-            if camera.projectionMatrix.updated or not p_uniforms.map['projectionMatrix'].uploaded:
-                p_uniforms.setValue('projectionMatrix', camera.projectionMatrix)
+            # migrated to uniform buffer object
+            # if camera.projectionMatrix.updated or not p_uniforms.map['projectionMatrix'].uploaded:
+            #    p_uniforms.setValue('projectionMatrix', camera.projectionMatrix, True)
 
             if self.capabilities.logarithmicDepthBuffer:
                 p_uniforms.setValue('logDepthBufFC', 2.0 / (math.log(camera.far + 1.0) / math.LN2))
@@ -1260,9 +1268,10 @@ class pyOpenGLRenderer:
                     uCamPos = p_uniforms.map['cameraPosition']
                     uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
 
-            if material.my_class(isMeshPhongMaterial | isMeshLambertMaterial | isMeshBasicMaterial | isMeshStandardMaterial | isShaderMaterial) or \
-                    material.skinning:
-                p_uniforms.setValue('viewMatrix', camera.matrixWorldInverse)
+            # migrated to uniform buffer object
+            #if material.my_class(isMeshPhongMaterial | isMeshLambertMaterial | isMeshBasicMaterial | isMeshStandardMaterial | isShaderMaterial) or \
+            #        material.skinning:
+            #    p_uniforms.setValue('viewMatrix', camera.matrixWorldInverse)
 
         # // skinning uniforms must be set even if material didn't change
         # // auto-setting of texture unit for bone texture must go before other textures
@@ -1400,13 +1409,13 @@ class pyOpenGLRenderer:
 
         if object.modelViewMatrix.updated:
             # TODO FDE: why is there no object if we use the update flag
-            p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix)
+            p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix, True)
 
         if object.normalMatrix.updated:
-            p_uniforms.setValue('normalMatrix', object.normalMatrix)
+            p_uniforms.setValue('normalMatrix', object.normalMatrix, True)
 
         if object.matrixWorld.updated:
-            p_uniforms.setValue('modelMatrix', object.matrixWorld)
+            p_uniforms.setValue('modelMatrix', object.matrixWorld, True)
 
         return program
 
@@ -1639,7 +1648,8 @@ class pyOpenGLRenderer:
         """
         // If uniforms are marked as clean, they don't need to be loaded to the GPU.
         """
-        uniforms.ambientLightColor.needsUpdate = value
+        # migrated to uniform buffer object
+        # uniforms.ambientLightColor.needsUpdate = value
 
         uniforms.directionalLights.needsUpdate = value
         uniforms.pointLights.needsUpdate = value

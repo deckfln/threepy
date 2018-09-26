@@ -49,7 +49,7 @@ class pyOpenGL(EventManager):
 
     def start_benchmark(self):
         self.start = time.clock()
-        self.start_frame = self.params.renderer._infoRender.frame
+        self.start_frame = self.params.renderer.info.render.frame
 
     def quit(self):
         self.run = False
@@ -64,7 +64,7 @@ class pyOpenGL(EventManager):
 
             if self.start is not None:
                 if current - self.start > 30:
-                   print("Frames:%d" % (self.params.renderer._infoRender.frame - self.start_frame))
+                   print("Frames:%d" % (self.params.renderer.info.render.frame - self.start_frame))
                    break
 
             if hasattr(self.params, 'frame_by_frame') and self.params.frame_by_frame:
@@ -72,7 +72,7 @@ class pyOpenGL(EventManager):
                     self.animate(self.params)
                     self.params.renderer.init_shaders()
                     py.display.flip()
-                    print("loop", self.params.renderer._infoRender.frame)
+                    print("loop", self.params.renderer.info.render.frame)
                     self.params.suspended = True
 
             elif current >= target:

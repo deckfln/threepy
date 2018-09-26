@@ -270,7 +270,7 @@ class SingleUniform:
 
     # // Single scalar
 
-    def setValue1f(self, v, renderer=None):
+    def setValue1f(self, v, renderer=None, force=False):
         cache = self.cache
 
         if cache[0] == v:
@@ -279,7 +279,7 @@ class SingleUniform:
         OpenGL.raw.GL.VERSION.GL_2_0.glUniform1f(self.addr, v)
         cache[0] = v
 
-    def setValue1i(self, v, renderer=None):
+    def setValue1i(self, v, renderer=None, force=False):
         cache = self.cache
 
         if cache[0] == v:
@@ -290,7 +290,7 @@ class SingleUniform:
 
         # // Single float vector (from flat array or THREE.VectorN)
 
-    def setValue2fv(self, v, renderer=None):
+    def setValue2fv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if v.x is not None:
@@ -306,7 +306,7 @@ class SingleUniform:
 
             copyArray(cache, v)
 
-    def setValue3fv(self, v, renderer=None):
+    def setValue3fv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if v.my_class(isVector3):
@@ -329,7 +329,7 @@ class SingleUniform:
             OpenGL.raw.GL.VERSION.GL_2_0.glUniform3fv(self.addr, 1, v)
             copyArray(cache, v)
 
-    def setValue4fv(self, v, renderer=None):
+    def setValue4fv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if hasattr(v, 'x') is not None:
@@ -351,7 +351,7 @@ class SingleUniform:
 
     # // Single matrix (from flat array or MatrixN)
 
-    def setValue2fm(self, v, renderer=None):
+    def setValue2fm(self, v, renderer=None, force=False):
         cache = self.cache
 
         if not hasattr(v, 'elements'):
@@ -371,7 +371,7 @@ class SingleUniform:
 
         copyArray(cache, elements)
 
-    def setValue3fm(self, v, renderer=None):
+    def setValue3fm(self, v, renderer=None, force=False):
         cache = self.cache
 
         if not hasattr(v, 'elements'):
@@ -384,15 +384,16 @@ class SingleUniform:
         else:
             elements = v.elements
 
-            if arraysEqual(cache, elements):
+            if not force and arraysEqual(cache, elements):
                 return
 
             # np.copyto(mat3array, elements)
 
             OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix3fv(self.addr, 1, GL_FALSE, elements)
-            copyArray(cache, elements)
+            if not force:
+                copyArray(cache, elements)
 
-    def setValue4fm(self, v, renderer=None):
+    def setValue4fm(self, v, renderer=None, force=False):
         cache = self.cache
 
         if not hasattr(v, 'elements'):
@@ -404,18 +405,19 @@ class SingleUniform:
 
         else:
             elements = v.elements
-            if arraysEqual(cache, elements):
+            if not force and arraysEqual(cache, elements):
                 return
 
             # np.copyto(mat4array, elements)
 
             OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix4fv(self.addr, 1, GL_FALSE, elements)
 
-            copyArray(cache, elements)
+            if not force:
+                copyArray(cache, elements)
 
     # // Single texture (2D / Cube)
 
-    def setValueT1(self, v, renderer):
+    def setValueT1(self, v, renderer, force=False):
         cache = self.cache
         unit = renderer.allocTextureUnit()
 
@@ -425,7 +427,7 @@ class SingleUniform:
 
         renderer.textures.setTexture2D(v or emptyTexture, unit)
 
-    def setValueT6(self, v, renderer):
+    def setValueT6(self, v, renderer, force=False):
         cache = self.cache
         unit = renderer.allocTextureUnit()
 
@@ -437,7 +439,7 @@ class SingleUniform:
 
     # // Integer / Boolean vectors or arrays thereof (always flat arrays)
 
-    def setValue2iv(self, v, renderer=None):
+    def setValue2iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -446,7 +448,7 @@ class SingleUniform:
         glUniform2iv(self.addr, v)
         copyArray(cache, v)
 
-    def setValue3iv(self, v, renderer=None):
+    def setValue3iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -455,7 +457,7 @@ class SingleUniform:
         glUniform3iv(self.addr, v)
         copyArray(cache, v)
 
-    def setValue4iv(self, v, renderer=None):
+    def setValue4iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -512,7 +514,7 @@ class PureArrayUniform():
 
     # // Array of scalars
 
-    def setValue1fv(self, v, renderer=None):
+    def setValue1fv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -521,7 +523,7 @@ class PureArrayUniform():
         glUniform1fv(self.addr, len(v), v)
         copyArray(cache, v)
 
-    def setValue1iv(self, v, renderer=None):
+    def setValue1iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -531,7 +533,7 @@ class PureArrayUniform():
 
         copyArray(cache, v)
 
-    def setValue2iv(self, v, renderer=None):
+    def setValue2iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -540,7 +542,7 @@ class PureArrayUniform():
         glUniform2iv(self.addr, len(v), v)
         copyArray(cache, v)
 
-    def setValue3iv(self, v, renderer=None):
+    def setValue3iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -548,7 +550,7 @@ class PureArrayUniform():
 
         glUniform3iv(self.addr, len(v), v)
 
-    def setValue4iv(self, v, renderer=None):
+    def setValue4iv(self, v, renderer=None, force=False):
         cache = self.cache
 
         if arraysEqual(cache, v):
@@ -558,7 +560,7 @@ class PureArrayUniform():
 
     # Array of vectors(flat or from THREE classes)
 
-    def setValueV2a(self, v, renderer=None):
+    def setValueV2a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 2)
 
@@ -568,7 +570,7 @@ class PureArrayUniform():
         glUniform2fv(self.addr, len(v), data)
         self.updateCache(data)
 
-    def setValueV3a(self, v, renderer=None):
+    def setValueV3a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 3)
 
@@ -579,7 +581,7 @@ class PureArrayUniform():
 
         self.updateCache(data)
 
-    def setValueV4a(self, v, renderer=None):
+    def setValueV4a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 4)
 
@@ -592,7 +594,7 @@ class PureArrayUniform():
 
     # // Array of matrices (flat or from THREE clases)
 
-    def setValueM2a(self, v, renderer=None):
+    def setValueM2a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 4)
 
@@ -603,7 +605,7 @@ class PureArrayUniform():
 
         self.updateCache(data)
 
-    def setValueM3a(self, v, renderer=None):
+    def setValueM3a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 9)
 
@@ -614,7 +616,7 @@ class PureArrayUniform():
 
         self.updateCache(data)
 
-    def setValueM4a(self, v, renderer=None):
+    def setValueM4a(self, v, renderer=None, force=False):
         cache = self.cache
         data = flatten(v, self.size, 16)
 
@@ -627,7 +629,7 @@ class PureArrayUniform():
 
     # // Array of textures (2D / Cube)
 
-    def setValueT1a(self, v, renderer):
+    def setValueT1a(self, v, renderer, force=False):
         cache = self.cache
         n = len(v)
 
@@ -640,7 +642,7 @@ class PureArrayUniform():
         for i in range(n):
             renderer.setTexture2D(v[i] or emptyTexture, units[i])
 
-    def setValueT6a(self, v, renderer):
+    def setValueT6a(self, v, renderer, force=False):
         cache = self.cache
         n = len(v)
 
@@ -821,8 +823,8 @@ class pyOpenGLUniforms( UniformContainer ):
         for i in range(n):
             info = glGetActiveUniform(program, i)
             addr = glGetUniformLocation(program, info[0])
-
-            parseUniform( info, addr, self )
+            if addr >= 0:
+                parseUniform( info, addr, self )
 
         uniforms = {}
         _parseShaderForUniforms(vertex, uniforms)
@@ -833,13 +835,11 @@ class pyOpenGLUniforms( UniformContainer ):
             if addr >= 0:
                 parseUniform(uniforms[name], addr, self)
 
-    def setValue(self, name, value ):
+    def setValue(self, name, value, force=False):
         if name in self.map:
             u = self.map[ name ]
 
-            # TODO, what is self.renderer used for ?
-            # u.setValue( value, self.renderer )
-            u.setValue(value, self.renderer)
+            u.setValue(value, self.renderer, force)
             u.uploaded = True
 
     def setOptional(self, object, name ):

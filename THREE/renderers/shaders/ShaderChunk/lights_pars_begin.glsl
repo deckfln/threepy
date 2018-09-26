@@ -1,4 +1,7 @@
-uniform vec3 ambientLightColor;
+layout (std140) uniform lights
+{
+    uniform vec3 ambientLightColor;
+};
 
 vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 

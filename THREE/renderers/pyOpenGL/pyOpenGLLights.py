@@ -140,16 +140,20 @@ class _state:
         self.hemi = []
 
 
+_vector3 = Vector3()
+_matrix4 = Matrix4()
+_matrix42 = Matrix4()
+
+
 class pyOpenGLLights:
     def __init__(self):
         self.cache = _UniformsCache()
         self.state = _state()
         # reusable variable
-        self.vector3 = Vector3()
-        self.matrix4 = Matrix4()
-        self.matrix42 = Matrix4()
 
     def setup(self, lights, shadows, camera ):
+        global _vector3, _matrix4, _matrix42
+
         r = 0
         g = 0
         b = 0
@@ -174,10 +178,6 @@ class pyOpenGLLights:
 
         viewMatrix = camera.matrixWorldInverse
 
-        vector3 = self.vector3
-        matrix4 = self.matrix4
-        matrix42 = self.matrix42
-
         for light in lights:
             color = light.color
             intensity = light.intensity
@@ -195,8 +195,8 @@ class pyOpenGLLights:
 
                 uniforms.color.copy( light.color ).multiplyScalar( light.intensity )
                 uniforms.direction.setFromMatrixPosition( light.matrixWorld )
-                vector3.setFromMatrixPosition( light.target.matrixWorld )
-                uniforms.direction.sub( vector3 )
+                _vector3.setFromMatrixPosition( light.target.matrixWorld )
+                uniforms.direction.sub( _vector3 )
                 uniforms.direction.transformDirection( viewMatrix )
 
                 uniforms.shadow = light.castShadow
@@ -223,8 +223,8 @@ class pyOpenGLLights:
                 uniforms.distance = distance
 
                 uniforms.direction.setFromMatrixPosition( light.matrixWorld )
-                vector3.setFromMatrixPosition( light.target.matrixWorld )
-                uniforms.direction.sub( vector3 )
+                _vector3.setFromMatrixPosition( light.target.matrixWorld )
+                uniforms.direction.sub( _vector3 )
                 uniforms.direction.transformDirection( viewMatrix )
 
                 uniforms.coneCos = math.cos( light.angle )
@@ -258,16 +258,16 @@ class pyOpenGLLights:
                 uniforms.position.applyMatrix4( viewMatrix )
 
                 # // extract local rotation of light to derive width/height half vectors
-                matrix42.identity()
-                matrix4.copy( light.matrixWorld )
-                matrix4.premultiply( viewMatrix )
-                matrix42.extractRotation( matrix4 )
+                _matrix42.identity()
+                _matrix4.copy( light.matrixWorld )
+                _matrix4.premultiply( viewMatrix )
+                _matrix42.extractRotation( _matrix4 )
 
                 uniforms.halfWidth.set( light.width * 0.5,                0.0, 0.0 )
                 uniforms.halfHeight.set(              0.0, light.height * 0.5, 0.0 )
 
-                uniforms.halfWidth.applyMatrix4( matrix42 )
-                uniforms.halfHeight.applyMatrix4( matrix42 )
+                uniforms.halfWidth.applyMatrix4( _matrix42 )
+                uniforms.halfHeight.applyMatrix4( _matrix42 )
 
                 # // TODO (abelnation): RectAreaLight distance?
                 # // uniforms.distance = distance;

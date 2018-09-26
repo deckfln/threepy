@@ -7,6 +7,7 @@
 from OpenGL.raw.GL.VERSION.GL_2_0 import glCreateProgram
 
 from THREE.renderers.shaders.ShaderChunk import *
+from THREE.renderers.pyOpenGL.pyOpenGLUniformBlock import *
 
 
 def addLineNumbers(string):
@@ -346,10 +347,14 @@ class pyOpenGLProgram:
                 '#define USE_LOGDEPTHBUF' if parameters['logarithmicDepthBuffer'] else '',
                 '#define USE_LOGDEPTHBUF_EXT' if parameters['logarithmicDepthBuffer'] and extensions.get('EXT_frag_depth') else '',
 
+                'layout (std140) uniform camera',
+                '{',
+                    'uniform mat4 projectionMatrix;',
+                    'uniform mat4 viewMatrix;',
+                '};',
+                
                 'uniform mat4 modelMatrix;',
                 'uniform mat4 modelViewMatrix;',
-                'uniform mat4 projectionMatrix;',
-                'uniform mat4 viewMatrix;',
                 'uniform mat3 normalMatrix;',
                 'uniform vec3 cameraPosition;',
 
@@ -571,7 +576,9 @@ class pyOpenGLProgram:
 
             raise RuntimeError('THREE.pyOpenGLProgram: shader error: %d GL_VALIDATE_STATUS %d gl.getProgramInfoLog %s %s %s' % (error, valid , programLog, vertexLog, fragmentLog))
         elif programLog != b'' and programLog != '':
-            raise RuntimeError('THREE.WebGLProgram: gl.getProgramInfoLog()', programLog)
+            log = addLineNumbers(programLog.decode('utf8'))
+            #print(log)
+            #raise RuntimeError('THREE.WebGLProgram: gl.getProgramInfoLog()')
 
         elif vertexLog == '' or fragmentLog == '':
             haveDiagnostics = False
@@ -582,7 +589,6 @@ class pyOpenGLProgram:
                 'material': material,
 
                 'programLog': programLog,
-
                 'vertexShader': {
                     'log': vertexLog,
                     'prefix': prefixVertex
@@ -600,7 +606,7 @@ class pyOpenGLProgram:
         glDeleteShader(glFragmentShader)
 
         # // set up caching for uniform locations
-
+        renderer.uniformBlocks.add(program, vertexGlsl, fragmentGlsl)
         self.cachedUniforms = pyOpenGLUniforms(program, renderer, vertexGlsl, fragmentGlsl)
         self.cachedAttributes = _getAttributeLocations(program)
 
