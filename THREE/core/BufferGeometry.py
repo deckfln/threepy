@@ -639,6 +639,61 @@ class BufferGeometry(pyOpenGLObject):
 
         return self
 
+    def extend(self, bufferGeometry):
+        # // reset
+        self.index = bufferGeometry.index
+        self.attributes = _attributesList()
+        self.morphAttributes = _attributesList()
+        self.groups = []
+        self.boundingBox = None
+        self.boundingSphere = None
+
+        # // name
+        self.name = bufferGeometry.name
+
+        # // attributes
+        attributes = bufferGeometry.attributes
+        for name in attributes.__dict__:
+            attribute = attributes.__dict__[name]
+            if attribute is not None:
+                self.addAttribute(name, attribute)
+
+        # // morph attributes
+        morphAttributes = bufferGeometry.morphAttributes
+        for name in morphAttributes.__dict__:
+            array = []
+            morphAttribute = morphAttributes.__dict__[name]     # // morphAttribute: array of Float32BufferAttributes
+
+            if morphAttribute is not None:
+                for morphAttribut in morphAttribute:
+                    array.append(morphAttribut)
+
+                self.morphAttributes.__dict__[name] = array
+
+        # // groups
+        groups = bufferGeometry.groups
+        for group in groups:
+            self.addGroup(group.start, group.count, group.materialIndex)
+
+        # // bounding box
+        boundingBox = bufferGeometry.boundingBox
+        if boundingBox is not None:
+            self.boundingBox = boundingBox.clone()
+
+        # // bounding sphere
+        boundingSphere = bufferGeometry.boundingSphere
+        if boundingSphere is not None:
+            self.boundingSphere = boundingSphere.clone()
+
+        # // draw range
+        self.drawRange.start = bufferGeometry.drawRange.start
+        self.drawRange.count = bufferGeometry.drawRange.count
+
+        # user data
+        self.userData = self.userData
+
+        return self
+
     def onDispose(self, callback):
         self.callback = callback
 

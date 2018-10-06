@@ -71,7 +71,8 @@ class pyOpenGLAttributes(pyOpenGLObject):
             glBufferData(bufferType, array, GL_STATIC_DRAW)
             return
 
-        if updateRange.count < 0:
+        count = updateRange.count
+        if count < 0:
             if attribute.my_class(isInstancedBufferAttribute):
                 # // Not using update ranges
                 # pyOpenGL.OpenGL.glBufferData(bufferType, array.size * attribute.itemSize, None, GL_DYNAMIC_DRAW)
@@ -80,9 +81,14 @@ class pyOpenGLAttributes(pyOpenGLObject):
                 glBufferData(bufferType, array, GL_DYNAMIC_DRAW)
             return
 
-        if updateRange.count > 0:
-            glBufferSubData(bufferType, updateRange.offset * array.BYTES_PER_ELEMENT,
-                            array.subarray(updateRange.offset, updateRange.offset + updateRange.count))
+        if count > 0:
+            OpenGL.raw.GL.VERSION.GL_1_5.glBufferSubData(bufferType,
+                                                         updateRange.offset * attribute.itemSize * array.itemsize,
+                                                         attribute.maxInstancedCount * attribute.itemSize * array.itemsize,
+                                                         array)
+
+            #OpenGL.raw.GL.VERSION.GL_1_5.glBufferSubData(bufferType, updateRange.offset * array.dtype.itemsize,
+            #                array[updateRange.offset:updateRange.offset + count])
 
             updateRange.count = -1  # // reset range
 

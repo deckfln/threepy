@@ -222,6 +222,7 @@ _cache_size = {
     0x8b60: 1,  # // SAMPLER_CUBE
 
     0x1404: 1,
+    GL_UNSIGNED_INT: 1,
     0x8b56: 1,  # // INT, BOOL
     0x8b53: 0,  # self.setValue2iv,
     0x8b57: 0,  # self.setValue2iv,  # // _VEC2
@@ -250,6 +251,7 @@ class SingleUniform:
             0x8b60: self.setValueT6,  # // SAMPLER_CUBE
 
             0x1404: self.setValue1i,
+            GL_UNSIGNED_INT: self.setValue1i,
             0x8b56: self.setValue1i,  # // INT, BOOL
             0x8b53: self.setValue2iv,
             0x8b57: self.setValue2iv,  # // _VEC2
@@ -469,7 +471,7 @@ class SingleUniform:
     # // self.path = activeInfo.name; # // DEBUG
 
 
-class PureArrayUniform():
+class PureArrayUniform:
     def __init__(self, id, activeInfo, addr ):
         # // Helper to pick the right setter for a pure (bottom-level) array
         _types = {

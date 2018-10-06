@@ -37,7 +37,7 @@ def _reversePainterSortStable( a, b ):
         return a.id - b.id
 
 
-class _renderItem:
+class RenderItem:
     def __init__(self, id, object, geometry, material, program, renderOrder, z, group):
         self.id = id
         self.object = object
@@ -47,6 +47,7 @@ class _renderItem:
         self.renderOrder = renderOrder
         self.z = z
         self.group = group
+        self.instance = False
 
 
 class pyOpenGLRenderList:
@@ -55,16 +56,17 @@ class pyOpenGLRenderList:
         self.renderItemsIndex = 0
 
         self.opaque = []
+        self.opaq = {}
         self.transparent = []
-
-        self.opaqueLength = 0
-        self.transparentLength = 0
+        self.transp = []
 
     def init(self):
         self.renderItemsIndex = 0
 
         self.opaque.clear()
+        self.opaq.clear()
         self.transparent.clear()
+        self.transp.clear()
 
     def push(self, object, geometry, material, z, group):
         if len(self.renderItems) > self.renderItemsIndex:
@@ -78,13 +80,23 @@ class pyOpenGLRenderList:
             renderItem.z = z
             renderItem.group = group
         else:
-            renderItem = _renderItem(object.id, object, geometry, material, material.program, object.renderOrder, z, group)
+            renderItem = RenderItem(object.id, object, geometry, material, material.program, object.renderOrder, z, group)
             self.renderItems.append(renderItem)
+
+        dedup = "%d.%d" % (geometry.id, material.id)
 
         if material.transparent:
             self.transparent.append(renderItem)
+            if dedup in self.transp:
+                self.transp[dedup].append(renderItem)
+            else:
+                self.transp[dedup] = [renderItem]
         else:
             self.opaque.append(renderItem)
+            if dedup in self.opaq:
+                self.opaq[dedup].append(renderItem)
+            else:
+                self.opaq[dedup] = [renderItem]
 
         self.renderItemsIndex += 1
 

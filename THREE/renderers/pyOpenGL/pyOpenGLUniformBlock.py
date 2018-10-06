@@ -64,12 +64,34 @@ Update data in a single unifoms buffer
 
 
 def _updateValue4fm(self, value, buffer):
+    """
+    Update a single uniform or a full array of uniforms
+    :param self:
+    :param value:
+    :param buffer:
+    :return:
+    """
     if value.updated or not self.uploaded:
-        ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.size)
+        ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.total_size)
+
+
+def _updateValue4iv(self, value, buffer, element):
+    """
+    Update a single uniform in an array of uniforms
+    :param self:
+    :param value:
+    :param buffer:
+    :param element:
+    :return:
+    """
+    size = self.size
+    src = value.elements.ctypes.data
+    dst = buffer + int(self.offset) + element * size
+    ctypes.memmove(dst, src, size)
 
 
 def _updateValue3fv(self, value, buffer):
-    ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.size)
+    ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.total_size)
 
 
 _glTypesUpload = {
@@ -108,13 +130,17 @@ _glTypesUpdate = {
 
 
 class pyOpenGLUniformBuffer:
-    def __init__(self, name, gltype, index, offset, size):
+    def __init__(self, name, gltype, index, offset, total_size, elements):
         self.name = name
         self.index = index
         self.offset = offset
-        self.size = size
+        self.total_size = total_size
+        self.size = _glTypes[gltype]
+        self.elements = elements
         self.uploaded = False
-        self.uniform = None
+        self.value = None
+        self.values = {}
+
         self._upload = _glTypesUpload[gltype]
         self._update = _glTypesUpdate[gltype]
 
@@ -124,6 +150,10 @@ class pyOpenGLUniformBuffer:
 
     def update(self, value, buffer):
         self._update(self, value, buffer)
+        self.uploaded = True
+
+    def update_element(self, value, buffer, element):
+        _updateValue4iv(self, value, buffer, element)
         self.uploaded = True
 
 
@@ -145,13 +175,17 @@ class pyOpenGLUniformBlock:
         self.uniforms = {}
         offset = 0
         for i in indices:
-            name, elements, gltype = glGetActiveUniform(program, i)
-            name = name.decode("utf-8")
-            size = _glTypes[gltype] * elements
-            self.uniforms[name] = pyOpenGLUniformBuffer(name, gltype, i, offset, size)
-            if size % 16 != 0:
-                size = (int(size/16)+1) * 16
-            offset += size
+            uname, elements, gltype = glGetActiveUniform(program, i)
+            uname = uname.decode("utf-8")
+
+            if '[0]' in uname:
+                uname = uname.replace('[0]', '')
+
+            total_size = _glTypes[gltype] * elements
+            self.uniforms[uname] = pyOpenGLUniformBuffer(uname, gltype, i, offset, total_size, elements)
+            if total_size % 16 != 0:
+                total_size = (int(total_size/16)+1) * 16
+            offset += total_size
 
         self.binding_point = -1
         self._buffer = -1
@@ -190,6 +224,12 @@ class pyOpenGLUniformBlock:
             value = uniform.value
             if value is not None:
                 uniform.update(value, buffer)
+
+            values = uniform.values
+            if len(values) > 0:
+                for index in values:
+                    uniform.update_element(values[index], buffer, index)
+                values.clear()
 
         glUnmapBuffer(GL_UNIFORM_BUFFER)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
@@ -234,6 +274,10 @@ class pyOpenGLUniformBlocks:
     def set_value(self, uniform, value):
         if uniform in self.uniforms:
             self.uniforms[uniform].value = value
+
+    def set_array_value(self, uniform, element, value):
+        if uniform in self.uniforms:
+            self.uniforms[uniform].values[element] = value
 
     def upload(self):
         for block in self.uniform_blocks.values():

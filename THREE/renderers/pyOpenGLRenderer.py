@@ -113,11 +113,6 @@ class _pyOpenGLRendererThread(Thread):
             q.task_done()
 
 
-"""
-*
-*
-*
-"""
 class pyOpenGLRenderer:
     """
 
@@ -489,7 +484,7 @@ class pyOpenGLRenderer:
 
         object.count = 0
 
-    def renderBufferDirect(self, camera, fog, geometry, material, object, group, renderer_id):
+    def renderBufferDirect(self, program, camera, fog, geometry, material, object, group, renderer_id):
         """
 
         :param camera:
@@ -503,9 +498,10 @@ class pyOpenGLRenderer:
         frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
         self.state.setMaterial(material, frontFaceCW)
 
-        program = self._setProgram(camera, fog, material, object)
-        if program is None:
-            return False    # initialization of the shader was dlegated to the pyOpenGLShader Trhead
+        # program = self._setProgram(camera, fog, material, object)
+        #if program is None:
+        #    return False    # initialization of the shader was dlegated to the pyOpenGLShader Trhead
+        program.setObject(object)
 
         self.program = program
         wireframe = material.wireframe
@@ -595,7 +591,6 @@ class pyOpenGLRenderer:
             return False
 
         # //
-
         glBindVertexArray(vao.vao)
 
         if object.my_class(isMesh):
@@ -704,7 +699,12 @@ class pyOpenGLRenderer:
                         pointer = None
                     else:
                         pointer = c_void_p(pointer)
-                    OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttribute, size, type, normalized, 0, pointer)
+
+                    if type == GL_UNSIGNED_SHORT or type == GL_UNSIGNED_INT or type == GL_SHORT or type == GL_INT:
+                        OpenGL.raw.GL.VERSION.GL_3_0.glVertexAttribIPointer(programAttribute, size, type, 0, pointer)
+                    else:
+                        OpenGL.raw.GL.VERSION.GL_2_0.glVertexAttribPointer(programAttribute, size, type, normalized, 0,
+                                                                           pointer)
 
             elif materialDefaultAttributeValues is not None:
                 if name in materialDefaultAttributeValues:
@@ -813,6 +813,7 @@ class pyOpenGLRenderer:
         self.currentRenderList = self.renderLists.get(scene, camera)
         self.currentRenderList.init()
 
+        # project all objects and update the attributes
         self._projectObject(scene, camera, self.sortObjects)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
@@ -828,10 +829,10 @@ class pyOpenGLRenderer:
         self.shadowMap.render(shadowsArray, scene, camera)
         self.currentRenderState.setupLights(camera)
 
+        # update the shared uniforms
         self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
         self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
-        self.uniformBlocks.update()
 
         if self._clippingEnabled:
             self._clipping.endShadows()
@@ -843,17 +844,84 @@ class pyOpenGLRenderer:
 
         self.setRenderTarget(renderTarget)
         self.state.enable(GL_MULTISAMPLE)
-        # //
 
+        # render the background
         self.background.render(self.currentRenderList, scene, camera, forceClear)
 
-        # render scene
+        # render explicit instances
+        #FIXME self._renderInstances(scene, camera)
 
-        self._renderInstances(scene, camera)
+        # now we get all objects to render
 
         opaqueObjects = self.currentRenderList.opaque
         transparentObjects = self.currentRenderList.transparent
 
+        # update shared matrices uniforms with visible objects matrix
+        if len(opaqueObjects) > 0:
+            self._updateObjects(opaqueObjects, scene, camera)
+
+        # // transparent pass (back-to-front order)
+        if len(transparentObjects) > 0:
+            self._updateObjects(transparentObjects, scene, camera)
+
+        self.uniformBlocks.update()
+
+        # bind same geometry/material into instances
+        opaqueObjects = self.currentRenderList.opaq
+        transparentObjects = self.currentRenderList.transp
+
+        opaque = []
+
+        for k in opaqueObjects.keys():
+            renderItems = opaqueObjects[k]
+            len_objs = len(renderItems)
+            if len_objs > 1:
+                if k not in scene.instances:
+                    """
+                    create a new instanced object for the geometry/material
+                    """
+                    renderItem = renderItems[0]
+                    geometry = renderItem.geometry
+                    material = renderItem.material
+
+                    # for optimization, do not clone the attributes, but use the existing ones
+                    geometry = THREE.InstancedBufferGeometry().extend(geometry)
+
+                    # and then add the instanced attributes
+                    objectIDs = THREE.InstancedBufferAttribute(Uint16Array(10000), 1, 1).setDynamic(True)
+                    geometry.addAttribute('objectID', objectIDs)
+
+                    mesh = Mesh(geometry, material)
+                    renderItem = RenderItem(None, mesh, geometry, material, None, None, None, None)
+                    renderItem.instance = True
+                    scene.instances[k] = renderItem
+                else:
+                    renderItem = scene.instances[k]
+                    geometry = renderItem.geometry
+                    mesh = renderItem.object
+
+                opaque.append(renderItem)
+
+                attributes = geometry.attributes
+                objectIDs = attributes.objectID
+
+                objectIDs.updateRange.count = objectIDs.count
+
+                array = objectIDs.array
+                i = 0
+                for renderItem in renderItems:
+                    array[i] = renderItem.object.id
+                    i += 1
+
+                geometry.maxInstancedCount = len_objs
+                objectIDs.needsUpdate = True
+
+                self.objects.update(mesh)
+            else:
+                for renderItem in renderItems:
+                    opaque.append(renderItem)
+
+        # render scene
         if scene.overrideMaterial:
             overrideMaterial = scene.overrideMaterial
 
@@ -864,12 +932,12 @@ class pyOpenGLRenderer:
 
         else:
             # // opaque pass (front-to-back order)
-            if len(opaqueObjects) > 0:
-                self._renderObjects(opaqueObjects, scene, camera)
+            if len(opaque) > 0:
+                self._renderObjects(opaque, scene, camera)
 
             # // transparent pass (back-to-front order)
             if len(transparentObjects) > 0:
-                self._renderObjects(transparentObjects, scene, camera)
+                self._renderObjects(self.currentRenderList.transparentObjects, scene, camera)
 
         # custom renderers
 
@@ -972,11 +1040,12 @@ class pyOpenGLRenderer:
         :return:
         """
         for renderItem in renderList:
-            object = renderItem.object
             geometry = renderItem.geometry
+            object = renderItem.object
             material = renderItem.material if overrideMaterial is None else overrideMaterial
             group = renderItem.group
 
+            program = self._setProgram(camera, scene.fog, material, object, renderItem.instance)
             if camera.my_class(isArrayCamera):
                 self._currentArrayCamera = camera
 
@@ -996,12 +1065,12 @@ class pyOpenGLRenderer:
 
                             self.state.viewport(self._currentViewport.set(x, y, width, height).multiplyScalar(self._pixelRatio))
 
-                    self._renderObject(object, scene, camera2, geometry, material, group)
+                    self._renderObject(program, object, scene, camera2, geometry, material, group)
             else:
                 self._currentArrayCamera = None
-                self._renderObject(object, scene, camera, geometry, material, group)
+                self._renderObject(program, object, scene, camera, geometry, material, group)
 
-    def _renderObject(self, object, scene, camera, geometry, material, group):
+    def _renderObject(self, program, object, scene, camera, geometry, material, group):
         """
 
         :param object:
@@ -1015,13 +1084,13 @@ class pyOpenGLRenderer:
         object.onBeforeRender(self, scene, camera, geometry, material, group)
         self.currentRenderState = self.renderStates.get(scene, self._currentArrayCamera or camera)
 
-        object.modelViewMatrix.updated = object.normalMatrix.updated = False
-
-        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-            object.modelViewMatrix.updated = True
-            object.normalMatrix.updated = True
+        # moved to _updateObject
+        # object.modelViewMatrix.updated = object.normalMatrix.updated = False
+        # if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+        #    object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+        #    object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+        #    object.modelViewMatrix.updated = True
+        #    object.normalMatrix.updated = True
 
         if object.my_class(isImmediateRenderObject):
             self.state.setMaterial(material)
@@ -1034,12 +1103,12 @@ class pyOpenGLRenderer:
 
             self._renderObjectImmediate(object, program, material)
         else:
-            self.renderBufferDirect(camera, scene.fog, geometry, material, object, group, isViewRenderer)
+            self.renderBufferDirect(program, camera, scene.fog, geometry, material, object, group, isViewRenderer)
 
         object.onAfterRender(self, scene, camera, geometry, material, group)
         self.currentRenderState = self.renderStates.get(scene, self._currentArrayCamera or camera)
 
-    def _initMaterial(self, material, fog, object):
+    def _initMaterial(self, material, fog, object, instance=False):
         global ShaderLib
         materialProperties = self.properties.get(material)
 
@@ -1102,7 +1171,7 @@ class pyOpenGLRenderer:
             material.onBeforeCompile(materialProperties.shader)
             # Computing code again as onBeforeCompile may have changed the shaders
             code = self.programCache.getProgramCode( material, parameters )
-            program = self.programCache.acquireProgram(material, materialProperties.shader, parameters, code)
+            program = self.programCache.acquireProgram(material, materialProperties.shader, parameters, code, instance)
 
             materialProperties.program = program
             material.program = program
@@ -1170,7 +1239,7 @@ class pyOpenGLRenderer:
     def prepare(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-    def _setProgram(self, camera, fog, material, object):
+    def _setProgram(self, camera, fog, material, object, instance=False):
         """
 
         :param camera:
@@ -1216,7 +1285,7 @@ class pyOpenGLRenderer:
                 material.needsUpdate = True
 
         if material.needsUpdate:
-            self._initMaterial(material, fog, object)
+            self._initMaterial(material, fog, object, instance)
             material.needsUpdate = False
             #self.queue.put([material, fog, object])
             #return None
@@ -1259,7 +1328,7 @@ class pyOpenGLRenderer:
                 refreshLights = True  # // remains set until update done
 
             # // load material specific uniforms
-            # // (shader material also gets them for the sake of genericity)
+            # // (shader material als o gets them for the sake of genericity)
 
             if material.my_class(isShaderMaterial | isMeshPhongMaterial | isMeshStandardMaterial) or \
                     material.envMap is not None:
@@ -1269,7 +1338,7 @@ class pyOpenGLRenderer:
                     uCamPos.setValue(Vector3().setFromMatrixPosition(camera.matrixWorld))
 
             # migrated to uniform buffer object
-            #if material.my_class(isMeshPhongMaterial | isMeshLambertMaterial | isMeshBasicMaterial | isMeshStandardMaterial | isShaderMaterial) or \
+            # if material.my_class(isMeshPhongMaterial | isMeshLambertMaterial | isMeshBasicMaterial | isMeshStandardMaterial | isShaderMaterial) or \
             #        material.skinning:
             #    p_uniforms.setValue('viewMatrix', camera.matrixWorldInverse)
 
@@ -1407,15 +1476,19 @@ class pyOpenGLRenderer:
 
         # // common matrices
 
-        if object.modelViewMatrix.updated:
-            # TODO FDE: why is there no object if we use the update flag
-            p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix, True)
+        # if object.modelViewMatrix.updated:
+        #    # TODO FDE: why is there no object if we use the update flag
+        #    p_uniforms.setValue('modelViewMatrix', object.modelViewMatrix, True)
 
-        if object.normalMatrix.updated:
-            p_uniforms.setValue('normalMatrix', object.normalMatrix, True)
+        # if object.normalMatrix.updated:
+        #    p_uniforms.setValue('normalMatrix', object.normalMatrix, True)
 
-        if object.matrixWorld.updated:
-            p_uniforms.setValue('modelMatrix', object.matrixWorld, True)
+        # moved to _updateObject
+        # if object.matrixWorld.updated:
+        #    p_uniforms.setValue('modelMatrix', object.matrixWorld, True)
+
+        # (re)upload the object ID
+        # p_uniforms.setValue('objectID', object.id, True)
 
         return program
 
@@ -1899,3 +1972,46 @@ class pyOpenGLRenderer:
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+    def _updateObjects(self, renderList, scene, camera):
+        """
+        Parse all visible objects and update their matrices
+        :param renderList:
+        :param scene:
+        :param camera:
+        :return:
+        """
+        for renderItem in renderList:
+            object = renderItem.object
+            group = renderItem.group
+
+            if camera.my_class(isArrayCamera):
+                raise RuntimeError("cannot update objects for multiple cameras")
+                cameras = camera.cameras
+                for camera2 in cameras:
+                    self._updateObject(object, scene, camera2, group)
+            else:
+                self._updateObject(object, scene, camera, group)
+
+    def _updateObject(self, object, scene, camera, group):
+        """
+        update the object matrices
+        :param object:
+        :param scene:
+        :param camera:
+        :param group:
+        :return:
+        """
+        object.modelViewMatrix.updated = object.normalMatrix.updated = False
+
+        if object.matrixWorld.updated:
+            self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
+
+        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+            object.modelViewMatrix.updated = True
+            object.normalMatrix.updated = True
+
+            self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
+            self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)

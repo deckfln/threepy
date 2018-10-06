@@ -219,7 +219,7 @@ class pyOpenGLPrograms:
 
         return "\n".join(array)
 
-    def acquireProgram(self,  material, shader, parameters, code):
+    def acquireProgram(self,  material, shader, parameters, code, instance=False):
         program = None
         # // Check if code has been already compiled
         for programInfo in self.programs:
@@ -230,7 +230,7 @@ class pyOpenGLPrograms:
                 break
 
         if program is None:
-            program = pyOpenGLProgram(self.renderer, self.extensions, code, material, shader, parameters)
+            program = pyOpenGLProgram(self.renderer, self.extensions, code, material, shader, parameters, instance)
             self.programs.append(program)
 
         return program

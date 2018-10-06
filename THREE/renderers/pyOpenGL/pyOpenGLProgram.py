@@ -225,7 +225,7 @@ _envmap_mapping = {
 
 
 class pyOpenGLProgram:
-    def __init__(self, renderer, extensions, code, material, shader, parameters):
+    def __init__(self, renderer, extensions, code, material, shader, parameters, instance=False):
         global _programIdCount
         global _envmap_mapping
 
@@ -274,6 +274,9 @@ class pyOpenGLProgram:
         customExtensions = generateExtensions(exts, parameters, extensions)
 
         customDefines = generateDefines(defines)
+
+        if instance:
+            customDefines += "#define USE_INSTANCES\n"
 
         # //
 
@@ -347,20 +350,35 @@ class pyOpenGLProgram:
                 '#define USE_LOGDEPTHBUF' if parameters['logarithmicDepthBuffer'] else '',
                 '#define USE_LOGDEPTHBUF_EXT' if parameters['logarithmicDepthBuffer'] and extensions.get('EXT_frag_depth') else '',
 
+                'in vec3 position;',
+                'in vec3 normal;',
+                'in vec2 uv;',
+
                 'layout (std140) uniform camera',
                 '{',
                     'uniform mat4 projectionMatrix;',
                     'uniform mat4 viewMatrix;',
                 '};',
-                
-                'uniform mat4 modelMatrix;',
-                'uniform mat4 modelViewMatrix;',
+
+                '#ifdef USE_INSTANCES',
+                    'in unsigned short objectID;',
+                '#else',
+                    'uniform unsigned short objectID;',
+                '#endif',
+
+                'layout (std140) uniform modelMatricesBlock',
+                '{',
+                    'uniform mat4 modelMatrices[1024];',
+                '};',
+                'layout (std140) uniform modelViewMatricesBlock',
+                '{',
+                    'uniform mat4 modelViewMatrices[1024];',
+                '};',
+
+                # 'uniform mat4 modelMatrix;',
+                # 'uniform mat4 modelViewMatrix;',
                 'uniform mat3 normalMatrix;',
                 'uniform vec3 cameraPosition;',
-
-                'attribute vec3 position;',
-                'attribute vec3 normal;',
-                'attribute vec2 uv;',
 
                 '#ifdef USE_COLOR',
 
@@ -613,6 +631,9 @@ class pyOpenGLProgram:
         self.program = program
         self.vertexShader = glVertexShader
         self.fragmentShader = glFragmentShader
+
+    def setObject(self, object):
+        self.cachedUniforms.setValue('objectID', object.id, True)
 
     def getUniforms(self):
         return self.cachedUniforms

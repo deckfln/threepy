@@ -52,12 +52,13 @@ def init(p):
 
     geometry = THREE.BoxBufferGeometry( 100, 100, 100 )
     material = THREE.MeshNormalMaterial()
-    material = THREE.MeshLambertMaterial({'color': THREE.Color(0.5,0.3,0.2)})
+    material = THREE.MeshLambertMaterial({'color': THREE.Color(0.5, 0.3, 0.2)})
 
     p.group = THREE.Group()
 
     for i in range(1000):
         mesh = THREE.Mesh( geometry, material )
+        # mesh.frustumCulled = False
         mesh.position.x = random.random() * 2000 - 1000
         mesh.position.y = random.random() * 2000 - 1000
         mesh.position.z = random.random() * 2000 - 1000
