@@ -4,6 +4,7 @@
 Implement OpengGL 3.1 Uniform Buffer Objects
 """
 
+import re
 from OpenGL.GL import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, string_at, memmove
 
@@ -37,6 +38,21 @@ _glTypes = {
     GL_FLOAT_MAT4x3: 48
 }
 
+_glTypesAlignment = {
+    GL_FLOAT: 4,
+    GL_FLOAT_VEC2: 8,
+    GL_FLOAT_VEC3: 16,
+    GL_FLOAT_VEC4: 16,
+    GL_INT: 2,
+    GL_INT_VEC2: 4,
+    GL_INT_VEC3: 8,
+    GL_INT_VEC4: 8,
+    GL_UNSIGNED_INT: 2,
+    GL_UNSIGNED_INT_VEC2: 4,
+    GL_UNSIGNED_INT_VEC3: 8,
+    GL_UNSIGNED_INT_VEC4: 8,
+    GL_FLOAT_MAT4: 16
+}
 
 """
 upload data by sub data
@@ -63,7 +79,7 @@ Update data in a single unifoms buffer
 """
 
 
-def _updateValue4fm(self, value, buffer):
+def _updateValue4fm(self, value, offset, buffer):
     """
     Update a single uniform or a full array of uniforms
     :param self:
@@ -72,7 +88,7 @@ def _updateValue4fm(self, value, buffer):
     :return:
     """
     if value.updated or not self.uploaded:
-        ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.total_size)
+        ctypes.memmove(buffer + int(offset), value.elements.ctypes.data, self.total_size)
 
 
 def _updateValue4iv(self, value, buffer, element):
@@ -90,8 +106,8 @@ def _updateValue4iv(self, value, buffer, element):
     ctypes.memmove(dst, src, size)
 
 
-def _updateValue3fv(self, value, buffer):
-    ctypes.memmove(buffer + int(self.offset), value.elements.ctypes.data, self.total_size)
+def _updateValue(self, value, offset, buffer):
+    ctypes.memmove(buffer + int(offset), value.elements.ctypes.data, self.size)
 
 
 _glTypesUpload = {
@@ -124,8 +140,11 @@ _glTypesUpload = {
 
 
 _glTypesUpdate = {
-    GL_FLOAT_VEC3: _updateValue3fv,
+    GL_FLOAT_VEC3: _updateValue,
     GL_FLOAT_MAT4: _updateValue4fm,
+    GL_INT: _updateValue,
+    GL_FLOAT: _updateValue,
+    GL_FLOAT_VEC2: _updateValue,
 }
 
 
@@ -140,6 +159,7 @@ class pyOpenGLUniformBuffer:
         self.uploaded = False
         self.value = None
         self.values = {}
+        self.offsets = []
 
         self._upload = _glTypesUpload[gltype]
         self._update = _glTypesUpdate[gltype]
@@ -149,12 +169,45 @@ class pyOpenGLUniformBuffer:
         self.uploaded = True
 
     def update(self, value, buffer):
-        self._update(self, value, buffer)
-        self.uploaded = True
+        self._update(self, value, self.offset, buffer)
 
     def update_element(self, value, buffer, element):
-        _updateValue4iv(self, value, buffer, element)
-        self.uploaded = True
+        self._update(self, value, self.offset + self.size * element, buffer)
+
+    def update_index(self, value, index, buffer):
+        offset = self.offsets[index]
+        self._update(self, value, offset, buffer)
+
+
+class _UniformBufferArrayOfStructs:
+    """
+    define array of structs in a uniform block
+    """
+    def __init__(self, name):
+        self.name = name
+        self.attributes = {}
+        self.value = None
+        self.values = {}
+
+    def set_source(self, source_array):
+        self.value = source_array
+
+    def add(self, attr, index, gltype, offset):
+        if attr not in self.attributes:
+            self.attributes[attr] = pyOpenGLUniformBuffer(attr, gltype, -1, -1, 0, 0)
+
+        self.attributes[attr].offsets.append(offset)
+
+    def add_value(self, value, index):
+        self.values[index] = value
+
+    def update(self, buffer):
+        for i in range(len(self.value)):
+            struct = self.value[i]
+            for attrib in struct.__dict__:
+                if attrib in self.attributes:
+                    v = struct.__dict__[attrib]
+                    self.attributes[attrib].update_index(v, i, buffer)
 
 
 class pyOpenGLUniformBlock:
@@ -172,20 +225,49 @@ class pyOpenGLUniformBlock:
         indices = arrays.GLintArray.zeros((active_uniforms[0],))
         glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices)
 
+        offsets = arrays.GLintArray.zeros((active_uniforms[0],))
+        glGetActiveUniformsiv(program, active_uniforms[0], indices, GL_UNIFORM_OFFSET, offsets)
+
         self.uniforms = {}
-        offset = 0
-        for i in indices:
-            uname, elements, gltype = glGetActiveUniform(program, i)
+        pattern = '(.*)\[ *(\d)\ *]\.(.*)'
+        last_index = -1
+
+        for i in range(len(indices)):
+            uniform_index = indices[i]
+            offset = offsets[i]
+
+            uname, elements, gltype = glGetActiveUniform(program, uniform_index)
             uname = uname.decode("utf-8")
 
-            if '[0]' in uname:
+            # if elements > 0 and we see an indices
+            # mark basic variables + numbers : "vec3 data[10]" => 10 elements of data[0]
+            if '[0]' in uname and elements > 1:
                 uname = uname.replace('[0]', '')
 
-            total_size = _glTypes[gltype] * elements
-            self.uniforms[uname] = pyOpenGLUniformBuffer(uname, gltype, i, offset, total_size, elements)
-            if total_size % 16 != 0:
-                total_size = (int(total_size/16)+1) * 16
-            offset += total_size
+            # find structured variables + numbers :
+            # struct {
+            #   vec3 v3
+            #   int  i
+            # }
+            # structure data[10]
+            # => 1 elements of data[0].v3
+            # => 1 elements of data[0].i
+            # => 1 elements of data[1].v3
+            # => 1 elements of data[1].i
+            aindices = re.search(pattern, uname)
+            if aindices is not None:
+                array = uname[aindices.regs[1][0] : aindices.regs[1][1]]
+                index = int(uname[aindices.regs[2][0] : aindices.regs[2][1]])
+                field = uname[aindices.regs[3][0] : aindices.regs[3][1]]
+
+                if array not in self.uniforms:
+                    self.uniforms[array] = _UniformBufferArrayOfStructs(array)
+
+                self.uniforms[array].add(field, index, gltype, offset)
+
+            else:
+                total_size = _glTypes[gltype] * elements
+                self.uniforms[uname] = pyOpenGLUniformBuffer(uname, gltype, i, offset, total_size, elements)
 
         self.binding_point = -1
         self._buffer = -1
@@ -225,6 +307,7 @@ class pyOpenGLUniformBlock:
             if value is not None:
                 uniform.update(value, buffer)
 
+            # for arrays, update a list of individual values
             values = uniform.values
             if len(values) > 0:
                 for index in values:

@@ -833,6 +833,7 @@ class pyOpenGLRenderer:
         self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
         self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
+        self.uniformBlocks.set_value('directionalLight', self.renderStates.get(scene, camera).lights.state.directional)
 
         if self._clippingEnabled:
             self._clipping.endShadows()
@@ -1472,7 +1473,7 @@ class pyOpenGLRenderer:
                 material.uniformsNeedUpdate = False
 
             if material.my_class(isSpriteMaterial):
-                p_uniforms.setValue( 'center', object.center )
+                p_uniforms.setValue('center', object.center)
 
         # // common matrices
 

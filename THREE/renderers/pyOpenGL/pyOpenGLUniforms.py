@@ -251,7 +251,7 @@ class SingleUniform:
             0x8b60: self.setValueT6,  # // SAMPLER_CUBE
 
             0x1404: self.setValue1i,
-            GL_UNSIGNED_INT: self.setValue1i,
+            GL_UNSIGNED_INT: self.setValue1ui,
             0x8b56: self.setValue1i,  # // INT, BOOL
             0x8b53: self.setValue2iv,
             0x8b57: self.setValue2iv,  # // _VEC2
@@ -290,6 +290,15 @@ class SingleUniform:
         OpenGL.raw.GL.VERSION.GL_2_0.glUniform1i(self.addr, v)
         cache[0] = v
 
+    def setValue1ui(self, v, renderer=None, force=False):
+        cache = self.cache
+
+        if cache[0] == v:
+            return
+
+        OpenGL.raw.GL.VERSION.GL_3_0.glUniform1ui(self.addr, v)
+        cache[0] = v
+
         # // Single float vector (from flat array or THREE.VectorN)
 
     def setValue2fv(self, v, renderer=None, force=False):
@@ -312,17 +321,20 @@ class SingleUniform:
         cache = self.cache
 
         if v.my_class(isVector3):
-            vnp = v.np
-            if cache[0] != vnp[0] or cache[1] != vnp[1] or cache[2] != vnp[2]:
-                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, vnp[0], vnp[1], vnp[2])
-                np.copyto(cache, vnp)
+            np = v.np
+            if cache[0] != np[0] or cache[1] != np[1] or cache[2] != np[2]:
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, np[0], np[1], np[2])
+                cache[0] = np[0]
+                cache[1] = np[1]
+                cache[2] = np[2]
 
         elif v.my_class(isColor):
-            if cache[0] != v.r or cache[1] != v.g or cache[2] != v.b:
-                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, v.r, v.g, v.b)
-                cache[0] = v.r
-                cache[1] = v.g
-                cache[2] = v.b
+            np = v.elements
+            if cache[0] != np[0] or cache[1] != np[1] or cache[2] != np[2]:
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, np[0], np[1], np[2])
+                cache[0] = np[0]
+                cache[1] = np[1]
+                cache[2] = np[2]
 
         else:
             if arraysEqual(cache, v):
@@ -670,8 +682,7 @@ class StructuredUniform( UniformContainer):
         # // are not allowed in structured uniforms.
         seq = self.seq
 
-        for i in range (len(seq)):
-            u = seq[i]
+        for u in seq:
             u.setValue(value[u.id], renderer)
 
 # // --- Top-level ---

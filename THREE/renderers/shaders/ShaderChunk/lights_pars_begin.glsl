@@ -1,7 +1,3 @@
-layout (std140) uniform lights
-{
-    uniform vec3 ambientLightColor;
-};
 
 vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 
@@ -21,15 +17,13 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 
 	struct DirectionalLight {
 		vec3 direction;
-		vec3 color;
-
-		int shadow;
 		float shadowBias;
+		vec3 color;
 		float shadowRadius;
-		vec2 shadowMapSize;
-	};
 
-	uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
+		vec2 shadowMapSize;
+		int shadow;
+	};
 
 	void getDirectionalDirectLightIrradiance( const in DirectionalLight directionalLight, const in GeometricContext geometry, out IncidentLight directLight ) {
 
@@ -57,8 +51,6 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 		float shadowCameraNear;
 		float shadowCameraFar;
 	};
-
-	uniform PointLight pointLights[ NUM_POINT_LIGHTS ];
 
 	// directLight is an out parameter as having it as a return value caused compiler errors on some devices
 	void getPointDirectLightIrradiance( const in PointLight pointLight, const in GeometricContext geometry, out IncidentLight directLight ) {
@@ -93,8 +85,6 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 		float shadowRadius;
 		vec2 shadowMapSize;
 	};
-
-	uniform SpotLight spotLights[ NUM_SPOT_LIGHTS ];
 
 	// directLight is an out parameter as having it as a return value caused compiler errors on some devices
 	void getSpotDirectLightIrradiance( const in SpotLight spotLight, const in GeometricContext geometry, out IncidentLight directLight  ) {
@@ -133,13 +123,6 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 		vec3 halfHeight;
 	};
 
-	// Pre-computed values of LinearTransformedCosine approximation of BRDF
-	// BRDF approximation Texture is 64x64
-	uniform sampler2D ltc_1; // RGBA Float
-	uniform sampler2D ltc_2; // RGBA Float
-
-	uniform RectAreaLight rectAreaLights[ NUM_RECT_AREA_LIGHTS ];
-
 #endif
 
 
@@ -150,8 +133,6 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 		vec3 skyColor;
 		vec3 groundColor;
 	};
-
-	uniform HemisphereLight hemisphereLights[ NUM_HEMI_LIGHTS ];
 
 	vec3 getHemisphereLightIrradiance( const in HemisphereLight hemiLight, const in GeometricContext geometry ) {
 
@@ -170,4 +151,30 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 
 	}
 
+#endif
+
+layout (std140) uniform lights
+{
+    uniform vec3 ambientLightColor;
+};
+
+#if NUM_DIR_LIGHTS > 0
+	uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
+#endif
+#if NUM_POINT_LIGHTS > 0
+	uniform PointLight pointLights[ NUM_POINT_LIGHTS ];
+#endif
+#if NUM_SPOT_LIGHTS > 0
+	uniform SpotLight spotLights[ NUM_SPOT_LIGHTS ];
+#endif
+#if NUM_RECT_AREA_LIGHTS > 0
+	// Pre-computed values of LinearTransformedCosine approximation of BRDF
+	// BRDF approximation Texture is 64x64
+	uniform sampler2D ltc_1; // RGBA Float
+	uniform sampler2D ltc_2; // RGBA Float
+
+	uniform RectAreaLight rectAreaLights[ NUM_RECT_AREA_LIGHTS ];
+#endif
+#if NUM_HEMI_LIGHTS > 0
+	uniform HemisphereLight hemisphereLights[ NUM_HEMI_LIGHTS ];
 #endif

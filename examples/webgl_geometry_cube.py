@@ -26,7 +26,7 @@ def init(params):
     params.camera.position.z = 400
 
     params.scene = THREE.Scene()
-    texture = THREE.TextureLoader().load('textures/crate.png')
+    texture = THREE.TextureLoader().load('textures/crate.gif')
 
     geometry = THREE.BoxBufferGeometry(200, 200, 200)
     material = THREE.MeshBasicMaterial({'map': texture})

@@ -86,8 +86,8 @@ class _UniformsCache:
         self.lights = {}
 
     def get(self, light):
-        if light.id  in self.lights:
-            return self.lights[ light.id ]
+        if light.id in self.lights:
+            return self.lights[light.id]
 
         if light.type == 'DirectionalLight':
                 uniforms = _DirectionalLightUniforms()
@@ -100,7 +100,7 @@ class _UniformsCache:
         elif light.type == 'RectAreaLight':
                 uniforms = _RectAreaLightUniforms()
 
-        self.lights[ light.id ] = uniforms
+        self.lights[light.id] = uniforms
         return uniforms
 
 
@@ -327,3 +327,6 @@ class pyOpenGLLights:
         self.state.hash.shadowsLength = len(shadows)
 
         return self
+
+    def set_uniformblock(self, uniformblocks):
+        uniformblocks.set_value('directionalLight', self.state.directional)
