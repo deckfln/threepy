@@ -52,6 +52,8 @@
 """
 import re
 
+import numpy
+
 from OpenGL.GL import *
 from THREE.textures.CubeTexture import *
 import OpenGL.raw.GL.VERSION.GL_2_0
@@ -321,15 +323,13 @@ class SingleUniform:
         cache = self.cache
 
         if v.my_class(isVector3):
-            np = v.np
-            if cache[0] != np[0] or cache[1] != np[1] or cache[2] != np[2]:
-                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, np[0], np[1], np[2])
-                cache[0] = np[0]
-                cache[1] = np[1]
-                cache[2] = np[2]
+            vnp = v.np
+            if cache[0] != vnp[0] or cache[1] != vnp[1] or cache[2] != vnp[2]:
+                OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, vnp[0], vnp[1], vnp[2])
+                numpy.copyto(cache, vnp)
 
         elif v.my_class(isColor):
-            np = v.elements
+            np = v.np
             if cache[0] != np[0] or cache[1] != np[1] or cache[2] != np[2]:
                 OpenGL.raw.GL.VERSION.GL_2_0.glUniform3f(self.addr, np[0], np[1], np[2])
                 cache[0] = np[0]

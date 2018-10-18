@@ -363,7 +363,7 @@ class pyOpenGLProgram:
                 '#ifdef USE_INSTANCES',
                     'in unsigned short objectID;',
                 '#else',
-                    'uniform unsigned int objectID;',
+                    'uniform unsigned short objectID;',
                 '#endif',
 
                 'layout (std140) uniform modelMatricesBlock',

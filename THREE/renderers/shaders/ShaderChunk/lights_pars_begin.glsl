@@ -17,12 +17,12 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 
 	struct DirectionalLight {
 		vec3 direction;
-		float shadowBias;
 		vec3 color;
-		float shadowRadius;
 
-		vec2 shadowMapSize;
 		int shadow;
+		float shadowBias;
+		float shadowRadius;
+		vec2 shadowMapSize;
 	};
 
 	void getDirectionalDirectLightIrradiance( const in DirectionalLight directionalLight, const in GeometricContext geometry, out IncidentLight directLight ) {
@@ -156,8 +156,6 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
 layout (std140) uniform lights
 {
     uniform vec3 ambientLightColor;
-};
-
 #if NUM_DIR_LIGHTS > 0
 	uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
 #endif
@@ -178,3 +176,4 @@ layout (std140) uniform lights
 #if NUM_HEMI_LIGHTS > 0
 	uniform HemisphereLight hemisphereLights[ NUM_HEMI_LIGHTS ];
 #endif
+};

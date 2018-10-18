@@ -30,11 +30,12 @@ def init(p):
 
     p.scene.add( THREE.AmbientLight( 0x444444 ) )
 
+    """
     light1 = THREE.DirectionalLight( 0xffffff, 0.5 )
     light1.position.set( 1, 1, 1 )
     p.scene.add( light1 )
-
-    light2 = THREE.DirectionalLight( 0xffffff, 1.5 )
+    """
+    light2 = THREE.DirectionalLight( 0xff0000, 1.5 )
     light2.position.set( 0, -1, 0 )
     p.scene.add( light2 )
 

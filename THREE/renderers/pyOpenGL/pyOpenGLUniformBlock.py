@@ -5,6 +5,8 @@ Implement OpengGL 3.1 Uniform Buffer Objects
 """
 
 import re
+import numpy as np
+
 from OpenGL.GL import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, string_at, memmove
 
@@ -106,8 +108,22 @@ def _updateValue4iv(self, value, buffer, element):
     ctypes.memmove(dst, src, size)
 
 
-def _updateValue(self, value, offset, buffer):
-    ctypes.memmove(buffer + int(offset), value.elements.ctypes.data, self.size)
+_int16 = np.zeros(1, np.int16)
+_float = np.zeros(1, np.float32)
+
+
+def _updateValueArray(self, value, offset, buffer):
+    ctypes.memmove(buffer + int(offset), value.np.ctypes.data, self.size)
+
+
+def _updateValueInt(self, value, offset, buffer):
+    _int16[0] = value
+    ctypes.memmove(buffer + int(offset), _int16.ctypes.data, self.size)
+
+
+def _updateValueFloat(self, value, offset, buffer):
+    _float[0] = value
+    ctypes.memmove(buffer + int(offset), _float.ctypes.data, self.size)
 
 
 _glTypesUpload = {
@@ -140,11 +156,11 @@ _glTypesUpload = {
 
 
 _glTypesUpdate = {
-    GL_FLOAT_VEC3: _updateValue,
+    GL_FLOAT_VEC3: _updateValueArray,
     GL_FLOAT_MAT4: _updateValue4fm,
-    GL_INT: _updateValue,
-    GL_FLOAT: _updateValue,
-    GL_FLOAT_VEC2: _updateValue,
+    GL_INT: _updateValueInt,
+    GL_FLOAT: _updateValueFloat,
+    GL_FLOAT_VEC2: _updateValueArray,
 }
 
 
@@ -172,7 +188,7 @@ class pyOpenGLUniformBuffer:
         self._update(self, value, self.offset, buffer)
 
     def update_element(self, value, buffer, element):
-        self._update(self, value, self.offset + self.size * element, buffer)
+        _updateValue4iv(self, value, buffer, element)
 
     def update_index(self, value, index, buffer):
         offset = self.offsets[index]
@@ -201,7 +217,7 @@ class _UniformBufferArrayOfStructs:
     def add_value(self, value, index):
         self.values[index] = value
 
-    def update(self, buffer):
+    def update(self, value, buffer):
         for i in range(len(self.value)):
             struct = self.value[i]
             for attrib in struct.__dict__:

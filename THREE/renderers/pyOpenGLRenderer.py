@@ -818,6 +818,12 @@ class pyOpenGLRenderer:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
+        # update the shared uniforms
+        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
+        self.uniformBlocks.set_value('directionalLights', self.renderStates.get(scene, camera).lights.state.directional)
+
         if self.sortObjects:
             self.currentRenderList.sort()
 
@@ -828,12 +834,6 @@ class pyOpenGLRenderer:
         shadowsArray = self.currentRenderState.shadowsArray
         self.shadowMap.render(shadowsArray, scene, camera)
         self.currentRenderState.setupLights(camera)
-
-        # update the shared uniforms
-        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
-        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
-        self.uniformBlocks.set_value('directionalLight', self.renderStates.get(scene, camera).lights.state.directional)
 
         if self._clippingEnabled:
             self._clipping.endShadows()
