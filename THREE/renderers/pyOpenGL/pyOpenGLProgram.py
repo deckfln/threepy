@@ -363,7 +363,7 @@ class pyOpenGLProgram:
                 '#ifdef USE_INSTANCES',
                     'in unsigned short objectID;',
                 '#else',
-                    'uniform unsigned short objectID;',
+                    'uniform unsigned int objectID;',
                 '#endif',
 
                 'layout (std140) uniform modelMatricesBlock',
@@ -374,10 +374,14 @@ class pyOpenGLProgram:
                 '{',
                     'uniform mat4 modelViewMatrices[1024];',
                 '};',
+                'layout (std140) uniform normalMatricesBlock',
+                '{',
+                    'uniform mat3 normalMatrices[1024];',
+                '};',
 
                 # 'uniform mat4 modelMatrix;',
                 # 'uniform mat4 modelViewMatrix;',
-                'uniform mat3 normalMatrix;',
+                # 'uniform mat3 normalMatrix;',
                 'uniform vec3 cameraPosition;',
 
                 '#ifdef USE_COLOR',
@@ -475,7 +479,12 @@ class pyOpenGLProgram:
 
                 '#define TEXTURE_LOD_EXT' if parameters['envMap'] and extensions.get('EXT_shader_texture_lod') else '',
 
-                'uniform mat4 viewMatrix;',
+                # 'uniform mat4 viewMatrix;',
+                'layout (std140) uniform camera',
+                '{',
+                    'uniform mat4 projectionMatrix;',
+                    'uniform mat4 viewMatrix;',
+                '};',
                 'uniform vec3 cameraPosition;',
 
                 "#define TONE_MAPPING" if (parameters['toneMapping'] != NoToneMapping) else '',

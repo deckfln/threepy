@@ -819,10 +819,10 @@ class pyOpenGLRenderer:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
         # update the shared uniforms
+
         self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
-        self.uniformBlocks.set_value('directionalLights', self.renderStates.get(scene, camera).lights.state.directional)
+        self.uniformBlocks.update('camera')
 
         if self.sortObjects:
             self.currentRenderList.sort()
@@ -839,6 +839,10 @@ class pyOpenGLRenderer:
             self._clipping.endShadows()
 
         # //
+
+        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
+        self.uniformBlocks.set_value('directionalLights', self.renderStates.get(scene, camera).lights.state.directional)
+        self.uniformBlocks.update('lights')
 
         if self.info.autoReset:
             self.info.reset()
@@ -865,7 +869,9 @@ class pyOpenGLRenderer:
         if len(transparentObjects) > 0:
             self._updateObjects(transparentObjects, scene, camera)
 
-        self.uniformBlocks.update()
+        self.uniformBlocks.update('modelMatricesBlock')
+        self.uniformBlocks.update('modelViewMatricesBlock')
+        self.uniformBlocks.update('normalMatricesBlock')
 
         # bind same geometry/material into instances
         opaqueObjects = self.currentRenderList.opaq

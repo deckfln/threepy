@@ -1,4 +1,4 @@
-vec3 transformedNormal = normalMatrix * objectNormal;
+vec3 transformedNormal = normalMatrices[objectID] * objectNormal;
 
 #ifdef FLIP_SIDED
 

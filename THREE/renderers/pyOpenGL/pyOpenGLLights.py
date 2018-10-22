@@ -26,8 +26,8 @@ class _DirectionalLightUniforms(_LightUniforms):
         self.direction = Vector3()
         self.color = Color()
         self.shadow = False
-        self.shadowBias = 0
-        self.shadowRadius = 1
+        self.shadowBias = 0.0
+        self.shadowRadius = 1.0
         self.shadowMapSize = Vector2()
 
 
