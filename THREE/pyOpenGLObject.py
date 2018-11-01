@@ -83,8 +83,9 @@ isOctree = np.uint64(524288)
 isObject3D = np.uint64(18014398509481984)
 isHemisphereLight = np.uint64(72057594037927936)
 
-isViewRenderer = np.uint64(1)
-isShadowMapRenderer = np.uint64(2)
+isViewRenderer = np.uint64(0)
+isShadowMapRenderer = np.uint64(1)
+isCustomRenderer = np.uint64(2)
 
 
 class pyOpenGLObject:

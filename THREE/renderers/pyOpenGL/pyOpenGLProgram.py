@@ -283,21 +283,54 @@ class pyOpenGLProgram:
         program = OpenGL.raw.GL.VERSION.GL_2_0.glCreateProgram()
 
         if material.my_class(isRawShaderMaterial):
+            # compatibility mode for threejs
+            if '#version 330' not in vertexShader:
+                _glversion = '#version 330'
+            else:
+                _glversion = ''
+
             prefixVertex = '\n'.join([
+                _glversion,
                 customDefines,
                 '\n'
-           ])
+            ])
 
             if len(prefixVertex) > 0:
                 prefixVertex += '\n'
 
+            # compatibility mode for threejs
+            if '#version 330' not in fragmentShader:
+                _glversion = '#version 330'
+            else:
+                _glversion = ''
+
             prefixFragment = '\n'.join([
+                _glversion,
                 customExtensions,
                 customDefines,
                 '\n'
             ])
             if len(prefixFragment) > 0:
                 prefixFragment += '\n'
+
+            # compatibility mode with threejs
+            vertexShader = vertexShader.replace("uniform mat4 modelViewMatrix;", """layout (std140) uniform modelViewMatricesBlock
+                {
+                    uniform mat4 modelViewMatrices[1024];
+                };""")
+            vertexShader = vertexShader.replace("uniform mat4 viewMatrix;", "")
+            vertexShader = vertexShader.replace("uniform mat4 projectionMatrix;", """layout (std140) uniform camera
+                {
+                    uniform mat4 projectionMatrix;
+                    uniform mat4 viewMatrix;
+                };
+
+                #ifdef USE_INSTANCES
+                    in int objectID;
+                #else
+                    uniform int objectID;
+                #endif""")
+
         else:
             _prefixVertex = [
                 '#version 330',
@@ -361,9 +394,9 @@ class pyOpenGLProgram:
                 '};',
 
                 '#ifdef USE_INSTANCES',
-                    'in unsigned short objectID;',
+                    'in int objectID;',
                 '#else',
-                    'uniform unsigned int objectID;',
+                    'uniform int objectID;',
                 '#endif',
 
                 'layout (std140) uniform modelMatricesBlock',
@@ -503,6 +536,11 @@ class pyOpenGLProgram:
                 '\n'
             ]
             prefixFragment = '\n'.join([string for string in _prefixFragment if string != ''])
+
+        # compatibility mode with threejs
+        vertexShader = vertexShader.replace("modelViewMatrix", 'modelViewMatrices[objectID]')
+        vertexShader = vertexShader.replace("modelMatrix", 'modelMatrices[objectID]')
+        vertexShader = vertexShader.replace("normalMatrix", 'normalMatrices[objectID]')
 
         vertexShader = parseIncludes(vertexShader)
         vertexShader = replaceLightNums(vertexShader, parameters)

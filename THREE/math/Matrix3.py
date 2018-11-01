@@ -63,11 +63,12 @@ class Matrix3(pyOpenGLObject):
 
     def setFromMatrix4(self, m ):
         me = m.elements
-        te = self.elements
 
-        te[ 0 ] = me[0]; te[ 1 ] = me[4]; te[ 2 ] = me[8]
-        te[ 3 ] = me[1]; te[ 4 ] = me[5]; te[ 5 ] = me[9]
-        te[ 6 ] = me[2]; te[ 7 ] = me[6]; te[ 8 ] = me[10]
+        self.set(
+            me[0], me[4], me[8],
+            me[1], me[5], me[9],
+            me[2], me[6], me[10]
+        )
         return self
 
     def applyToBufferAttribute(self, attribute):

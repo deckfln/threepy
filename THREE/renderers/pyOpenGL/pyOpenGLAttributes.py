@@ -5,7 +5,7 @@
 """
 
 from OpenGL import *
-from OpenGL_accelerate import *
+# from OpenGL_accelerate import *
 from OpenGL.GL import *
 from THREE.pyOpenGLObject import *
 

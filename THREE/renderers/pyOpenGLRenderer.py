@@ -818,15 +818,6 @@ class pyOpenGLRenderer:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        # update the shared uniforms
-
-        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
-        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        self.uniformBlocks.update('camera')
-
-        if self.sortObjects:
-            self.currentRenderList.sort()
-
         # //
         if self._clippingEnabled:
             self._clipping.beginShadows()
@@ -838,7 +829,42 @@ class pyOpenGLRenderer:
         if self._clippingEnabled:
             self._clipping.endShadows()
 
+        # instanciate geometry/materials
+        opaqueObjects = self.currentRenderList.opaque
+        transparentObjects = self.currentRenderList.transparent
+
+        # update shared matrices uniforms with visible objects matrix
+        if len(opaqueObjects) > 0:
+            self._updateObjects(opaqueObjects, scene, camera)
+
+        # // transparent pass (back-to-front order)
+        if len(transparentObjects) > 0:
+            self._updateObjects(transparentObjects, scene, camera)
+
+        # push the positions
+        self.uniformBlocks.update('modelMatricesBlock')
+        self.uniformBlocks.update('modelViewMatricesBlock')
+        self.uniformBlocks.update('normalMatricesBlock')
+
+        # bind same geometry/material into instances
+        opaqueObjects = self.currentRenderList.opaq
+        transparentObjects = self.currentRenderList.transp
+
+        opaque = []
+        transparent = []
+
+        self._instantiateObjects(scene, opaqueObjects, opaque)
+        self._instantiateObjects(scene, transparentObjects, transparent)
+
+        if self.sortObjects:
+            self.currentRenderList.sort()
+
         # //
+        # update the shared uniforms
+
+        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        self.uniformBlocks.update('camera')
 
         self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
         self.uniformBlocks.set_value('directionalLights', self.renderStates.get(scene, camera).lights.state.directional)
@@ -858,84 +884,14 @@ class pyOpenGLRenderer:
 
         # now we get all objects to render
 
-        opaqueObjects = self.currentRenderList.opaque
-        transparentObjects = self.currentRenderList.transparent
-
-        # update shared matrices uniforms with visible objects matrix
-        if len(opaqueObjects) > 0:
-            self._updateObjects(opaqueObjects, scene, camera)
-
-        # // transparent pass (back-to-front order)
-        if len(transparentObjects) > 0:
-            self._updateObjects(transparentObjects, scene, camera)
-
-        self.uniformBlocks.update('modelMatricesBlock')
-        self.uniformBlocks.update('modelViewMatricesBlock')
-        self.uniformBlocks.update('normalMatricesBlock')
-
-        # bind same geometry/material into instances
-        opaqueObjects = self.currentRenderList.opaq
-        transparentObjects = self.currentRenderList.transp
-
-        opaque = []
-
-        for k in opaqueObjects.keys():
-            renderItems = opaqueObjects[k]
-            len_objs = len(renderItems)
-            if len_objs > 1:
-                if k not in scene.instances:
-                    """
-                    create a new instanced object for the geometry/material
-                    """
-                    renderItem = renderItems[0]
-                    geometry = renderItem.geometry
-                    material = renderItem.material
-
-                    # for optimization, do not clone the attributes, but use the existing ones
-                    geometry = THREE.InstancedBufferGeometry().extend(geometry)
-
-                    # and then add the instanced attributes
-                    objectIDs = THREE.InstancedBufferAttribute(Uint16Array(10000), 1, 1).setDynamic(True)
-                    geometry.addAttribute('objectID', objectIDs)
-
-                    mesh = Mesh(geometry, material)
-                    renderItem = RenderItem(None, mesh, geometry, material, None, None, None, None)
-                    renderItem.instance = True
-                    scene.instances[k] = renderItem
-                else:
-                    renderItem = scene.instances[k]
-                    geometry = renderItem.geometry
-                    mesh = renderItem.object
-
-                opaque.append(renderItem)
-
-                attributes = geometry.attributes
-                objectIDs = attributes.objectID
-
-                objectIDs.updateRange.count = objectIDs.count
-
-                array = objectIDs.array
-                i = 0
-                for renderItem in renderItems:
-                    array[i] = renderItem.object.id
-                    i += 1
-
-                geometry.maxInstancedCount = len_objs
-                objectIDs.needsUpdate = True
-
-                self.objects.update(mesh)
-            else:
-                for renderItem in renderItems:
-                    opaque.append(renderItem)
-
         # render scene
         if scene.overrideMaterial:
             overrideMaterial = scene.overrideMaterial
 
-            if len(opaqueObjects) > 0:
-                self._renderObjects(opaqueObjects, scene, camera, overrideMaterial)
-            if len(transparentObjects) > 0:
-                self._renderObjects(transparentObjects, scene, camera, overrideMaterial)
+            if len(opaque) > 0:
+                self._renderObjects(opaque, scene, camera, overrideMaterial)
+            if len(transparent) > 0:
+                self._renderObjects(transparent, scene, camera, overrideMaterial)
 
         else:
             # // opaque pass (front-to-back order)
@@ -943,8 +899,8 @@ class pyOpenGLRenderer:
                 self._renderObjects(opaque, scene, camera)
 
             # // transparent pass (back-to-front order)
-            if len(transparentObjects) > 0:
-                self._renderObjects(self.currentRenderList.transparentObjects, scene, camera)
+            if len(transparent) > 0:
+                self._renderObjects(transparent, scene, camera)
 
         # custom renderers
 
@@ -1294,8 +1250,6 @@ class pyOpenGLRenderer:
         if material.needsUpdate:
             self._initMaterial(material, fog, object, instance)
             material.needsUpdate = False
-            #self.queue.put([material, fog, object])
-            #return None
 
         refreshProgram = False
         refreshMaterial = False
@@ -2011,14 +1965,64 @@ class pyOpenGLRenderer:
         """
         object.modelViewMatrix.updated = object.normalMatrix.updated = False
 
-        if object.matrixWorld.updated:
-            self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
+        # if object.matrixWorld.updated:
+        self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
 
-        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-            object.modelViewMatrix.updated = True
-            object.normalMatrix.updated = True
+        #if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+        object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+        object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+        object.modelViewMatrix.updated = True
+        object.normalMatrix.updated = True
 
-            self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
-            self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+        self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
+        self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+
+    def _instantiateObjects(self, scene, objects, target):
+        for k in objects.keys():
+            renderItems = objects[k]
+            len_objs = len(renderItems)
+            if len_objs > 1:
+                if k not in scene.instances:
+                    """
+                    create a new instanced object for the geometry/material
+                    """
+                    renderItem = renderItems[0]
+                    geometry = renderItem.geometry
+                    material = renderItem.material
+
+                    # for optimization, do not clone the attributes, but use the existing ones
+                    geometry = THREE.InstancedBufferGeometry().extend(geometry)
+
+                    # and then add the instanced attributes
+                    objectIDs = THREE.InstancedBufferAttribute(Uint16Array(10000), 1, 1).setDynamic(True)
+                    geometry.addAttribute('objectID', objectIDs)
+
+                    mesh = Mesh(geometry, material)
+                    renderItem = RenderItem(None, mesh, geometry, material, None, None, None, None)
+                    renderItem.instance = True
+                    scene.instances[k] = renderItem
+                else:
+                    renderItem = scene.instances[k]
+                    geometry = renderItem.geometry
+                    mesh = renderItem.object
+
+                target.append(renderItem)
+
+                attributes = geometry.attributes
+                objectIDs = attributes.objectID
+
+                objectIDs.updateRange.count = objectIDs.count
+
+                array = objectIDs.array
+                i = 0
+                for renderItem in renderItems:
+                    array[i] = renderItem.object.id
+                    i += 1
+
+                geometry.maxInstancedCount = len_objs
+                objectIDs.needsUpdate = True
+
+                self.objects.update(mesh)
+            else:
+                for renderItem in renderItems:
+                    target.append(renderItem)

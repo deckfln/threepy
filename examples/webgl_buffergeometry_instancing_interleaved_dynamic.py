@@ -10,7 +10,6 @@ from THREE.pyOpenGL.pyOpenGL import *
 
 
 vertexShader = """
-    #version 330
     precision highp float;
 
     uniform mat4 modelViewMatrix;
@@ -43,7 +42,6 @@ vertexShader = """
 """
 
 fragmentShader = """
-    #version 330
     precision highp float;
 
     uniform sampler2D map;

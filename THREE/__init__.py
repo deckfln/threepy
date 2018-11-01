@@ -134,6 +134,8 @@ from THREE.loaders.CubeTextureLoader import *
 from THREE.core.Clock import *
 import THREE.ImageUtils as ImageUtils
 import THREE.SceneUtils as SceneUtils
+from THREE.helpers.DirectionalLightHelper import *
+
 
 global ShaderLib
 

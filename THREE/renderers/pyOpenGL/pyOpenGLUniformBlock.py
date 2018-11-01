@@ -81,7 +81,7 @@ Update data in a single unifoms buffer
 """
 
 
-def _updateValue4fm(self, value, offset, buffer):
+def _updateValueMat4(self, value, offset, buffer):
     """
     Update a single uniform or a full array of uniforms
     :param self:
@@ -89,8 +89,20 @@ def _updateValue4fm(self, value, offset, buffer):
     :param buffer:
     :return:
     """
-    if value.updated or not self.uploaded:
-        ctypes.memmove(buffer + int(offset), value.elements.ctypes.data, self.total_size)
+    ctypes.memmove(buffer + int(offset), value.elements.ctypes.data, self.total_size)
+
+
+def _updateValueMat3(self, value, buffer):
+    """
+    Mat3 are stored as 3 rows of vec4 in STD140
+    """
+    start = buffer + int(self.offset)
+
+    ctypes.memmove(start, value.elements.ctypes.data, 12)
+    ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
+    ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
+
+    self.uploaded = True
 
 
 def _updateValueArrayElement(self, value, buffer, element):
@@ -106,19 +118,16 @@ def _updateValueArrayElement(self, value, buffer, element):
     self.uploaded = True
 
 
-def _updateValueMat3Element(self, value, buffer, element):
+def _updateValueMat3ArrayElement(self, value, buffer, element):
     """
-    Update a single uniform in an array of uniforms
-    :param self:
-    :param value:
-    :param buffer:
-    :param element:
-    :return:
+    Mat3 are stored as 3 rows of vec4 in STD140
     """
-    size = 16*4
-    src = value.elements.ctypes.data
-    dst = buffer + int(self.offset) + element * size
-    ctypes.memmove(dst, src, size)
+    start = buffer + int(self.offset + element * self.element_size)
+
+    ctypes.memmove(start, value.elements.ctypes.data, 12)
+    ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
+    ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
+
     self.uploaded = True
 
 
@@ -170,17 +179,17 @@ _glTypesUpload = {
 
 
 _glTypesUpdate = {
+    GL_FLOAT_VEC2: _updateValueArray,
     GL_FLOAT_VEC3: _updateValueArray,
-    GL_FLOAT_MAT3: _updateValue4fm,
-    GL_FLOAT_MAT4: _updateValue4fm,
+    GL_FLOAT_MAT3: _updateValueMat3,
+    GL_FLOAT_MAT4: _updateValueMat4,
     GL_INT: _updateValueInt,
     GL_FLOAT: _updateValueFloat,
-    GL_FLOAT_VEC2: _updateValueArray,
 }
 
 _glTypesUpdateArray = {
     GL_FLOAT_VEC3: _updateValueArrayElement,
-    GL_FLOAT_MAT3: _updateValueArrayElement,
+    GL_FLOAT_MAT3: _updateValueMat3ArrayElement,
     GL_FLOAT_MAT4: _updateValueArrayElement,
     GL_INT: _updateValueArrayElement,
     GL_FLOAT: _updateValueArrayElement,
@@ -253,7 +262,6 @@ class _UniformBufferArrayOfStructs:
 
 class pyOpenGLUniformBlock:
     def __init__(self, program, name, index):
-        self.index = index
         self.name = name
 
         data_size = arrays.GLintArray.zeros((1,))
@@ -312,14 +320,14 @@ class pyOpenGLUniformBlock:
         self.binding_point = -1
         self._buffer = -1
 
-    def bind(self, shader):
+    def bind(self, index, shader):
         global _binding_point
 
         if self.binding_point < 0:
             self.binding_point = _binding_point
             _binding_point += 1
 
-        glUniformBlockBinding(shader, self.index, self.binding_point)
+        glUniformBlockBinding(shader, index, self.binding_point)
 
     def create(self):
         self._buffer = glGenBuffers(1)
@@ -377,7 +385,7 @@ class pyOpenGLUniformBlocks:
 
             if name not in self.uniform_blocks:
                 uniform_block = pyOpenGLUniformBlock(program, name, index)
-                uniform_block.bind(program)
+                uniform_block.bind(index, program)
                 uniform_block.create()
 
                 self.uniform_blocks[name] = uniform_block
@@ -386,7 +394,7 @@ class pyOpenGLUniformBlocks:
                     self.uniforms[uniform.name] = uniform
             else:
                 uniform_block = self.uniform_blocks[name]
-                uniform_block.bind(program)
+                uniform_block.bind(index, program)
 
     def uploaded(self, name):
         if name in self.uniforms:

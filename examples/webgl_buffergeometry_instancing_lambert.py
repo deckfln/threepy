@@ -280,18 +280,6 @@ def init(p: Params):
     })
 
     #
-
-    p.mesh = THREE.Mesh(geometry, material)
-    p.mesh.scale.set(1, 1, 2)
-    p.mesh.castShadow = True
-    p.mesh.receiveShadow = True
-    p.mesh.customDepthMaterial = customDepthMaterial
-    p.mesh.frustumCulled = False
-
-    p.scene.add(p.mesh)
-
-    #
-
     ground = THREE.Mesh(
         THREE.PlaneBufferGeometry(800, 800).rotateX(- math.pi / 2),
         THREE.MeshPhongMaterial({'color': 0x888888})
@@ -299,7 +287,19 @@ def init(p: Params):
     ground.position.set(0, - 40, 0)
     ground.receiveShadow = True
 
+    #
+    p.mesh = THREE.Mesh(geometry, material)
+    p.mesh.scale.set(1, 1, 2)
+    p.mesh.castShadow = True
+    p.mesh.receiveShadow = True
+    p.mesh.customDepthMaterial = customDepthMaterial
+    p.mesh.frustumCulled = False
+
+    #
+
     p.scene.add(ground)
+    p.scene.add(p.mesh)
+
 
 
 def onWindowResize(event, params):

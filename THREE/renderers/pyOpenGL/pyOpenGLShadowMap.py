@@ -105,6 +105,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
         _state.setScissorTest( False )
 
         # // render depth map
+        renderer = self._renderer
 
         for light in lights:
             shadow = light.shadow
@@ -196,8 +197,13 @@ class pyOpenGLShadowMap(pyOpenGLObject):
                 shadowMatrix.multiply( shadowCamera.projectionMatrix )
                 shadowMatrix.multiply( shadowCamera.matrixWorldInverse )
 
-            self._renderer.setRenderTarget( shadowMap )
-            self._renderer.clear()
+            renderer.setRenderTarget( shadowMap )
+            renderer.clear()
+
+            # update the shared uniforms
+            renderer.uniformBlocks.set_value('projectionMatrix', shadowCamera.projectionMatrix)
+            renderer.uniformBlocks.set_value('viewMatrix', shadowCamera.matrixWorldInverse)
+            renderer.uniformBlocks.update('camera')
 
             # // render shadow map for each cube face (if omni-directional) or
             # // run a single pass if not
@@ -219,8 +225,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
                 self._frustum.setFromMatrix( self._projScreenMatrix )
 
                 # // set object matrices & frustum culling
-
-                self.renderObject( scene, camera, shadowCamera, is_PointLight )
+                self.renderObject( scene, camera, shadowCamera, is_PointLight, renderer)
 
         self.needsUpdate = False
 
@@ -307,7 +312,7 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
         return result
 
-    def renderObject(self, object, camera, shadowCamera, is_PointLight ):
+    def renderObject(self, object, camera, shadowCamera, is_PointLight, renderer ):
         if not object.visible:
             return
 
@@ -328,11 +333,22 @@ class pyOpenGLShadowMap(pyOpenGLObject):
 
                         if groupMaterial and groupMaterial.visible:
                             depthMaterial = self.getDepthMaterial( object, groupMaterial, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
-                            self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, group, isShadowMapRenderer)
+                            program = self._renderer._setProgram(camera, None, depthMaterial , object, False)
+                            self._renderer.renderBufferDirect( program, shadowCamera, None, geometry, depthMaterial, object, group, isShadowMapRenderer)
 
                 elif material.visible:
                     depthMaterial = self.getDepthMaterial( object, material, is_PointLight, self._lightPositionWorld, shadowCamera.near, shadowCamera.far )
-                    self._renderer.renderBufferDirect( shadowCamera, None, geometry, depthMaterial, object, None, isShadowMapRenderer)
+                    program = self._renderer._setProgram(camera, None, depthMaterial, object, False)
+
+                    renderer.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
+                    renderer.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
+                    renderer.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+
+                    renderer.uniformBlocks.update('modelMatricesBlock')
+                    renderer.uniformBlocks.update('modelViewMatricesBlock')
+                    renderer.uniformBlocks.update('normalMatricesBlock')
+
+                    self._renderer.renderBufferDirect( program, shadowCamera, None, geometry, depthMaterial, object, None, isShadowMapRenderer)
 
         for child in object.children:
-            self.renderObject( child, camera, shadowCamera, is_PointLight )
+            self.renderObject( child, camera, shadowCamera, is_PointLight, renderer )

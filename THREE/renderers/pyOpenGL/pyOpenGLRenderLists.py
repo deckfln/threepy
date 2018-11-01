@@ -58,7 +58,7 @@ class pyOpenGLRenderList:
         self.opaque = []
         self.opaq = {}
         self.transparent = []
-        self.transp = []
+        self.transp = {}
 
     def init(self):
         self.renderItemsIndex = 0

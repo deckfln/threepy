@@ -10,3 +10,4 @@ TODO    24/05/2018  webgl_geometry_blender          display nothing
 TODO    24/05/2018  webgl_clipping_colors_lookuptable display nothing
 TODO    24/05/2018  webgl_geometry_convex           missing edges
 TODO    21/09/2018  webgl_geometry_hiearchy         slow
+TODO    31/10/2018  DirectionalLightHelper          self.targetLine.scale.z = _v3.length() not honored

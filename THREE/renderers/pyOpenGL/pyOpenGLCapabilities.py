@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 """
-from OpenGL_accelerate import *
+# from OpenGL_accelerate import *
 from OpenGL.GL import *
 from OpenGL.GL.EXT.texture_filter_anisotropic import *
 
