@@ -866,9 +866,8 @@ class pyOpenGLRenderer:
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
         self.uniformBlocks.update('camera')
 
-        self.uniformBlocks.set_value('ambientLightColor', self.renderStates.get(scene, camera).lights.state.ambient)
-        self.uniformBlocks.set_value('directionalLights', self.renderStates.get(scene, camera).lights.state.directional)
-        self.uniformBlocks.update('lights')
+        lights = self.renderStates.get(scene, camera).lights
+        lights.update_uniform_block(self.uniformBlocks)
 
         if self.info.autoReset:
             self.info.reset()

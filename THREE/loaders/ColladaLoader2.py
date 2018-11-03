@@ -4,6 +4,7 @@
  * @author Mugen87 / https:#github.com/Mugen87
  */
 """
+import os
 from xml.dom import minidom
 
 from THREE.objects.SkinnedMesh import *

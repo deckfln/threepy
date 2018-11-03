@@ -28,8 +28,12 @@ def init(params):
     params.scene = THREE.Scene()
     texture = THREE.TextureLoader().load('textures/crate.gif')
 
+    light = THREE.PointLight( 0xffffff )
+    light.position.copy( params.camera.position )
+    params.scene.add( light )
+
     geometry = THREE.BoxBufferGeometry(200, 200, 200)
-    material = THREE.MeshBasicMaterial({'map': texture})
+    material = THREE.MeshLambertMaterial({'map': texture})
 
     params.mesh = THREE.Mesh(geometry, material)
     params.scene.add(params.mesh)

@@ -327,3 +327,13 @@ class pyOpenGLLights:
         self.state.hash.shadowsLength = len(shadows)
 
         return self
+
+    def update_uniform_block(self, uniformBlocks):
+        lights_state = self.state
+        uniformBlocks.set_value('ambientLightColor', lights_state.ambient)
+        uniformBlocks.set_value('directionalLights', lights_state.directional)
+        uniformBlocks.set_value('pointLights', lights_state.point)
+        uniformBlocks.set_value('spotLights', lights_state.spot)
+        uniformBlocks.set_value('rectAreaLights', lights_state.rectArea)
+        uniformBlocks.set_value('hemisphereLights', lights_state.hemi)
+        uniformBlocks.update('lights')

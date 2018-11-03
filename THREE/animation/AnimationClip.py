@@ -5,6 +5,7 @@
  * @author Ben Houston / http:#clara.io/
  * @author David Sarno / http:#lighthaus.us/
 """
+import re
 import THREE._Math as _Math
 from THREE.animation.KeyframeTrack import *
 from THREE.animation.AnimationUtils import *

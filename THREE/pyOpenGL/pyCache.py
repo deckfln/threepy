@@ -7,8 +7,8 @@ import os
 
 
 class pyCache:
-    def __init__(self, file):
-        self.fcached = "cache/%s" % file.replace("/", "-")
+    def __init__(self, cwd, file):
+        self.fcached = cwd+"/cache/%s" % file.replace("/", "-")
         self.file = file
         self.obj = None
 
