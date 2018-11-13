@@ -1,6 +1,10 @@
 """
         <title>three.js webgl - geometry - cube</title>
 """
+import sys, os.path
+mango_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(mango_dir)
+
 import random
 import math
 import sys

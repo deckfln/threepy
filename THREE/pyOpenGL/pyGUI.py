@@ -63,4 +63,5 @@ class pyGUI:
 
     def reset(self):
         self.gui_data.fill(0)
+        self.widgets.clear()
         self.texture.needsUpdate = True

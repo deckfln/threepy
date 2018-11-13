@@ -829,6 +829,27 @@ class pyOpenGLRenderer:
         if self._clippingEnabled:
             self._clipping.endShadows()
 
+        # push the positions
+        self.uniformBlocks.update('modelMatricesBlock')
+        self.uniformBlocks.update('modelViewMatricesBlock')
+        self.uniformBlocks.update('normalMatricesBlock')
+
+        # //
+        # update the shared uniforms
+
+        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        self.uniformBlocks.update('camera')
+
+        lights = self.renderStates.get(scene, camera).lights
+        lights.update_uniform_block(self.uniformBlocks)
+
+        self.setRenderTarget(renderTarget)
+        self.state.enable(GL_MULTISAMPLE)
+
+        # render the background
+        self.background.render(self.currentRenderList, scene, camera, forceClear)
+
         # instanciate geometry/materials
         opaqueObjects = self.currentRenderList.opaque
         transparentObjects = self.currentRenderList.transparent
@@ -841,10 +862,8 @@ class pyOpenGLRenderer:
         if len(transparentObjects) > 0:
             self._updateObjects(transparentObjects, scene, camera)
 
-        # push the positions
-        self.uniformBlocks.update('modelMatricesBlock')
-        self.uniformBlocks.update('modelViewMatricesBlock')
-        self.uniformBlocks.update('normalMatricesBlock')
+        if self.info.autoReset:
+            self.info.reset()
 
         # bind same geometry/material into instances
         opaqueObjects = self.currentRenderList.opaq
@@ -856,32 +875,12 @@ class pyOpenGLRenderer:
         self._instantiateObjects(scene, opaqueObjects, opaque)
         self._instantiateObjects(scene, transparentObjects, transparent)
 
-        if self.sortObjects:
-            self.currentRenderList.sort()
-
-        # //
-        # update the shared uniforms
-
-        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
-        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        self.uniformBlocks.update('camera')
-
-        lights = self.renderStates.get(scene, camera).lights
-        lights.update_uniform_block(self.uniformBlocks)
-
-        if self.info.autoReset:
-            self.info.reset()
-
-        self.setRenderTarget(renderTarget)
-        self.state.enable(GL_MULTISAMPLE)
-
-        # render the background
-        self.background.render(self.currentRenderList, scene, camera, forceClear)
-
         # render explicit instances
         #FIXME self._renderInstances(scene, camera)
 
         # now we get all objects to render
+        if self.sortObjects:
+            self.currentRenderList.sort(opaque, transparent)
 
         # render scene
         if scene.overrideMaterial:

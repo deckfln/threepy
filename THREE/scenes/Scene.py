@@ -47,10 +47,3 @@ class Scene(Object3D):
 
         return data
 
-    def add_instance(self, object):
-        if object and object.isObject3D:
-            self.instances.append(object)
-        else:
-            raise RuntimeError("THREE.Object3D.add: object not an instance of THREE.Object3D.", object)
-
-        return self

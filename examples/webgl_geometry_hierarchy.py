@@ -52,7 +52,6 @@ def init(p):
 
     geometry = THREE.BoxBufferGeometry( 100, 100, 100 )
     material = THREE.MeshNormalMaterial()
-    material = THREE.MeshLambertMaterial({'color': THREE.Color(0.5, 0.3, 0.2)})
 
     p.group = THREE.Group()
 

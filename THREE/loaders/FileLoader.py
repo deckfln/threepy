@@ -31,11 +31,17 @@ class FileLoader:
 
         response = None
         flag = 'r'+self.responseType
-        print("FileLoader: warning utf8")
-        with open(url, flag, encoding='utf-8') as f:
-            response = f.read()
-            if onLoad:
-                onLoad( response )
+        if self.responseType == '':
+            # print("FileLoader: warning utf8")
+            with open(url, flag, encoding='utf-8') as f:
+                response = f.read()
+                if onLoad:
+                    onLoad( response )
+        else:
+            with open(url, flag) as f:
+                response = f.read()
+                if onLoad:
+                    onLoad( response )
 
         self.manager.itemStart( url )
 
