@@ -146,6 +146,7 @@ class pyOpenGLRenderer:
         """
         self.currentRenderList = None
         self.currentRenderState = None
+        self.instancesRenderList = pyOpenGLRenderList()
 
         self._width = 800
         self._height = 600
@@ -876,7 +877,13 @@ class pyOpenGLRenderer:
         self._instantiateObjects(scene, transparentObjects, transparent)
 
         # render explicit instances
-        #FIXME self._renderInstances(scene, camera)
+        if len(scene.customInstances) > 0:
+            self._renderInstances(scene, camera)
+            for render in self.instancesRenderList.opaque:
+                opaque.append(render)
+
+            for render in self.instancesRenderList.transparent:
+                transparent.append(render)
 
         # now we get all objects to render
         if self.sortObjects:
@@ -1912,7 +1919,9 @@ class pyOpenGLRenderer:
         """
         global _vector3
 
-        for instance in scene.instances:
+        instancesRenderList = self.instancesRenderList
+        instancesRenderList.init()
+        for instance in scene.customInstances:
             if instance.geometry.maxInstancedCount > 0:
                 geometry = self.objects.update(instance)
                 material = instance.material
@@ -1924,10 +1933,19 @@ class pyOpenGLRenderer:
                         groupMaterial = material[group.materialIndex]
 
                         if groupMaterial and groupMaterial.visible:
-                            self.currentRenderList.push(instance, geometry, groupMaterial, _vector3.z, group)
+                            instancesRenderList.push(instance, geometry, groupMaterial, _vector3.z, group)
 
                 elif material.visible:
-                    self.currentRenderList.push(instance, geometry, material, _vector3.np[2], None)
+                    instancesRenderList.push(instance, geometry, material, _vector3.np[2], None)
+
+        opaqueObjects = instancesRenderList.opaque
+        transparentObjects = instancesRenderList.transparent
+
+        if len(opaqueObjects) > 0:
+            self._updateObjects(opaqueObjects, scene, camera)
+
+        if len(transparentObjects) > 0:
+            self._updateObjects(transparentObjects, scene, camera)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)

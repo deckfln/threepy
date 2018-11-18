@@ -19,6 +19,7 @@ class Scene(Object3D):
         self.fog = None
         self.overrideMaterial = None
         self.instances = {}
+        self.customInstances = []
 
         self.autoUpdate = True      # // checked by the renderer
 
