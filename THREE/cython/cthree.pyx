@@ -473,3 +473,23 @@ cpdef cSphere_intersectsSphere(list planes, sphere ):
     sphere.cache = -1
     return True
 
+cpdef cUpdateValueArrayElement(long long buffer, int offset, long long element, long long element_size, long long data, long long size):
+    """
+    Update a single uniform in an array of uniforms
+    :param self:
+    :param value:
+    :param buffer:
+    :param element:
+    :return:
+    """
+    memcpy(<void *>(buffer + offset + element * element_size), <void *>data, size)
+
+cpdef cUpdateValueMat3ArrayElement(long long buffer, int offset, long long element, long long element_size, long long data, long long size):
+    """
+    Mat3 are stored as 3 rows of vec4 in STD140
+    """
+    cdef long long start = buffer + offset + element * element_size
+
+    memcpy(<void *>start, <void *>data, 12)
+    memcpy(<void *>(start + 16), <void *>(data + 12), 12)
+    memcpy(<void *>(start + 32), <void *>(data + 24), 12)

@@ -10,6 +10,10 @@ import numpy as np
 from OpenGL.GL import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, string_at, memmove
 
+cython=True
+from cthree import cUpdateValueArrayElement, cUpdateValueMat3ArrayElement
+
+
 _binding_point = 0
 
 _glTypes = {
@@ -112,18 +116,24 @@ def _updateValueArrayElement(self, value, buffer, element):
     :param element:
     :return:
     """
-    ctypes.memmove(buffer + int(self.offset + element * self.element_size), value.elements.ctypes.data, self.size)
+    if cython:
+        cUpdateValueArrayElement(buffer, self.offset, element, self.element_size, value.elements.ctypes.data, self.size)
+    else:
+        ctypes.memmove(buffer + int(self.offset + element * self.element_size), value.elements.ctypes.data, self.size)
 
 
 def _updateValueMat3ArrayElement(self, value, buffer, element):
     """
     Mat3 are stored as 3 rows of vec4 in STD140
     """
-    start = buffer + int(self.offset + element * self.element_size)
+    if cython:
+        cUpdateValueMat3ArrayElement(buffer, self.offset, element, self.element_size, value.elements.ctypes.data, self.size)
+    else:
+        start = buffer + int(self.offset + element * self.element_size)
 
-    ctypes.memmove(start, value.elements.ctypes.data, 12)
-    ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
-    ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
+        ctypes.memmove(start, value.elements.ctypes.data, 12)
+        ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
+        ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
 
 
 _int16 = np.zeros(1, np.int16)
