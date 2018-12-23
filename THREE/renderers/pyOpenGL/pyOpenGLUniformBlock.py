@@ -102,8 +102,6 @@ def _updateValueMat3(self, value, buffer):
     ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
     ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
 
-    self.uploaded = True
-
 
 def _updateValueArrayElement(self, value, buffer, element):
     """
@@ -115,7 +113,6 @@ def _updateValueArrayElement(self, value, buffer, element):
     :return:
     """
     ctypes.memmove(buffer + int(self.offset + element * self.element_size), value.elements.ctypes.data, self.size)
-    self.uploaded = True
 
 
 def _updateValueMat3ArrayElement(self, value, buffer, element):
@@ -127,8 +124,6 @@ def _updateValueMat3ArrayElement(self, value, buffer, element):
     ctypes.memmove(start, value.elements.ctypes.data, 12)
     ctypes.memmove(start + 16, value.elements.ctypes.data + 12, 12)
     ctypes.memmove(start + 32, value.elements.ctypes.data + 24, 12)
-
-    self.uploaded = True
 
 
 _int16 = np.zeros(1, np.int16)
@@ -204,7 +199,7 @@ class pyOpenGLUniformBuffer:
         self.offset = offset
         self.total_size = total_size
         self.size = _glTypes[gltype]
-        self.element_size = total_size/elements
+        self.element_size = int(total_size/elements)
         self.uploaded = False
         self.value = None
         self.values = {}
@@ -324,7 +319,7 @@ class pyOpenGLUniformBlock:
                 self.uniforms[array].add(field, index, gltype, offset)
 
             else:
-                self.uniforms[uname] = pyOpenGLUniformBuffer(uname, gltype, i, offset, data_size, elements, self)
+                self.uniforms[uname] = pyOpenGLUniformBuffer(uname, gltype, i, offset, data_size[0], elements, self)
 
         self.binding_point = -1
         self._buffer = -1
