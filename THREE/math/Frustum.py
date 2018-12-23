@@ -8,9 +8,10 @@
 from THREE.math.Plane import *
 from THREE.objects.BoundingSphere import *
 
-cython = True
+cython = False
 
 _p = Vector3()
+_sphere = BoundingSphere()
 
 
 class Frustum:
@@ -23,7 +24,6 @@ class Frustum:
             p4 if p4 else Plane(),
             p5 if p5 else Plane(),
         ]
-        self._sphere = BoundingSphere()
         self.updated = False        # was the frustum updated since the last frame
         self._cache = {}            # if the frusturm was not updated and the object were not updated,
                                     # pick the intersection from the cache
@@ -84,10 +84,10 @@ class Frustum:
             if geometry.boundingSphere is None:
                 geometry.computeBoundingSphere()
 
-            self._sphere.copy( geometry.boundingSphere )
-            self._sphere.applyMatrix4( object.matrixWorld )
+            _sphere.copy( geometry.boundingSphere )
+            _sphere.applyMatrix4( object.matrixWorld )
 
-            self._cache[object.id] = self.intersectsSphere( self._sphere)
+            self._cache[object.id] = self.intersectsSphere( _sphere)
         return self._cache[object.id]
 
     def intersectsOctree(self, octree):
@@ -96,8 +96,8 @@ class Frustum:
         #   or the object moved
         #   or the object is not yet in the cache
         if self.updated or octree.matrixWorld.updated or octree.id not in self._cache:
-            self._sphere.copy(octree.boundingSphere)
-            self._cache[octree.id] = self.intersectsSphereOctree(self._sphere)
+            _sphere.copy(octree.boundingSphere)
+            self._cache[octree.id] = self.intersectsSphereOctree(_sphere)
 
         return self._cache[octree.id]
 
@@ -124,7 +124,7 @@ class Frustum:
         return 1
 
     def intersectsSprite(self, sprite):
-        sphere = self._sphere
+        sphere = _sphere
 
         sphere.center.set( 0, 0, 0 )
         sphere.radius = 0.7071067811865476

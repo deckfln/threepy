@@ -8,12 +8,12 @@ import os
 
 class pyCache:
     def __init__(self, cwd, file):
-        self.fcached = cwd+"/cache/%s" % file.replace("/", "-")
+        self.fcached = cwd+"/cache/%s" % file.replace("/", "-").replace(":", "-")
         self.file = file
         self.obj = None
 
-        if not os.path.exists("cache"):
-            os.mkdir("cache")
+        if not os.path.exists(cwd + "/cache"):
+            os.mkdir(cwd + "/cache")
 
     def load(self, force=False):
         # if cached file doesn't exist

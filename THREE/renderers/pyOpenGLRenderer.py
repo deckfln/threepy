@@ -9,8 +9,8 @@
 """
 import sys
 import time
-import pygame
-from pygame.locals import *
+# import pygame
+# from pygame.locals import *
 from ctypes import c_void_p
 from threading import Thread
 import queue
@@ -1997,6 +1997,7 @@ class pyOpenGLRenderer:
         for k in objects.keys():
             renderItems = objects[k]
             len_objs = len(renderItems)
+            #FIXME add back instanciation
             if len_objs > 1:
                 if k not in scene.instances:
                     """

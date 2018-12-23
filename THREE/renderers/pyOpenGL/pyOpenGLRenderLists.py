@@ -6,7 +6,12 @@
 
 
 def _painter(a):
-    return a.renderOrder * 10000 + ( a.program.id if a.program else 0) * 1000 + a.material.id * 100 + a.z * 10 + a.id
+    ro = (0 if a.renderOrder is None else a.renderOrder) * 10000
+    pi = ( a.program.id if a.program else 0) * 1000
+    mi = a.material.id * 100
+    az = (0 if a.z is None else a.z) * 10
+    ai = (0 if a.id is None else a.id)
+    return ro + pi + mi + az + ai
 
 
 def _painterSortStable( a, b ):

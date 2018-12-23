@@ -18,6 +18,13 @@ def _onLoad(url, texture):
     texture.needsUpdate = True
 
 
+_ImageFormat = {
+    "RGBA": RGBAFormat,
+    "RGB": RGBFormat,
+    "L": LuminanceFormat
+}
+
+
 class TextureLoader:
     def __init__(self, manager=None):
         global DefaultLoadingManager
@@ -32,7 +39,7 @@ class TextureLoader:
         texture.unpackAlignment = 1
         loader.setTarget(texture)
         texture.image = loader.load(url, _onLoad, onProgress, onError)
-        texture.format = RGBFormat if texture.image.mode == 'RGB' else RGBAFormat
+        texture.format = _ImageFormat[texture.image.mode]
         texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
         texture.name = url
 

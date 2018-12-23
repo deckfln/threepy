@@ -13,7 +13,10 @@ from THREE.Constants import *
 class pyOpenGLExtensions():
     def __init__(self):
         self.extensions = {}
-        self.s = (glGetString(GL_EXTENSIONS)).decode("utf-8")
+        self.s = []
+        n = glGetIntegerv(GL_NUM_EXTENSIONS)
+        for i in range(n):
+            self.s.append(glGetStringi(GL_EXTENSIONS, i))
 
     def get(self, name):
         if name in self.extensions: 

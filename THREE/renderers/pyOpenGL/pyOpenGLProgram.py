@@ -318,6 +318,10 @@ class pyOpenGLProgram:
                 {
                     uniform mat4 modelViewMatrices[1024];
                 };""")
+            vertexShader = vertexShader.replace("uniform mat4 modelMatrix;", """layout (std140) uniform modelMatricesBlock
+                {
+                    uniform mat4 modelMatrices[1024];
+                };""")
             vertexShader = vertexShader.replace("uniform mat4 viewMatrix;", "")
             vertexShader = vertexShader.replace("uniform mat4 projectionMatrix;", """layout (std140) uniform camera
                 {

@@ -1,3 +1,7 @@
+DONE:05/11/2018/23/12/2018  pygame					        move away from pygame and use glfw
+
+---
+
 TODO    13/01/2018  wegl_custom_attributes          crashing
 TODO    13/01/2018  webgl_geometry_dynamic          display nothing
 TODO    13/01/2018  webgl_camera                    first camera shows nothing
@@ -11,5 +15,3 @@ TODO    24/05/2018  webgl_clipping_colors_lookuptable display nothing
 TODO    24/05/2018  webgl_geometry_convex           missing edges
 TODO    21/09/2018  webgl_geometry_hiearchy         slow
 TODO    31/10/2018  DirectionalLightHelper          self.targetLine.scale.z = _v3.length() not honored
-TODO    05/11/2018  pygame					        move away from pygame and use glfw
-

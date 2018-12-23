@@ -106,7 +106,7 @@ class Texture(pyOpenGLObject):
         self.name = source.name
 
         self.image = source.image
-        self.mipmaps = source.mipmaps[:]
+        self.mipmaps = source.mipmaps[:] if source.mipmaps is not None else None
 
         self.mapping = source.mapping
 
