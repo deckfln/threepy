@@ -43,7 +43,6 @@ class Matrix4(pyOpenGLObject):
             ], dtype=np.float32)
         self.matrix = self.elements.reshape(4, 4)
 
-        self.old = np.zeros(16, dtype=np.float32)
         self.updated = True
 
     def is_updated(self):
@@ -51,13 +50,9 @@ class Matrix4(pyOpenGLObject):
         Check if the matrix got updated and set the flag
         :return:
         """
-        if not np.array_equal(self.elements, self.old):
-            self.updated = True
-            np.copyto(self.old, self.elements)
-        else:
-            self.updated = False
-
-        return self.updated
+        u = self.updated
+        self.updated = False
+        return u
 
     def set(self, n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44):
         te = self.elements
@@ -67,6 +62,7 @@ class Matrix4(pyOpenGLObject):
         te[2] = n31; te[6] = n32; te[10] = n33; te[14] = n34
         te[3] = n41; te[7] = n42; te[11] = n43; te[15] = n44
 
+        self.updated = True
         return self
 
     def get(self):
@@ -78,13 +74,13 @@ class Matrix4(pyOpenGLObject):
        ]
     
     def identity(self):
-            self.set(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-           )
-            return self
+        self.set(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        )
+        return self
 
     def clone(self):
         return type(self)().fromArray(self.elements)
@@ -100,6 +96,7 @@ class Matrix4(pyOpenGLObject):
         te[8] = me[8]; te[9] = me[9]; te[10] = me[10]; te[11] = me[11]
         te[12] = me[12]; te[13] = me[13]; te[14] = me[14]; te[15] = me[15]
         """
+        self.updated = True
         return self
 
     def copyPosition(self, m):
@@ -110,6 +107,7 @@ class Matrix4(pyOpenGLObject):
         te[13] = me[13]
         te[14] = me[14]
 
+        self.updated = True
         return self
 
     def extractBasis(self, xAxis, yAxis, zAxis):
@@ -117,6 +115,8 @@ class Matrix4(pyOpenGLObject):
         yAxis.setFromMatrixColumn(self, 1)
         zAxis.setFromMatrixColumn(self, 2)
 
+        #FIXME : is this function chaning the value ?
+        self.updated = True
         return self
 
     def makeBasis(self, xAxis, yAxis, zAxis):
@@ -125,7 +125,7 @@ class Matrix4(pyOpenGLObject):
             xAxis.y, yAxis.y, zAxis.y, 0,
             xAxis.z, yAxis.z, zAxis.z, 0,
             0,       0,       0,       1
-       )
+        )
         return self
 
     def extractRotation(self, m):
@@ -157,6 +157,7 @@ class Matrix4(pyOpenGLObject):
         te[14] = 0
         te[15] = 1
 
+        self.updated = True
         return self
 
     def makeRotationFromEuler(self, euler):
@@ -286,6 +287,7 @@ class Matrix4(pyOpenGLObject):
         te[14] = 0
         te[15] = 1
 
+        self.updated = True
         return self
 
     def makeRotationFromQuaternion(self, q):
@@ -300,9 +302,9 @@ class Matrix4(pyOpenGLObject):
         else:
             self._makeRotationFromQuaternion(q)
 
+        self.updated = True
         return self
 
-    #TODO backport to cython
     def _makeRotationFromQuaternion(self, q):
         zero = Vector3(0, 0, 0)
         one = Vector3(1, 1, 1)
@@ -344,6 +346,7 @@ class Matrix4(pyOpenGLObject):
         te[1] = x.np[1]; te[5] = y.np[1]; te[9] = z.np[1]
         te[2] = x.np[2]; te[6] = y.np[2]; te[10] = z.np[2]
 
+        self.updated = True
         return self
 
     def multiply(self, m, n=None):
@@ -357,6 +360,7 @@ class Matrix4(pyOpenGLObject):
         return self.multiplyMatrices(m, self)
 
     def multiplyMatrices(self, a, b):
+        self.updated = True
         cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
 
     def pmultiplyMatrices(self, a, b):
@@ -409,6 +413,7 @@ class Matrix4(pyOpenGLObject):
                 print("not the same")
         """
 
+        self.updated = True
         return self
 
     def multiplyScalar(self, s):
@@ -433,6 +438,7 @@ class Matrix4(pyOpenGLObject):
         te[11] *= s
         te[15] *= s
         """
+        self.updated = True
         return self
 
     def applyToBufferAttribute(self, attribute):
@@ -507,10 +513,12 @@ class Matrix4(pyOpenGLObject):
         tmp = te[7]; te[7] = te[13]; te[13] = tmp
         tmp = te[11]; te[11] = te[14]; te[14] = tmp
 
+        self.updated = True
         return self
 
     def setPosition(self, v):
         cMatrix4_setPosition(self.elements, v.np)
+        self.updated = True
         return self
 
     def _setPosition(self, v):
@@ -520,6 +528,7 @@ class Matrix4(pyOpenGLObject):
         te[13] = v.np[1]
         te[14] = v.np[2]
 
+        self.updated = True
         return self
 
     def getInverse(self, m, throwOnDegenerate=False):
@@ -566,10 +575,12 @@ class Matrix4(pyOpenGLObject):
         te[15] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33)
 
         self.elements /= det
+        self.updated = True
         return self
 
     def scale(self, v):
         cMatrix4_scale(self.elements, v.np)
+        self.updated = True
         return self
 
     def _scale(self, v):
@@ -580,6 +591,7 @@ class Matrix4(pyOpenGLObject):
         _temp[8] = _temp[9] = _temp[10] = _temp[11] = v.np[2]
 
         te *= _temp
+        self.updated = True
         return self
 
     def getMaxScaleOnAxis(self):
@@ -603,7 +615,7 @@ class Matrix4(pyOpenGLObject):
             0, 1, 0, y,
             0, 0, 1, z,
             0, 0, 0, 1
-       )
+        )
         return self
 
     def makeRotationX(self, theta):
@@ -614,7 +626,7 @@ class Matrix4(pyOpenGLObject):
             0, c, - s, 0,
             0, s,  c, 0,
             0, 0,  0, 1
-       )
+        )
         return self
 
     def makeRotationY(self, theta):
@@ -625,7 +637,7 @@ class Matrix4(pyOpenGLObject):
              0, 1, 0, 0,
             - s, 0, c, 0,
              0, 0, 0, 1
-       )
+        )
         return self
 
     def makeRotationZ(self, theta):
@@ -636,7 +648,7 @@ class Matrix4(pyOpenGLObject):
             s,  c, 0, 0,
             0,  0, 1, 0,
             0,  0, 0, 1
-       )
+        )
         return self
 
     def makeRotationAxis(self, axis, angle):
@@ -652,7 +664,7 @@ class Matrix4(pyOpenGLObject):
             tx * y + s * z, ty * y + c, ty * z - s * x, 0,
             tx * z - s * y, ty * z + s * x, t * z * z + c, 0,
             0, 0, 0, 1
-       )
+        )
         return self
 
     def makeScale(self, x, y, z):
@@ -661,7 +673,7 @@ class Matrix4(pyOpenGLObject):
             0, y, 0, 0,
             0, 0, z, 0,
             0, 0, 0, 1
-       )
+        )
         return self
 
     def makeShear(self, x, y, z):
@@ -670,7 +682,7 @@ class Matrix4(pyOpenGLObject):
             x, 1, z, 0,
             x, y, 1, 0,
             0, 0, 0, 1
-       )
+        )
         return self
 
     def compose(self, position, quaternion, scale):
@@ -684,9 +696,9 @@ class Matrix4(pyOpenGLObject):
         else:
             self._compose(position, quaternion, scale)
 
+        self.updated = True
         return self
 
-    #TODO backport to cython
     def _compose(self, position, quaternion, scale):
         te = self.elements
 
@@ -796,6 +808,7 @@ class Matrix4(pyOpenGLObject):
         te[2] = 0;    te[6] = 0;    te[10] = c;    te[14] = d
         te[3] = 0;    te[7] = 0;    te[11] = - 1;    te[15] = 0
 
+        self.updated = True
         return self
 
     def makeOrthographic(self, left, right, top, bottom, near, far):
@@ -813,6 +826,7 @@ class Matrix4(pyOpenGLObject):
         te[2] = 0;    te[6] = 0;    te[10] = - 2 * p;    te[14] = - z
         te[3] = 0;    te[7] = 0;    te[11] = 0;    te[15] = 1
 
+        self.updated = True
         return self
 
     def equals(self, matrix):
@@ -827,6 +841,7 @@ class Matrix4(pyOpenGLObject):
 
     def fromArray(self, array, offset=0):
         self.elements[0:16] = array[offset:offset+16]
+        self.updated = True
         return self
 
     def toArray(self, array=None, offset=0):
