@@ -336,4 +336,4 @@ class pyOpenGLLights:
         uniformBlocks.set_value('spotLights', lights_state.spot)
         uniformBlocks.set_value('rectAreaLights', lights_state.rectArea)
         uniformBlocks.set_value('hemisphereLights', lights_state.hemi)
-        uniformBlocks.update('lights')
+        # uniformBlocks.update('lights')

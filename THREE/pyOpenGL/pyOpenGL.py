@@ -113,12 +113,12 @@ class pyOpenGL(EventManager):
             # wheel up
             self.dispatchEvent({'type': 'wheel',
                                 'deltaMode': -1,
-                                'deltaY': -100}, self.params)
+                                'deltaY': 100}, self.params)
         else:
             # wheel down
             self.dispatchEvent({'type': 'wheel',
                                 'deltaMode': -1,
-                                'deltaY': 100}, self.params)
+                                'deltaY': -100}, self.params)
 
     def onMouseMove(self, win, xoffset, yoffset):
         self.x = xoffset
@@ -132,10 +132,6 @@ class pyOpenGL(EventManager):
     def onKeyboard(self, win, key, scancode, action, mods):
         #print('keyboard: ', key, scancode, action, mods)
         if action == glfw.PRESS:
-            # ESC to quit
-            if key == glfw.KEY_ESCAPE:
-                self.run = False
-
             self.dispatchEvent({'type': 'keydown', 'keyCode': key}, self.params)
         elif action == glfw.RELEASE:
             self.dispatchEvent({'type': 'keyup', 'keyCode': key}, self.params)

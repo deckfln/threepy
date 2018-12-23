@@ -791,6 +791,9 @@ class pyOpenGLRenderer:
             self.textures.dispose(texture)
         THREE.Global.dispose_properties_queue.clear()
 
+        # map the uniform blocks
+        self.uniformBlocks.lock()
+
         # // update scene graph
 
         if scene.autoUpdate:
@@ -831,16 +834,16 @@ class pyOpenGLRenderer:
             self._clipping.endShadows()
 
         # push the positions
-        self.uniformBlocks.update('modelMatricesBlock')
-        self.uniformBlocks.update('modelViewMatricesBlock')
-        self.uniformBlocks.update('normalMatricesBlock')
+        #self.uniformBlocks.update('modelMatricesBlock')
+        #self.uniformBlocks.update('modelViewMatricesBlock')
+        #self.uniformBlocks.update('normalMatricesBlock')
 
         # //
         # update the shared uniforms
 
         self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        self.uniformBlocks.update('camera')
+        #self.uniformBlocks.update('camera')
 
         lights = self.renderStates.get(scene, camera).lights
         lights.update_uniform_block(self.uniformBlocks)
@@ -875,6 +878,9 @@ class pyOpenGLRenderer:
 
         self._instantiateObjects(scene, opaqueObjects, opaque)
         self._instantiateObjects(scene, transparentObjects, transparent)
+
+        # unlock all uniform blocks
+        self.uniformBlocks.unlock()
 
         # render explicit instances
         if len(scene.customInstances) > 0:
