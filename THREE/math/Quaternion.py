@@ -14,6 +14,7 @@ from THREE.cython.cthree import *
 cython = True
 _v1 = Vector3()
 
+
 class Quaternion:
     def __init__(self, x=0, y=0, z=0, w=1 ):
         self._x = x
@@ -21,24 +22,38 @@ class Quaternion:
         self._z = z
         self._w = w
         self.onChangeCallback = None
+        self.updated = True
+
+    def is_updated(self):
+        """
+        Check if the matrix got updated and set the flag
+        :return:
+        """
+        u = self.updated
+        self.updated = False
+        return u
 
     def setX(self, x):
         self._x = x
+        self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setY(self, y):
         self._y = y
+        self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setZ(self, z):
         self._z = z
+        self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setW(self, w):
-        self._order = w
+        self._w = w
+        self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
@@ -63,7 +78,7 @@ class Quaternion:
         if qm is None:
             return self._slerp(qa, qb)
         else:
-            return qm.copy( qa ).slerp( qb, t )
+            return qm.copy(qa).slerp(qb, t)
 
     def slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
         if cython:
@@ -74,15 +89,15 @@ class Quaternion:
     def _pslerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
         # // fuzz-free, array-based Quaternion SLERP operation
 
-        x0 = src0[ srcOffset0 + 0 ]
-        y0 = src0[ srcOffset0 + 1 ]
-        z0 = src0[ srcOffset0 + 2 ]
-        w0 = src0[ srcOffset0 + 3 ]
+        x0 = src0[srcOffset0 + 0]
+        y0 = src0[srcOffset0 + 1]
+        z0 = src0[srcOffset0 + 2]
+        w0 = src0[srcOffset0 + 3]
 
-        x1 = src1[ srcOffset1 + 0 ]
-        y1 = src1[ srcOffset1 + 1 ]
-        z1 = src1[ srcOffset1 + 2 ]
-        w1 = src1[ srcOffset1 + 3 ]
+        x1 = src1[srcOffset1 + 0]
+        y1 = src1[srcOffset1 + 1]
+        z1 = src1[srcOffset1 + 2]
+        w1 = src1[srcOffset1 + 3]
 
         if w0 != w1 or x0 != x1 or y0 != y1 or z0 != z1:
             s = 1 - t
@@ -94,11 +109,11 @@ class Quaternion:
 
             # // Skip the Slerp for tiny steps to avoid numeric problems:
             if sqrSin > Number.EPSILON:
-                sin = math.sqrt( sqrSin )
-                len = math.atan2( sin, cos * dir )
+                sin = math.sqrt(sqrSin)
+                len = math.atan2(sin, cos * dir)
 
-                s = math.sin( s * len ) / sin
-                t = math.sin( t * len ) / sin
+                s = math.sin(s * len) / sin
+                t = math.sin(t * len) / sin
 
             tDir = t * dir
 
@@ -109,19 +124,19 @@ class Quaternion:
 
             # // Normalize in case we just did a lerp:
             if s == 1 - t:
-                f = 1 / math.sqrt( x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0 )
+                f = 1 / math.sqrt(x0 * x0 + y0 * y0 + z0 * z0 + w0 * w0)
                 
                 x0 *= f
                 y0 *= f
                 z0 *= f
                 w0 *= f
 
-        dst[ dstOffset ] = x0
-        dst[ dstOffset + 1 ] = y0
-        dst[ dstOffset + 2 ] = z0
-        dst[ dstOffset + 3 ] = w0
+        dst[dstOffset] = x0
+        dst[dstOffset + 1] = y0
+        dst[dstOffset + 2] = z0
+        dst[dstOffset + 3] = w0
 
-    def set(self, x, y, z, w ):
+    def set(self, x, y, z, w):
         self._x = x
         self._y = y
         self._z = z
@@ -130,12 +145,13 @@ class Quaternion:
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
     def clone(self):
-        return type(self)( self._x, self._y, self._z, self._w )
+        return type(self)(self._x, self._y, self._z, self._w)
 
-    def copy(self, quaternion ):
+    def copy(self, quaternion):
         self._x = quaternion._x
         self._y = quaternion._y
         self._z = quaternion._z
@@ -144,11 +160,12 @@ class Quaternion:
         if self.onChangeCallback:
             self.onChangeCallback(self)
         
+        self.updated = True
         return self
 
-    def setFromEuler(self, euler, update=False ):
-        if not ( euler and euler.isEuler):
-            print( 'THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.' )
+    def setFromEuler(self, euler, update=False):
+        if not (euler and euler.isEuler):
+            print('THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.')
 
         x = euler._x; y = euler._y; z = euler._z; order = euler.order
 
@@ -159,13 +176,13 @@ class Quaternion:
         cos = math.cos
         sin = math.sin
 
-        c1 = cos( x / 2 )
-        c2 = cos( y / 2 )
-        c3 = cos( z / 2 )
+        c1 = cos(x / 2)
+        c2 = cos(y / 2)
+        c3 = cos(z / 2)
 
-        s1 = sin( x / 2 )
-        s2 = sin( y / 2 )
-        s3 = sin( z / 2 )
+        s1 = sin(x / 2)
+        s2 = sin(y / 2)
+        s3 = sin(z / 2)
 
         if order == 'XYZ':
             self._x = s1 * c2 * c3 + c1 * s2 * s3
@@ -201,61 +218,64 @@ class Quaternion:
         if update:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
-    def setFromAxisAngle(self, axis, angle ):
+    def setFromAxisAngle(self, axis, angle):
         # // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
         # // assumes axis is normalized
-        halfAngle = angle / 2; s = math.sin( halfAngle )
+        halfAngle = angle / 2; s = math.sin(halfAngle)
 
         self._x = axis.x * s
         self._y = axis.y * s
         self._z = axis.z * s
-        self._w = math.cos( halfAngle )
+        self._w = math.cos(halfAngle)
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
     def setFromRotationMatrix(self, m ):
         # // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
         # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
         te = m.elements
-        m11 = te[ 0 ]; m12 = te[ 4 ]; m13 = te[ 8 ]
-        m21 = te[ 1 ]; m22 = te[ 5 ]; m23 = te[ 9 ]
-        m31 = te[ 2 ]; m32 = te[ 6 ]; m33 = te[ 10 ]
+        m11 = te[0]; m12 = te[4]; m13 = te[8]
+        m21 = te[1]; m22 = te[5]; m23 = te[9]
+        m31 = te[2]; m32 = te[6]; m33 = te[10]
 
         trace = m11 + m22 + m33
 
         if trace > 0:
-            s = 0.5 / math.sqrt( trace + 1.0 )
+            s = 0.5 / math.sqrt(trace + 1.0)
             self._w = 0.25 / s
-            self._x = ( m32 - m23 ) * s
-            self._y = ( m13 - m31 ) * s
-            self._z = ( m21 - m12 ) * s
+            self._x = (m32 - m23) * s
+            self._y = (m13 - m31) * s
+            self._z = (m21 - m12) * s
         elif m11 > m22 and m11 > m33:
-            s = 2.0 * math.sqrt( 1.0 + m11 - m22 - m33 )
-            self._w = ( m32 - m23 ) / s
+            s = 2.0 * math.sqrt(1.0 + m11 - m22 - m33)
+            self._w = (m32 - m23) / s
             self._x = 0.25 * s
-            self._y = ( m12 + m21 ) / s
-            self._z = ( m13 + m31 ) / s
+            self._y = (m12 + m21) / s
+            self._z = (m13 + m31) / s
         elif m22 > m33:
-            s = 2.0 * math.sqrt( 1.0 + m22 - m11 - m33 )
-            self._w = ( m13 - m31 ) / s
-            self._x = ( m12 + m21 ) / s
+            s = 2.0 * math.sqrt(1.0 + m22 - m11 - m33)
+            self._w = (m13 - m31) / s
+            self._x = (m12 + m21) / s
             self._y = 0.25 * s
-            self._z = ( m23 + m32 ) / s
+            self._z = (m23 + m32) / s
         else:
-            s = 2.0 * math.sqrt( 1.0 + m33 - m11 - m22 )
-            self._w = ( m21 - m12 ) / s
-            self._x = ( m13 + m31 ) / s
-            self._y = ( m23 + m32 ) / s
+            s = 2.0 * math.sqrt(1.0 + m33 - m11 - m22)
+            self._w = (m21 - m12) / s
+            self._x = (m13 + m31) / s
+            self._y = (m23 + m32) / s
             self._z = 0.25 * s
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
     def setFromUnitVectors(self, vFrom, vTo):
@@ -263,16 +283,16 @@ class Quaternion:
 
         # // assumes direction vectors vFrom and vTo are normalized
         EPS = 0.000001
-        r = vFrom.dot( vTo ) + 1
+        r = vFrom.dot(vTo) + 1
 
         if r < EPS:
             r = 0
-            if abs( vFrom.x ) > abs( vFrom.z ):
-                _v1.set( - vFrom.y, vFrom.x, 0 )
+            if abs(vFrom.x) > abs(vFrom.z):
+                _v1.set(- vFrom.y, vFrom.x, 0)
             else:
-                _v1.set( 0, - vFrom.z, vFrom.y )
+                _v1.set(0, - vFrom.z, vFrom.y)
         else:
-            _v1.crossVectors( vFrom, vTo )
+            _v1.crossVectors(vFrom, vTo)
 
         self._x = _v1.x
         self._y = _v1.y
@@ -308,6 +328,7 @@ class Quaternion:
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
     def dot(self, v ):
@@ -317,7 +338,7 @@ class Quaternion:
         return self._x * self._x + self._y * self._y + self._z * self._z + self._w * self._w
 
     def length(self):
-        return math.sqrt( self._x * self._x + self._y * self._y + self._z * self._z + self._w * self._w )
+        return math.sqrt(self._x * self._x + self._y * self._y + self._z * self._z + self._w * self._w)
 
     def normalize(self):
         l = self.length()
@@ -337,19 +358,20 @@ class Quaternion:
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
-    def multiply(self, q, p=None ):
+    def multiply(self, q, p=None):
         if p is not None:
-            print( 'THREE.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.' )
-            return self.multiplyQuaternions( q, p )
+            print('THREE.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.')
+            return self.multiplyQuaternions(q, p)
 
-        return self.multiplyQuaternions( self, q )
+        return self.multiplyQuaternions( self, q)
 
     def premultiply(self, q ):
-        return self.multiplyQuaternions( q, self )
+        return self.multiplyQuaternions(q, self)
 
-    def multiplyQuaternions(self, a, b ):
+    def multiplyQuaternions(self, a, b):
         # // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
         qax = a._x; qay = a._y; qaz = a._z; qaw = a._w
@@ -363,13 +385,14 @@ class Quaternion:
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
-    def slerp2(self, qb, t ):
+    def slerp2(self, qb, t):
         if t == 0:
             return self
         if t == 1:
-            return self.copy( qb )
+            return self.copy(qb)
 
         x = self._x; y = self._y; z = self._z; w = self._w
 
@@ -385,7 +408,7 @@ class Quaternion:
 
             cosHalfTheta = - cosHalfTheta
         else:
-            self.copy( qb )
+            self.copy(qb)
 
         if cosHalfTheta >= 1.0:
             self._w = w
@@ -393,6 +416,7 @@ class Quaternion:
             self._y = y
             self._z = z
 
+            self.updated = True
             return self
 
         sqrSinHalfTheta = 1.0 - cosHalfTheta * cosHalfTheta
@@ -407,42 +431,44 @@ class Quaternion:
             return self.normalize()
 
         sinHalfTheta = math.sqrt(sqrSinHalfTheta)
-        halfTheta = math.atan2( sinHalfTheta, cosHalfTheta )
-        ratioA = math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta
-        ratioB = math.sin( t * halfTheta ) / sinHalfTheta
+        halfTheta = math.atan2(sinHalfTheta, cosHalfTheta)
+        ratioA = math.sin((1 - t) * halfTheta) / sinHalfTheta
+        ratioB = math.sin(t * halfTheta) / sinHalfTheta
 
-        self._w = ( w * ratioA + self._w * ratioB )
-        self._x = ( x * ratioA + self._x * ratioB )
-        self._y = ( y * ratioA + self._y * ratioB )
-        self._z = ( z * ratioA + self._z * ratioB )
+        self._w = (w * ratioA + self._w * ratioB)
+        self._x = (x * ratioA + self._x * ratioB)
+        self._y = (y * ratioA + self._y * ratioB)
+        self._z = (z * ratioA + self._z * ratioB)
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
-    def equals(self, quaternion ):
+    def equals(self, quaternion):
         return quaternion._x == self._x and quaternion._y == self._y and quaternion._z == self._z and quaternion._w == self._w
 
-    def fromArray(self, array, offset=0 ):
-        self._x = array[ offset ]
-        self._y = array[ offset + 1 ]
-        self._z = array[ offset + 2 ]
-        self._w = array[ offset + 3 ]
+    def fromArray(self, array, offset=0):
+        self._x = array[offset]
+        self._y = array[offset + 1]
+        self._z = array[offset + 2]
+        self._w = array[offset + 3]
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
+        self.updated = True
         return self
 
-    def toArray(self, array=None, offset=0 ):
+    def toArray(self, array=None, offset=0):
         if array is None:
             array = []
 
-        array[ offset ] = self._x
-        array[ offset + 1 ] = self._y
-        array[ offset + 2 ] = self._z
-        array[ offset + 3 ] = self._w
+        array[offset] = self._x
+        array[offset + 1] = self._y
+        array[offset + 2] = self._z
+        array[offset + 3] = self._w
 
         return array
             

@@ -372,7 +372,7 @@ class pyOpenGLUniformBlock:
 
     def update_array_element(self, name, index, value):
         uniform = self.uniforms[name]
-        uniform.update_array_element(value, self.buffer, index)
+        uniform._update_array_element(uniform, value, self.buffer, index)
 
     def update_value(self, name, value):
         uniform = self.uniforms[name]

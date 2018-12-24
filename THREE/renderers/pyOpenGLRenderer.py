@@ -935,6 +935,11 @@ class pyOpenGLRenderer:
         self.currentRenderList = None
         self.currentRenderState = None
 
+        # clean all updated flags
+        scene.reset_update_flags()
+        camera.reset_update_flags()
+        self._frustum.is_updated()
+
     def _projectObject(self, object, camera, sortObjects, test_culled=True):
         """
 
@@ -1985,19 +1990,18 @@ class pyOpenGLRenderer:
         :param group:
         :return:
         """
-        object.modelViewMatrix.updated = object.normalMatrix.updated = False
+        if object.matrixWorld.updated:
+            self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
 
-        # if object.matrixWorld.updated:
-        self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
+        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
+            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
 
-        #if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-        object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-        object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
-        object.modelViewMatrix.updated = True
-        object.normalMatrix.updated = True
+        if object.modelViewMatrix.updated:
+            self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
 
-        self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
-        self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+        if object.normalMatrix.updated:
+            self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
 
     def _instantiateObjects(self, scene, objects, target):
         for k in objects.keys():

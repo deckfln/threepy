@@ -63,8 +63,6 @@ class pyOpenGLBackground:
                     object.matrixWorld.makeScale(scale, scale, scale)
                     object.matrixWorld.copyPosition(camera.matrixWorld)
 
-                    object.matrixWorld.is_updated()
-
                     #object.material.polygonOffsetUnits = scale * 10
 
                 self.boxMesh.setOnBeforeRender(self, _onBeforeRenderBackgroup)

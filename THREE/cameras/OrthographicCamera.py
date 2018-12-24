@@ -99,7 +99,7 @@ class OrthographicCamera(Camera):
 
         self.projectionMatrix.makeOrthographic(left, right, top, bottom, self.near, self.far)
 
-        return self.projectionMatrix.is_updated()
+        return self.projectionMatrix.updated
 
     def toJSON(self, meta):
         data = super().toJSON(meta)

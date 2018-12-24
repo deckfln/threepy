@@ -175,7 +175,7 @@ class PerspectiveCamera(Camera):
 
         self.projectionMatrix.makePerspective(left, left + width, top, top - height, near, self.far)
 
-        return self.projectionMatrix.is_updated()
+        return self.projectionMatrix.updated
 
     def toJSON(self, meta):
         data = super().toJSON(meta)

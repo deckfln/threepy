@@ -338,21 +338,12 @@ class Object3D(pyOpenGLObject):
             parent.traverseAncestors(callback)
 
     def updateMatrix(self):
-        if self._old_position.equals(self.position) and \
-            self._old_quaternion.equals(self._quaternion) and \
-            self._old_scale.equals(self.scale):
-            self.matrix.updated = False
-        else:
-            self._old_position.copy(self.position)
-            self._old_quaternion.copy(self._quaternion)
-            self._old_scale.copy(self.scale)
-
+        if self.position.updated or self._quaternion.updated or self.scale.updated:
             self.matrix.compose(self.position, self._quaternion, self.scale)
-            self.matrix.updated = True
 
         self.matrixWorldNeedsUpdate = True
 
-    def updateMatrixWorld(self, force=False):
+    def updateMatrixWorld(self, force=False, parent_matrixWorld_is_updated=True):
         # bold optimization
         # do NOT compute the matrices for hidden objects
         if not self.visible:
@@ -361,14 +352,12 @@ class Object3D(pyOpenGLObject):
         if self.matrixAutoUpdate:
             self.updateMatrix()
 
-        self.matrixWorld.updated = False
         if self.matrixWorldNeedsUpdate or force:
             if self.parent is None:
-                self.matrixWorld.copy(self.matrix)
-                self.matrixWorld.updated = True
-            elif self.parent.matrixWorld.updated or self.matrix.updated:
+                if self.matrix.updated:
+                    self.matrixWorld.copy(self.matrix)
+            elif parent_matrixWorld_is_updated or self.matrix.updated:
                 self.matrixWorld.multiplyMatrices(self.parent.matrixWorld, self.matrix)
-                self.matrixWorld.updated = True
 
             self.matrixWorldNeedsUpdate = False
 
@@ -376,9 +365,21 @@ class Object3D(pyOpenGLObject):
 
         # // update children
         children = self.children
+        self_matrixWorld_is_updated = self.matrixWorld.updated
         for child in children:
             if child is not None:
-                child.updateMatrixWorld(force)
+                child.updateMatrixWorld(force, self_matrixWorld_is_updated)
+
+    def reset_update_flags(self):
+        self.matrix.is_updated()
+        self.matrixWorld.is_updated()
+        self.normalMatrix.is_updated()
+        self.modelViewMatrix.is_updated()
+
+        children = self.children
+        for child in children:
+            if child is not None:
+                child.reset_update_flags()
 
     def toJSON(self, meta):
         # // meta is a string when called from JSON.stringify

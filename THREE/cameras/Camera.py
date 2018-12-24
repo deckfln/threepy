@@ -49,10 +49,12 @@ class Camera(Object3D):
     def updateMatrixWorld(self, force=False):
         super().updateMatrixWorld(force)
 
-        self.matrixWorldInverse.updated = False
         if self.matrixWorld.updated:
             self.matrixWorldInverse.getInverse(self.matrixWorld)
-            self.matrixWorldInverse.updated = True
+
+    def reset_update_flags(self):
+        super().reset_update_flags()
+        self.matrixWorldInverse.is_updated()
 
     def clone(self, recursive=True):
         return type(self)().copy(self, recursive)

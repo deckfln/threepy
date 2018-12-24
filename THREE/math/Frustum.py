@@ -24,9 +24,14 @@ class Frustum:
             p4 if p4 else Plane(),
             p5 if p5 else Plane(),
         ]
-        self.updated = False        # was the frustum updated since the last frame
+        self.updated = True        # was the frustum updated since the last frame
         self._cache = {}            # if the frusturm was not updated and the object were not updated,
                                     # pick the intersection from the cache
+
+    def is_updated(self):
+        u = self.updated
+        self.updated = False
+        return u
 
     def set(self, p0, p1, p2, p3, p4, p5 ):
         planes = self.planes
@@ -38,6 +43,7 @@ class Frustum:
         planes[ 4 ].copy( p4 )
         planes[ 5 ].copy( p5 )
 
+        self.updated = True
         return self
 
     def clone(self):
@@ -49,11 +55,11 @@ class Frustum:
         for i in range(6):
             planes[ i ].copy( frustum.planes[ i ] )
 
+        self.updated = True
         return self
 
     def setFromMatrix(self, m ):
         planes = self.planes
-        self.updated = False
 
         # only update the frustum if the camera moved since last frame
         if m.is_updated():
