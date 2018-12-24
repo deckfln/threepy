@@ -10,6 +10,9 @@
 from THREE.math.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
+from cthree import cMatrix3_getNormalMatrix,cVector3_getInverse
+
+cython = True
 
 
 class Matrix3(pyOpenGLObject):
@@ -192,7 +195,13 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def getNormalMatrix(self, matrix4):
-        return self.setFromMatrix4(matrix4).getInverse(self).transpose()
+        if cython:
+            cMatrix3_getNormalMatrix(self.elements, matrix4.elements)
+        else:
+            self.setFromMatrix4(matrix4).getInverse(self).transpose()
+
+        self.updated = True
+        return self
 
     def transposeIntoArray(self, r):
         m = self.elements

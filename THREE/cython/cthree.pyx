@@ -283,24 +283,24 @@ cpdef void cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
     this[1] = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
     this[2] = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
 
-cpdef void cVector3_getInverse(np.ndarray[float, ndim=1] te ,
-                        np.ndarray[float, ndim=1] me ):
-    cdef float n11 = me[ 0 ]
-    cdef float n21 = me[ 1 ]
-    cdef float n31 = me[ 2 ]
-    cdef float n12 = me[ 3 ]
-    cdef float n22 = me[ 4 ]
-    cdef float n32 = me[ 5 ]
-    cdef float n13 = me[ 6 ]
-    cdef float n23 = me[ 7 ]
-    cdef float n33 = me[ 8 ]
+cpdef void cVector3_getInverse(np.ndarray[np.float32_t, ndim=1] te ,
+                        np.ndarray[np.float32_t, ndim=1] me ):
+    cdef np.float32_t n11 = me[ 0 ]
+    cdef np.float32_t n21 = me[ 1 ]
+    cdef np.float32_t n31 = me[ 2 ]
+    cdef np.float32_t n12 = me[ 3 ]
+    cdef np.float32_t n22 = me[ 4 ]
+    cdef np.float32_t n32 = me[ 5 ]
+    cdef np.float32_t n13 = me[ 6 ]
+    cdef np.float32_t n23 = me[ 7 ]
+    cdef np.float32_t n33 = me[ 8 ]
 
-    cdef float t11 = n33 * n22 - n32 * n23
-    cdef float t12 = n32 * n13 - n33 * n12
-    cdef float t13 = n23 * n12 - n22 * n13
+    cdef np.float32_t t11 = n33 * n22 - n32 * n23
+    cdef np.float32_t t12 = n32 * n13 - n33 * n12
+    cdef np.float32_t t13 = n23 * n12 - n22 * n13
 
-    cdef float det = n11 * t11 + n21 * t12 + n31 * t13
-    cdef float detInv = 1 / det
+    cdef np.float32_t det = n11 * t11 + n21 * t12 + n31 * t13
+    cdef np.float32_t detInv = 1 / det
 
     if det == 0:
         # raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
@@ -326,6 +326,21 @@ cpdef void cVector3_getInverse(np.ndarray[float, ndim=1] te ,
         te[ 6 ] = t13 * detInv
         te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
         te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
+
+cpdef cMatrix3_getNormalMatrix(np.ndarray[np.float32_t, ndim=1] self, np.ndarray[np.float32_t, ndim=1] matrix4):
+    cdef np.float32_t tmp
+
+    # setFromMatrix4(matrix4)
+    self[0] = matrix4[0];    self[3] = matrix4[4];    self[6] = matrix4[8]
+    self[1] = matrix4[1];    self[4] = matrix4[5];    self[7] = matrix4[9]
+    self[2] = matrix4[2];    self[5] = matrix4[6];    self[8] = matrix4[10]
+
+    cVector3_getInverse(self, self)
+
+    # transpose
+    tmp = self[1]; self[1] = self[3]; self[3] = tmp
+    tmp = self[2]; self[2] = self[6]; self[6] = tmp
+    tmp = self[5]; self[5] = self[7]; self[7] = tmp
 
 cpdef void cVector3_lerp(np.ndarray[float, ndim=1] self ,
                 np.ndarray[float, ndim=1] v ,
