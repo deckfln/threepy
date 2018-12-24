@@ -295,6 +295,7 @@ class Vector2(pyOpenGLObject):
     def lerp(self, v, alpha):
         self.np[0] += (v.np[0] - self.np[0]) * alpha
         self.np[1] += (v.np[0] - self.np[1]) * alpha
+        self.updated = True
         return self
 
     def lerpVectors(self, v1, v2, alpha):
@@ -306,6 +307,7 @@ class Vector2(pyOpenGLObject):
     def fromArray(self, array, offset=0):
         self.np[0] = array[offset]
         self.np[1] = array[offset + 1]
+        self.updated = True
         return self
 
     def toArray(self, array=None, offset=0):
@@ -323,6 +325,7 @@ class Vector2(pyOpenGLObject):
         self.np[0] = attribute.getX(index)
         self.np[1] = attribute.getY(index)
 
+        self.updated = True
         return self
 
     def rotateAround(self, center, angle):
@@ -335,6 +338,7 @@ class Vector2(pyOpenGLObject):
         self.np[0] = x * c - y * s + center.np[0]
         self.np[1] = x * s + y * c + center.np[1]
 
+        self.updated = True
         return self
 
     def rotate(self, angle):
@@ -347,4 +351,5 @@ class Vector2(pyOpenGLObject):
         self.np[0] = x * c - y * s
         self.np[1] = x * s + y * c
 
+        self.updated = True
         return self
