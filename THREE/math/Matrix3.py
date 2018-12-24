@@ -10,7 +10,7 @@
 from THREE.math.Vector3 import *
 from THREE.pyOpenGLObject import *
 import numpy as np
-from cthree import cMatrix3_getNormalMatrix,cVector3_getInverse
+from THREE.cython.cMatrix3 import cMatrix3_getNormalMatrix,cMatrix3_getInverse
 
 cython = True
 
@@ -139,7 +139,7 @@ class Matrix3(pyOpenGLObject):
 
     def getInverse(self, matrix, throwOnDegenerate=None):
         if cython:
-            cVector3_getInverse(self.elements, matrix.elements)
+            cMatrix3_getInverse(self.elements, matrix.elements)
         else:
             self._getInverse(matrix)
         self.updated = True
