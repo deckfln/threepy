@@ -2046,6 +2046,7 @@ class pyOpenGLRenderer:
                     array[i] = renderItem.object.id
                     i += 1
 
+                objectIDs.updateRange.count = i
                 geometry.maxInstancedCount = len_objs
                 objectIDs.needsUpdate = True
 

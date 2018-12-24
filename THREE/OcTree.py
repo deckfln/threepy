@@ -4,6 +4,7 @@
 from THREE.objects.Group import *
 from THREE.math.Sphere import *
 import THREE.MeshUtils as MeshUtils
+from THREE.math.Vector3 import *
 
 
 class OcTree(Group):
@@ -48,7 +49,7 @@ class OcTree(Group):
                 if pz == 0:
                     pz = -1
 
-                center = THREE.Vector3(
+                center = Vector3(
                     self.position.x + px * self.size/2,
                     self.position.y + py * self.size/2,
                     self.position.z + pz * self.size/2)

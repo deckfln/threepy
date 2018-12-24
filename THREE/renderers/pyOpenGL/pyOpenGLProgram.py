@@ -114,7 +114,7 @@ def generateDefines(defines):
         if value is not False:
             chunks.append('#define %s %s' % (name, str(value)))
 
-    return '\n'.join(chunks)
+    return '\n'.join(chunks) + '\n'
 
 
 def fetchAttributeLocations(gl, program):
