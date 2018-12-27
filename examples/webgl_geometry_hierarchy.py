@@ -18,6 +18,7 @@ from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.pyOpenGL.pyGUI import *
 from THREE.pyOpenGL.widgets.Stats import *
+from THREE.OcTree import *
 
 
 class Params:
@@ -98,7 +99,7 @@ def animate(p):
     p.gui.update()
 
 
-def render(p):
+def render(p: Params):
     time = datetime.now().timestamp() * 1
 
     rx = math.sin( time * 0.7 ) * 0.5

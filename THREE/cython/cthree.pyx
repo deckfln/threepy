@@ -9,6 +9,9 @@ cimport cython
 
 import numpy as np
 cimport numpy as np
+from THREE.cython.cVector3 import cVector3_applyMatrix4, cVector3_getInverse
+
+
 from libc.math cimport sqrt, atan2, sin, asin
 from libc.string cimport memcpy, memcmp
 
@@ -210,7 +213,7 @@ cpdef cMatrix4_compose(np.ndarray[float, ndim=1] te, np.ndarray[float, ndim=1] p
     te[13] = position[1]
     te[14] = position[2]
 
-cpdef cMatrix4_getMaxScaleOnAxis(np.ndarray[float, ndim=1] te ):
+cpdef cMatrix4_getMaxScaleOnAxis(np.ndarray[np.float32_t, ndim=1] te ):
     cdef float scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2]
     cdef float scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6]
     cdef float scaleZSq = te[8] * te[8] + te[9] * te[9] + te[10] * te[10]
@@ -293,74 +296,6 @@ cpdef cMath_clamp( double value, double mi, double mx ):
         return mx
     return value
 
-"""
-Vector3
-"""
-cpdef void cVector3_applyMatrix4(np.ndarray[float, ndim=1] vector3 ,
-                                np.ndarray[float, ndim=1] matrix4 ):
-    cdef float x = vector3[0]
-    cdef float y = vector3[1]
-    cdef float z = vector3[2]
-
-    cdef float w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
-
-    vector3[0] = ( matrix4[ 0 ] * x + matrix4[ 4 ] * y + matrix4[ 8 ]  * z + matrix4[ 12 ] ) * w;
-    vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
-    vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
-
-cpdef void cVector3_applyMatrix3(np.ndarray[float, ndim=1] this ,
-                            np.ndarray[float, ndim=1] e ):
-    cdef float x = this[0]
-    cdef float y = this[1]
-    cdef float z = this[2]
-
-    this[0] = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z
-    this[1] = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z
-    this[2] = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z
-
-cpdef void cVector3_getInverse(np.ndarray[np.float32_t, ndim=1] te ,
-                        np.ndarray[np.float32_t, ndim=1] me ):
-    cdef np.float32_t n11 = me[ 0 ]
-    cdef np.float32_t n21 = me[ 1 ]
-    cdef np.float32_t n31 = me[ 2 ]
-    cdef np.float32_t n12 = me[ 3 ]
-    cdef np.float32_t n22 = me[ 4 ]
-    cdef np.float32_t n32 = me[ 5 ]
-    cdef np.float32_t n13 = me[ 6 ]
-    cdef np.float32_t n23 = me[ 7 ]
-    cdef np.float32_t n33 = me[ 8 ]
-
-    cdef np.float32_t t11 = n33 * n22 - n32 * n23
-    cdef np.float32_t t12 = n32 * n13 - n33 * n12
-    cdef np.float32_t t13 = n23 * n12 - n22 * n13
-
-    cdef np.float32_t det = n11 * t11 + n21 * t12 + n31 * t13
-    cdef np.float32_t detInv = 1 / det
-
-    if det == 0:
-        # raise RuntimeWarning("THREE.Matrix3: .getInverse() can't invert matrix, determinant is 0")
-        te[0] = 1
-        te[1] = 0
-        te[2] = 0
-        te[3] = 0
-        te[4] = 1
-        te[5] = 0
-        te[6] = 0
-        te[7] = 0
-        te[8] = 1
-    else:
-        detInv = 1 / det
-        te[ 0 ] = t11 * detInv
-        te[ 1 ] = ( n31 * n23 - n33 * n21 ) * detInv
-        te[ 2 ] = ( n32 * n21 - n31 * n22 ) * detInv
-
-        te[ 3 ] = t12 * detInv
-        te[ 4 ] = ( n33 * n11 - n31 * n13 ) * detInv
-        te[ 5 ] = ( n31 * n12 - n32 * n11 ) * detInv
-
-        te[ 6 ] = t13 * detInv
-        te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
-        te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
 
 cpdef cMatrix3_getNormalMatrix(np.ndarray[np.float32_t, ndim=1] self, np.ndarray[np.float32_t, ndim=1] matrix4):
     cdef np.float32_t tmp
@@ -376,27 +311,6 @@ cpdef cMatrix3_getNormalMatrix(np.ndarray[np.float32_t, ndim=1] self, np.ndarray
     tmp = self[1]; self[1] = self[3]; self[3] = tmp
     tmp = self[2]; self[2] = self[6]; self[6] = tmp
     tmp = self[5]; self[5] = self[7]; self[7] = tmp
-
-cpdef void cVector3_lerp(np.ndarray[float, ndim=1] self ,
-                np.ndarray[float, ndim=1] v ,
-                float alpha ):
-    self[0] += ( v[0] - self[0] ) * alpha
-    self[1] += ( v[1] - self[1] ) * alpha
-    self[2] += ( v[2] - self[2] ) * alpha
-
-cpdef void cVector3_copy(np.ndarray[float, ndim=1] self ,
-                np.ndarray[float, ndim=1] v ):
-    cdef void *source = <void *>&v[0]
-    cdef void *dest = <void *>&self[0]
-
-    memcpy(dest, source, 3*sizeof(float))
-
-cpdef int cVector_equals(np.ndarray[float, ndim=1] self ,
-                np.ndarray[float, ndim=1] v ):
-    cdef void *dest = <void *>&self[0]
-    cdef void *source = <void *>&v[0]
-
-    return memcmp(source, dest, 3*sizeof(float))
 
 """
 Euler
@@ -481,16 +395,14 @@ cpdef cPlane_distanceToPoint(np.ndarray[float, ndim=1] normal ,
 """
 Sphere
 """
-cpdef cSphere_applyMatrix4(object self, object matrix ):
-    cdef np.ndarray[float, ndim=1] center = self.center.np
-    cdef np.ndarray[float, ndim=1] matrix4 = matrix.elements
-    cdef double radius = self.radius
+cpdef cSphere_applyMatrix4(object self, object matrix):
+    cdef np.ndarray[np.float32_t, ndim=1] center = self.center.np
+    cdef np.ndarray[np.float32_t, ndim=1] matrix4 = matrix.elements
+    cdef float radius = self.radius
 
     cVector3_applyMatrix4(center, matrix4)
-    radius = radius * cMatrix4_getMaxScaleOnAxis(matrix4)
-
+    radius *= cMatrix4_getMaxScaleOnAxis(matrix4)
     self.radius = radius
-    return self
 
 cpdef cSphere_intersectsSphere(list planes, sphere ):
     """
@@ -498,23 +410,25 @@ cpdef cSphere_intersectsSphere(list planes, sphere ):
     :param sphere:
     :return:
     """
-    cdef object center = sphere.center
-    cdef double negRadius = - sphere.radius
+    cdef float negRadius = - sphere.radius
     cdef int p
-    cdef double distance
+    cdef float distance
 
-    if sphere.cache >= 0:
-        plane = planes[sphere.cache]
-        distance = cPlane_distanceToPoint(plane.normal.np, sphere.center.np, plane.constant)
+    cdef int cache = sphere.cache
+    cdef np.ndarray[np.float32_t, ndim=1] center = sphere.center.np
+
+    if cache >= 0:
+        plane = planes[cache]
+        distance = cPlane_distanceToPoint(plane.normal.np, center, plane.constant)
         if distance < negRadius:
             return False
 
     for p in range(6):
-        if p == sphere.cache:
+        if p == cache:
             continue
 
         plane = planes[p]
-        distance = cPlane_distanceToPoint(plane.normal.np, sphere.center.np, plane.constant)
+        distance = cPlane_distanceToPoint(plane.normal.np, center, plane.constant)
 
         if distance < negRadius:
             sphere.cache = p

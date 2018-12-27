@@ -11,9 +11,9 @@
 
 import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
-from THREE.cython.cthree import *
+from THREE.cython.cVector3 import *
 
-cython = True
+_cython = True
 
 _matrix4 = None
 
@@ -109,17 +109,18 @@ class Vector3(pyOpenGLObject):
         return type(self)(self.np[0], self.np[1], self.np[2])
 
     def _copy(self, v):
-        cVector3_copy(self.np, v.np)
-        self.updated = True
-        return self
-
-    def copy(self, v):
         vnp = v.np
         snp = self.np
         snp[0] = vnp[0]
         snp[1] = vnp[1]
         snp[2] = vnp[2]
-        self.updated = True
+
+    def copy(self, v):
+        global _cython
+        if _cython:
+            cVector3_copy(self.np, v.np)
+        else:
+            self._copy(v)
         return self
 
     def add(self, v, w=None):
@@ -197,17 +198,23 @@ class Vector3(pyOpenGLObject):
         return self.applyQuaternion(quaternion.setFromAxisAngle(axis, angle))
 
     def applyMatrix3(self, m):
-        cVector3_applyMatrix3(self.np, m.elements)
+        global _cython
+        if _cython:
+            cVector3_applyMatrix3(self.np, m.elements)
+        else:
+            self._applyMatrix3(m)
         self.updated = True
         return self
 
     def _applyMatrix3(self, m):
         self.np.dot(m.matrix)
-        self.updated = True
-        return self
 
     def applyMatrix4(self, m):
-        cVector3_applyMatrix4(self.np, m.elements)
+        global _cython
+        if _cython:
+            cVector3_applyMatrix4(self.np, m.elements)
+        else:
+            self._applyMatrix4(m)
         self.updated = True
         return self
 
@@ -222,9 +229,6 @@ class Vector3(pyOpenGLObject):
         c /= c[3]
 
         np.put(self.np, (0, 1, 2), c)
-
-        self.updated = True
-        return self
 
     def applyQuaternion(self, q):
         x = self.np[0]
@@ -283,9 +287,7 @@ class Vector3(pyOpenGLObject):
         return self.normalize()
 
     def divide(self, v):
-        self.np[0] /= v.np[0]
-        self.np[1] /= v.np[1]
-        self.np[2] /= v.np[2]
+        self.np /= v.np
 
         self.updated = True
         return self
@@ -382,7 +384,8 @@ class Vector3(pyOpenGLObject):
         return self.normalize().multiplyScalar(length)
 
     def lerp(self, v, alpha):
-        if cython:
+        global _cython
+        if _cython:
             cVector3_lerp(self.np, v.np, alpha)
         else:
             self._plerp(v, alpha)
@@ -491,12 +494,30 @@ class Vector3(pyOpenGLObject):
         return self.fromArray(m.elements, index * 4)
 
     def _equals(self, v):
-        return cVector_equals(self.np, v.np)
-
-    def equals(self, v):
         vnp = v.np
         snp = self.np
         return vnp[0] == snp[0] and vnp[1] == snp[1] and vnp[2] == snp[2]
+
+    def equals(self, v):
+        global _cython
+        if _cython:
+            return cVector_equals(self.np, v.np)
+
+        return self._equals(v)
+
+    def less_than(self, v):
+        global _cython
+        if _cython:
+            return cVector3_less_than(self.np, v.np)
+
+        return np.any(self.np < v.np)
+
+    def greater_than(self, v):
+        global _cython
+        if _cython:
+            return cVector3_greater_than(self.np, v.np)
+
+        return np.any(self.np > v.np)
 
     def fromArray(self, array, offset=0):
         self.np[0:3] = array[offset:offset+3]

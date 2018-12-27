@@ -12,7 +12,7 @@ from THREE.pyOpenGLObject import *
 import numpy as np
 from THREE.cython.cMatrix3 import cMatrix3_getNormalMatrix,cMatrix3_getInverse
 
-cython = True
+_cython = True
 
 
 class Matrix3(pyOpenGLObject):
@@ -138,7 +138,8 @@ class Matrix3(pyOpenGLObject):
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g
 
     def getInverse(self, matrix, throwOnDegenerate=None):
-        if cython:
+        global _cython
+        if _cython:
             cMatrix3_getInverse(self.elements, matrix.elements)
         else:
             self._getInverse(matrix)
@@ -195,7 +196,8 @@ class Matrix3(pyOpenGLObject):
         return self
 
     def getNormalMatrix(self, matrix4):
-        if cython:
+        global _cython
+        if _cython:
             cMatrix3_getNormalMatrix(self.elements, matrix4.elements)
         else:
             self.setFromMatrix4(matrix4).getInverse(self).transpose()

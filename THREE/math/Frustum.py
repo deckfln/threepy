@@ -8,7 +8,7 @@
 from THREE.math.Plane import *
 from THREE.objects.BoundingSphere import *
 
-cython = False
+_cython = True
 
 _p = Vector3()
 _sphere = BoundingSphere()
@@ -101,7 +101,7 @@ class Frustum:
         #   the camera moved
         #   or the object moved
         #   or the object is not yet in the cache
-        if self.updated or octree.matrixWorld.updated or octree.id not in self._cache:
+        if self.updated or octree.matrixWorld.is_updated() or octree.id not in self._cache:
             _sphere.copy(octree.boundingSphere)
             self._cache[octree.id] = self.intersectsSphereOctree(_sphere)
 
@@ -139,7 +139,9 @@ class Frustum:
         return self.intersectsSphere( sphere )
 
     def intersectsSphere(self, sphere):
-        if cython:
+        global _cython
+
+        if _cython:
             return cSphere_intersectsSphere(self.planes, sphere)
         else:
             return self._intersectsSphere(sphere)

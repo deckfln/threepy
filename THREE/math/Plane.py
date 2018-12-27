@@ -5,7 +5,7 @@
 """
 from THREE.math.Matrix3 import *
 
-cython = True
+_cython = True
 
 
 class Plane:
@@ -64,7 +64,8 @@ class Plane:
         return self
 
     def distanceToPoint(self, point):
-        if cython:
+        global _cython
+        if _cython:
             return cPlane_distanceToPoint(self.normal.np, point.np, self.constant)
 
         return self._pdistanceToPoint(point)

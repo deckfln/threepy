@@ -6,6 +6,8 @@
 """
 from THREE.math.Box3 import *
 
+_cython = True
+
 
 class Sphere:
     def __init__(self, center=None, radius=0 ):
@@ -86,17 +88,17 @@ class Sphere:
         return target
 
     def applyMatrix4(self, matrix):
-        if cython:
+        global _cython
+        if _cython:
             cSphere_applyMatrix4(self, matrix)
-            return matrix
         else:
-            return self._papplyMatrix4(matrix)
+            self._applyMatrix4(matrix)
 
-    def _papplyMatrix4(self, matrix ):
+        return self
+
+    def _applyMatrix4(self, matrix ):
         self.center.applyMatrix4( matrix )    
         self.radius = self.radius * matrix.getMaxScaleOnAxis()    
-
-        return self    
 
     def translate(self, offset ):
         self.center.add( offset )    

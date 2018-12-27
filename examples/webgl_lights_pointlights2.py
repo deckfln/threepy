@@ -14,7 +14,6 @@ from THREE import *
 import THREE._Math as _Math
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.TrackballControls import *
-from THREE.OcTree import *
 from THREE.pyOpenGL.pyGUI import *
 from THREE.pyOpenGL.widgets.Stats import *
 
@@ -35,7 +34,6 @@ class Params:
         self.light6 = None
         self.counter = 0
         self.s = datetime.now().timestamp()
-        self.octree = OcTree(THREE.Vector3(0, 0, 0), 256)
 
 
 def init(p):
@@ -101,7 +99,7 @@ def init(p):
     #objectGeometry = THREE.SphereGeometry( 1.5, 16, 8 )
     objectGeometry = THREE.TorusGeometry(1.5, 0.4, 8, 16)
 
-    for i in range(500):
+    for i in range(1):
         mesh = THREE.Mesh( objectGeometry, objectMaterial)
 
         mesh.position.set(400 * (0.5 - random.random()),
@@ -115,10 +113,6 @@ def init(p):
         mesh.updateMatrix()
 
         p.scene.add(mesh)
-
-    # merge the octrees meshes
-    #p.octree.merge()
-    #p.scene.add(p.octree)
 
     # LIGHTS
 

@@ -37,6 +37,7 @@ from THREE.OcTree import *
 from THREE.renderers.pyOpenGL.pyOpenGLUtils import *
 
 import THREE.Global
+from THREE.OcTree import *
 
 
 class pyOpenGLVAO:
@@ -291,6 +292,12 @@ class pyOpenGLRenderer:
         //
         """
         self.uniformBlocks = pyOpenGLUniformBlocks()
+        self.octree = Octree(
+                500,
+                Vector3(0, 0, 0),
+                "nodes",
+                20
+                )
 
     def _getTargetPixelRatio(self):
         return self._pixelRatio if self._currentRenderTarget is None else 1
@@ -817,8 +824,17 @@ class pyOpenGLRenderer:
         self.currentRenderList = self.renderLists.get(scene, camera)
         self.currentRenderList.init()
 
-        # project all objects and update the attributes
+        # update octree and get visible objects
+        visible_objects = []
+        self._cull_objects_octree(scene, camera, self.sortObjects, visible_objects)
+
+        # project and update visible meshes
+        for obj in visible_objects:
+            self._project_visible_mesh(obj, camera, self.sortObjects)
+
+        # project remaining objects and update the attributes
         self._projectObject(scene, camera, self.sortObjects)
+
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
@@ -833,17 +849,10 @@ class pyOpenGLRenderer:
         if self._clippingEnabled:
             self._clipping.endShadows()
 
-        # push the positions
-        #self.uniformBlocks.update('modelMatricesBlock')
-        #self.uniformBlocks.update('modelViewMatricesBlock')
-        #self.uniformBlocks.update('normalMatricesBlock')
-
-        # //
         # update the shared uniforms
 
         self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
         self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
-        #self.uniformBlocks.update('camera')
 
         lights = self.renderStates.get(scene, camera).lights
         lights.update_uniform_block(self.uniformBlocks)
@@ -940,6 +949,43 @@ class pyOpenGLRenderer:
         camera.reset_update_flags()
         self._frustum.is_updated()
 
+    def _cull_objects_octree(self, scene, camera, sortObjects, visible):
+        self.octree.update(scene)
+        self.octree.get_visible_data(self._frustum, visible)
+
+    def _cull_objects(self, object, camera, sortObjects, visible):
+        global _vector3
+
+        if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints):
+            if not object.frustumCulled or self._frustum.intersectsObject(object):
+                visible.append(object)
+
+        for i in object.children:
+            if i.visible:
+                self._cull_objects(i, camera, sortObjects, visible)
+
+    def _project_visible_mesh(self, object, camera, sortObjects):
+        if object.my_class(isSkinnedMesh):
+            object.skeleton.update()
+
+        if sortObjects:
+            _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
+
+        geometry = self.objects.update(object)
+        material = object.material
+
+        if isinstance(material, list):
+            groups = geometry.groups
+
+            for group in groups:
+                groupMaterial = material[group.materialIndex]
+
+                if groupMaterial and groupMaterial.visible:
+                    self.currentRenderList.push(object, geometry, groupMaterial, _vector3.z, group)
+
+        elif material.visible:
+            self.currentRenderList.push(object, geometry, material, _vector3.z, None)
+
     def _projectObject(self, object, camera, sortObjects, test_culled=True):
         """
 
@@ -949,15 +995,14 @@ class pyOpenGLRenderer:
         :return:
         """
         global _vector3
-        if not object.visible:
-            return
 
+        """
         if object.layers.test(camera.layers) and object.my_class(isMesh | isLine | isPoints | isLight | isSprite | isLensFlare | isImmediateRenderObject | isOctree):
             if object.my_class(isMesh | isLine | isPoints):
                 if object.my_class(isSkinnedMesh):
                     object.skeleton.update()
 
-                if not test_culled or not object.frustumCulled or self._frustum.intersectsObject(object):
+                if not test_culled or not object.frustumCulled or object in visible_objects:
                     if sortObjects:
                         _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
@@ -975,8 +1020,10 @@ class pyOpenGLRenderer:
 
                     elif material.visible:
                         self.currentRenderList.push(object, geometry, material, _vector3.np[2], None)
+            """
 
-            elif object.my_class(isLight):
+        if object.layers.test(camera.layers) and object.my_class(isLight | isSprite | isLensFlare | isImmediateRenderObject):
+            if object.my_class(isLight):
                 self.currentRenderState.pushLight( object )
 
                 if object.castShadow:
@@ -1000,10 +1047,6 @@ class pyOpenGLRenderer:
                     _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(self._projScreenMatrix)
 
                 self.currentRenderList.push(object, None, object.material, _vector3.z, None)
-
-            elif object.my_class(isOctree):
-                self._projectOctree(object, camera, sortObjects)
-                return
 
         for i in object.children:
             if i.visible:
@@ -1886,24 +1929,13 @@ class pyOpenGLRenderer:
         visibility = self._frustum.intersectsOctree(octree) if test_culled else 1
         if visibility < 0:
             # completely outside of the frustrum
+            # drop all objets here
             return
 
         elif visibility > 0:
             # completely inside the frustrum
-            if octree.leaf:
-                # for leaf, test each object individually
-                for child in octree.children:
-                    self._projectObject(child, camera, sortObjects, False)
-                #if len(octree.children) > 0:
-                #    self._projectObject(octree.children[0], camera, sortObjects, False)
-
-            else:
-                # for branch, push all objects down
-                #if len(octree.children) > 8:
-                #    self._projectObject(octree.children[8], camera, sortObjects, False)
-                for child in octree.children:
-                    if child is not None:
-                        self._projectOctree(child, camera, sortObjects, False)
+            # gather all the objects
+            objects = octree.get_data()
 
         else:
             # partialy in the frustrum => recurse to find more
@@ -1993,15 +2025,12 @@ class pyOpenGLRenderer:
         if object.matrixWorld.updated:
             self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
 
-        if camera.matrixWorldInverse.updated or object.matrixWorld.updated:
-            object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-            object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+            if camera.matrixWorldInverse.updated:
+                object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+                object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
 
-        if object.modelViewMatrix.updated:
-            self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
-
-        if object.normalMatrix.updated:
-            self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+                self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
+                self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
 
     def _instantiateObjects(self, scene, objects, target):
         for k in objects.keys():

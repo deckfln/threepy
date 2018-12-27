@@ -17,7 +17,7 @@ from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 from THREE.math.Vector3 import *
 
-cython = True
+_cython = True
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
 
@@ -41,7 +41,7 @@ class Matrix4(pyOpenGLObject):
             0, 0, 1, 0,
             0, 0, 0, 1
             ], dtype=np.float32)
-        self.matrix = self.elements.reshape(4, 4)
+        self.matrix = self.elements.view(dtype=np.float32).reshape(4, 4)
 
         self.updated = True
 
@@ -291,13 +291,14 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def makeRotationFromQuaternion(self, q):
+        global _cython
         te = self.elements
         x = q._x
         y = q._y
         z = q._z
         w = q._w
 
-        if cython:
+        if _cython:
             c_Matrix4_makeRotationFromQuaternion(te, x, y, z, w)
         else:
             self._makeRotationFromQuaternion(q)
@@ -360,19 +361,15 @@ class Matrix4(pyOpenGLObject):
         return self.multiplyMatrices(m, self)
 
     def multiplyMatrices(self, a, b):
+        global _cython
         self.updated = True
-        cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
+        if _cython:
+            cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
+        else:
+            self._multiplyMatrices(a, b)
 
-    def pmultiplyMatrices(self, a, b):
-        amatrix = a.elements.reshape(4, 4)
-        bmatrix = b.elements.reshape(4, 4)
-
-        t = np.dot(bmatrix, amatrix)
-        self.matrix = t
-        self.elements = self.matrix.reshape(16)
-
-
-        """
+    def _multiplyMatrices(self, a, b):
+        # self.matrix = np.dot(a.matrix, b.matrix)
         ae = a.elements
         be = b.elements
         te = self.elements
@@ -406,12 +403,6 @@ class Matrix4(pyOpenGLObject):
         te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42
         te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44
-
-        t1 = t.reshape(16)
-        for i in range(16):
-            if t1[i] != te[i]:
-                print("not the same")
-        """
 
         self.updated = True
         return self
@@ -517,7 +508,11 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def setPosition(self, v):
-        cMatrix4_setPosition(self.elements, v.np)
+        global _cython
+        if _cython:
+            cMatrix4_setPosition(self.elements, v.np)
+        else:
+            self._setPosition(v)
         self.updated = True
         return self
 
@@ -527,9 +522,6 @@ class Matrix4(pyOpenGLObject):
         te[12] = v.np[0]
         te[13] = v.np[1]
         te[14] = v.np[2]
-
-        self.updated = True
-        return self
 
     def getInverse(self, m, throwOnDegenerate=False):
         # // based on http:# //www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
@@ -579,7 +571,11 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def scale(self, v):
-        cMatrix4_scale(self.elements, v.np)
+        global _cython
+        if _cython:
+            cMatrix4_scale(self.elements, v.np)
+        else:
+            self._scale(v)
         self.updated = True
         return self
 
@@ -591,11 +587,10 @@ class Matrix4(pyOpenGLObject):
         _temp[8] = _temp[9] = _temp[10] = _temp[11] = v.np[2]
 
         te *= _temp
-        self.updated = True
-        return self
 
     def getMaxScaleOnAxis(self):
-        if cython:
+        global _cython
+        if _cython:
             return cMatrix4_getMaxScaleOnAxis(self.elements)
         else:
             return self._getMaxScaleOnAxis()
@@ -686,12 +681,14 @@ class Matrix4(pyOpenGLObject):
         return self
 
     def compose(self, position, quaternion, scale):
+        global _cython
+
         x = quaternion._x
         y = quaternion._y
         z = quaternion._z
         w = quaternion._w
 
-        if cython:
+        if _cython:
             cMatrix4_compose(self.elements, position.np, scale.np, x, y, z, w)
         else:
             self._compose(position, quaternion, scale)
@@ -742,8 +739,6 @@ class Matrix4(pyOpenGLObject):
         te[ 13 ] = position.y
         te[ 14 ] = position.z
         te[ 15 ] = 1
-
-        return self
 
     def decompose(self, position, quaternion, scale):
         global _vector, _matrix, _vector_y, _vector_z

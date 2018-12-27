@@ -371,10 +371,13 @@ class Object3D(pyOpenGLObject):
                 child.updateMatrixWorld(force, self_matrixWorld_is_updated)
 
     def reset_update_flags(self):
-        self.matrix.is_updated()
-        self.matrixWorld.is_updated()
-        self.normalMatrix.is_updated()
-        self.modelViewMatrix.is_updated()
+        self.matrix.updated = False
+        self.matrixWorld.updated = False
+        self.normalMatrix.updated = False
+        self.modelViewMatrix.updated = False
+        self._quaternion.updated = False
+        self.position.updated = False
+        self.scale.updated = False
 
         children = self.children
         for child in children:
