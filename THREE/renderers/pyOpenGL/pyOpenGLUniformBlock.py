@@ -10,7 +10,7 @@ import numpy as np
 from OpenGL.GL import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, string_at, memmove
 
-cython=True
+_cython=True
 from cthree import cUpdateValueArrayElement, cUpdateValueMat3ArrayElement
 
 
@@ -116,8 +116,9 @@ def _updateValueArrayElement(self, value, buffer, element):
     :param element:
     :return:
     """
-    if cython:
-        cUpdateValueArrayElement(buffer, self.offset, element, self.element_size, value.elements.ctypes.data, self.size)
+    global _cython
+    if _cython:
+        cUpdateValueArrayElement(buffer, self, element, value)
     else:
         ctypes.memmove(buffer + int(self.offset + element * self.element_size), value.elements.ctypes.data, self.size)
 
@@ -126,7 +127,8 @@ def _updateValueMat3ArrayElement(self, value, buffer, element):
     """
     Mat3 are stored as 3 rows of vec4 in STD140
     """
-    if cython:
+    global _cython
+    if _cython:
         cUpdateValueMat3ArrayElement(buffer, self.offset, element, self.element_size, value.elements.ctypes.data, self.size)
     else:
         start = buffer + int(self.offset + element * self.element_size)

@@ -12,7 +12,10 @@ cimport numpy as np
 from libc.math cimport sqrt, atan2, sin, asin
 from libc.string cimport memcpy, memcmp
 
-cpdef void cVector3_applyMatrix4(np.ndarray[np.float32_t, ndim=1] vector3, np.ndarray[np.float32_t, ndim=1] matrix4):
+cpdef void cVector3_applyMatrix4(self, m):
+    cdef np.ndarray[np.float32_t, ndim=1] vector3 = self.np
+    cdef np.ndarray[np.float32_t, ndim=1] matrix4 = m.elements
+
     cdef np.float32_t x = vector3[0]
     cdef np.float32_t y = vector3[1]
     cdef np.float32_t z = vector3[2]
@@ -23,7 +26,10 @@ cpdef void cVector3_applyMatrix4(np.ndarray[np.float32_t, ndim=1] vector3, np.nd
     vector3[1] = ( matrix4[ 1 ] * x + matrix4[ 5 ] * y + matrix4[ 9 ]  * z + matrix4[ 13 ] ) * w;
     vector3[2] = ( matrix4[ 2 ] * x + matrix4[ 6 ] * y + matrix4[ 10 ] * z + matrix4[ 14 ] ) * w;
 
-cpdef void cVector3_applyMatrix3(np.ndarray[np.float32_t, ndim=1] this, np.ndarray[np.float32_t, ndim=1] e):
+cpdef void cVector3_applyMatrix3(self, m):
+    cdef np.ndarray[np.float32_t, ndim=1] this = self.np
+    cdef np.ndarray[np.float32_t, ndim=1] e = m.elements
+
     cdef np.float32_t x = this[0]
     cdef np.float32_t y = this[1]
     cdef np.float32_t z = this[2]
@@ -80,10 +86,12 @@ cpdef void cVector3_lerp(np.ndarray[np.float32_t, ndim=1] self, np.ndarray[np.fl
     self[1] += ( v[1] - self[1] ) * alpha
     self[2] += ( v[2] - self[2] ) * alpha
 
-cpdef void cVector3_copy(np.ndarray[np.float32_t, ndim=1] self,np.ndarray[np.float32_t, ndim=1] v):
-    self[0] = v[0]
-    self[1] = v[1]
-    self[2] = v[2]
+cpdef void cVector3_copy(self, v):
+    cdef np.ndarray[np.float32_t, ndim=1] s = self.np
+    cdef np.ndarray[np.float32_t, ndim=1] ve = v.np
+    s[0] = ve[0]
+    s[1] = ve[1]
+    s[2] = ve[2]
 
 cpdef int cVector_equals(np.ndarray[np.float32_t, ndim=1] self, np.ndarray[np.float32_t, ndim=1] v):
     return self[0] == v[0] and self[1] == v[1] and self[2] == v[2]

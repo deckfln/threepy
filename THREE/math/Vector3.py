@@ -118,7 +118,7 @@ class Vector3(pyOpenGLObject):
     def copy(self, v):
         global _cython
         if _cython:
-            cVector3_copy(self.np, v.np)
+            cVector3_copy(self, v)
         else:
             self._copy(v)
         return self
@@ -200,7 +200,7 @@ class Vector3(pyOpenGLObject):
     def applyMatrix3(self, m):
         global _cython
         if _cython:
-            cVector3_applyMatrix3(self.np, m.elements)
+            cVector3_applyMatrix3(self, m)
         else:
             self._applyMatrix3(m)
         self.updated = True
@@ -212,7 +212,7 @@ class Vector3(pyOpenGLObject):
     def applyMatrix4(self, m):
         global _cython
         if _cython:
-            cVector3_applyMatrix4(self.np, m.elements)
+            cVector3_applyMatrix4(self, m)
         else:
             self._applyMatrix4(m)
         self.updated = True
@@ -501,7 +501,7 @@ class Vector3(pyOpenGLObject):
     def equals(self, v):
         global _cython
         if _cython:
-            return cVector_equals(self.np, v.np)
+            return cVector_equals(self, v)
 
         return self._equals(v)
 

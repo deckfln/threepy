@@ -57,17 +57,19 @@ cpdef void cMatrix3_getInverse(np.ndarray[np.float32_t, ndim=1] te ,
         te[ 7 ] = ( n21 * n13 - n23 * n11 ) * detInv
         te[ 8 ] = ( n22 * n11 - n21 * n12 ) * detInv
 
-cpdef cMatrix3_getNormalMatrix(np.ndarray[np.float32_t, ndim=1] self, np.ndarray[np.float32_t, ndim=1] matrix4):
+cpdef cMatrix3_getNormalMatrix(self, matrix4):
+    cdef np.ndarray[np.float32_t, ndim=1] npself = self.elements
+    cdef np.ndarray[np.float32_t, ndim=1] npmatrix4 = matrix4.elements
     cdef np.float32_t tmp
 
     # setFromMatrix4(matrix4)
-    self[0] = matrix4[0];    self[3] = matrix4[4];    self[6] = matrix4[8]
-    self[1] = matrix4[1];    self[4] = matrix4[5];    self[7] = matrix4[9]
-    self[2] = matrix4[2];    self[5] = matrix4[6];    self[8] = matrix4[10]
+    npself[0] = npmatrix4[0];    npself[3] = npmatrix4[4];    npself[6] = npmatrix4[8]
+    npself[1] = npmatrix4[1];    npself[4] = npmatrix4[5];    npself[7] = npmatrix4[9]
+    npself[2] = npmatrix4[2];    npself[5] = npmatrix4[6];    npself[8] = npmatrix4[10]
 
-    cMatrix3_getInverse(self, self)
+    cMatrix3_getInverse(npself, npself)
 
     # transpose
-    tmp = self[1]; self[1] = self[3]; self[3] = tmp
-    tmp = self[2]; self[2] = self[6]; self[6] = tmp
-    tmp = self[5]; self[5] = self[7]; self[7] = tmp
+    tmp = npself[1]; npself[1] = npself[3]; npself[3] = tmp
+    tmp = npself[2]; npself[2] = npself[6]; npself[6] = tmp
+    tmp = npself[5]; npself[5] = npself[7]; npself[7] = tmp

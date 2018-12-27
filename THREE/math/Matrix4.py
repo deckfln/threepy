@@ -16,6 +16,7 @@ import math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cthree import *
 from THREE.math.Vector3 import *
+from THREE.cython.cMatrix4 import *
 
 _cython = True
 
@@ -364,7 +365,9 @@ class Matrix4(pyOpenGLObject):
         global _cython
         self.updated = True
         if _cython:
-            cMatrix4_multiplyMatrices(self.elements, a.elements, b.elements)
+            cMatrix4_sse_multiplyMatrices(self, a, b)
+            #tmp = Matrix4()._multiplyMatrices(a, b)
+            #print("*")
         else:
             self._multiplyMatrices(a, b)
 

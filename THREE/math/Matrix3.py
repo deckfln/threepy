@@ -198,7 +198,7 @@ class Matrix3(pyOpenGLObject):
     def getNormalMatrix(self, matrix4):
         global _cython
         if _cython:
-            cMatrix3_getNormalMatrix(self.elements, matrix4.elements)
+            cMatrix3_getNormalMatrix(self, matrix4)
         else:
             self.setFromMatrix4(matrix4).getInverse(self).transpose()
 

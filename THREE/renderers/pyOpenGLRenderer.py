@@ -826,7 +826,7 @@ class pyOpenGLRenderer:
 
         # update octree and get visible objects
         visible_objects = []
-        self._cull_objects_octree(scene, camera, self.sortObjects, visible_objects)
+        self._cull_objects(scene, camera, self.sortObjects, visible_objects)
 
         # project and update visible meshes
         for obj in visible_objects:
