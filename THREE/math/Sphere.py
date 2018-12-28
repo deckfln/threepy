@@ -5,6 +5,8 @@
  */
 """
 from THREE.math.Box3 import *
+from THREE.cython.cSphere import cSphere_applyMatrix4, cSphere_isIncludedIn
+
 
 _cython = True
 
@@ -106,4 +108,17 @@ class Sphere:
         return self    
 
     def equals(self, sphere ):
-        return sphere.center.equals( self.center ) and ( sphere.radius == self.radius )    
+        return sphere.center.equals( self.center ) and ( sphere.radius == self.radius )
+
+    def isIncludedIn(self, sphere):
+        global _cython
+        if _cython:
+            return cSphere_isIncludedIn(self, sphere)
+
+        return self._isIncludedIn(sphere)
+
+    def _isIncludedIn(self, sphere):
+        r = self.radius
+        r1 = sphere.radius
+        d = self.center.distanceTo(sphere.center) + r
+        return d < r1

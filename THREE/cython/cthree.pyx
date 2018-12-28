@@ -172,52 +172,13 @@ Plane
 cpdef cPlane_distanceToPoint(np.ndarray[np.float32_t, ndim=1] normal ,
                             np.ndarray[np.float32_t, ndim=1] point ,
                             double constant ):
-    return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
 
-"""
-Sphere
-"""
-cpdef cSphere_applyMatrix4(object self, object matrix):
-    cdef np.ndarray[np.float32_t, ndim=1] center = self.center.np
-    cdef np.ndarray[np.float32_t, ndim=1] matrix4 = matrix.elements
-    cdef float radius = self.radius
+    cdef np.float32_t rx, ry, rz
+    rx = normal[0] * point[0]
+    ry = normal[1] * point[1]
+    rz = normal[2] * point[2]
 
-    cVector3_applyMatrix4(self.center, matrix)
-    radius *= cMatrix4_getMaxScaleOnAxis(matrix4)
-    self.radius = radius
-
-cpdef cSphere_intersectsSphere(list planes, sphere ):
-    """
-    Optimization based on http://blog.bwhiting.co.uk/?p=355
-    :param sphere:
-    :return:
-    """
-    cdef float negRadius = - sphere.radius
-    cdef int p
-    cdef float distance
-
-    cdef int cache = sphere.cache
-    cdef np.ndarray[np.float32_t, ndim=1] center = sphere.center.np
-
-    if cache >= 0:
-        plane = planes[cache]
-        distance = cPlane_distanceToPoint(plane.normal.np, center, plane.constant)
-        if distance < negRadius:
-            return False
-
-    for p in range(6):
-        if p == cache:
-            continue
-
-        plane = planes[p]
-        distance = cPlane_distanceToPoint(plane.normal.np, center, plane.constant)
-
-        if distance < negRadius:
-            sphere.cache = p
-            return False
-
-    sphere.cache = -1
-    return True
+    return rx + ry + rz + constant
 
 cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):
     """

@@ -106,8 +106,10 @@ def render(p: Params):
     ry = math.sin( time * 0.3 ) * 0.5
     rz = math.sin( time * 0.2 ) * 0.5
 
-    p.camera.position.x += ( p.mouseX - p.camera.position.x ) * 0.05
-    p.camera.position.y += ( - p.mouseY - p.camera.position.y ) * 0.05
+    #p.camera.position.x += ( p.mouseX - p.camera.position.x ) * 0.05
+    #p.camera.position.y += ( - p.mouseY - p.camera.position.y ) * 0.05
+    p.camera.position.x += math.sin(time * 0.7) * 150
+    p.camera.position.y += math.sin(time * 0.3) * 150
 
     p.camera.lookAt( p.scene.position )
 
