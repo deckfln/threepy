@@ -6,7 +6,7 @@ import numpy
 setup(
     ext_modules = [
         Extension("cFrustum",
-                  sources=["cFrustum.pyx"],
+                  sources=["cFrustum.pyx", "frustum.c"],
                 extra_compile_args=["/fp:fast", "/favor:INTEL64"],
                 include_dirs=[numpy.get_include()]
                   )

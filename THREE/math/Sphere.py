@@ -5,7 +5,7 @@
  */
 """
 from THREE.math.Box3 import *
-from THREE.cython.cSphere import cSphere_applyMatrix4, cSphere_isIncludedIn
+from THREE.cython.cSphere import cSphere_applyMatrix4, cSphere_isIncludedIn, cSphere_applyMatrix4To
 
 
 _cython = True
@@ -122,3 +122,15 @@ class Sphere:
         r1 = sphere.radius
         d = self.center.distanceTo(sphere.center) + r
         return d < r1
+
+    def applyMatrix4To(self, matrix, source):
+        global _cython
+
+        if _cython:
+            cSphere_applyMatrix4To(self, matrix, source)
+        else:
+            self.center.copy(source.center)
+            self.radius = source.radius
+            self.applyMatrix4(matrix)
+
+        return self

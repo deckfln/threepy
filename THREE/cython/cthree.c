@@ -1674,7 +1674,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, cha
 static PyObject *__pyx_f_6cthree_cQuaternion_slerpFlat(PyArrayObject *, int, PyArrayObject *, int, PyArrayObject *, int, float, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_6cthree_cMath_clamp(double, double, double, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_6cthree_cEuler_setFromRotationMatrix(PyObject *, PyArrayObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_6cthree_cEuler_setFromRotationMatrix *__pyx_optional_args); /*proto*/
-static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *, PyArrayObject *, double, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *, PyArrayObject *, __pyx_t_5numpy_float32_t, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_6cthree_cUpdateValueArrayElement(PY_LONG_LONG, PyObject *, PY_LONG_LONG, PyObject *, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_6cthree_cUpdateValueMat3ArrayElement(PY_LONG_LONG, int, PY_LONG_LONG, PY_LONG_LONG, PY_LONG_LONG, PY_LONG_LONG, int __pyx_skip_dispatch); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
@@ -1816,7 +1816,7 @@ static PyObject *__pyx_n_s_z;
 static PyObject *__pyx_pf_6cthree_cQuaternion_slerpFlat(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_dst, int __pyx_v_dstOffset, PyArrayObject *__pyx_v_src0, int __pyx_v_srcOffset0, PyArrayObject *__pyx_v_src1, int __pyx_v_srcOffset1, float __pyx_v_t); /* proto */
 static PyObject *__pyx_pf_6cthree_2cMath_clamp(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_value, double __pyx_v_mi, double __pyx_v_mx); /* proto */
 static PyObject *__pyx_pf_6cthree_4cEuler_setFromRotationMatrix(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyArrayObject *__pyx_v_te, PyObject *__pyx_v_order); /* proto */
-static PyObject *__pyx_pf_6cthree_6cPlane_distanceToPoint(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, double __pyx_v_constant); /* proto */
+static PyObject *__pyx_pf_6cthree_6cPlane_distanceToPoint(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, __pyx_t_5numpy_float32_t __pyx_v_constant); /* proto */
 static PyObject *__pyx_pf_6cthree_8cUpdateValueArrayElement(CYTHON_UNUSED PyObject *__pyx_self, PY_LONG_LONG __pyx_v_buffer, PyObject *__pyx_v_self, PY_LONG_LONG __pyx_v_element, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_6cthree_10cUpdateValueMat3ArrayElement(CYTHON_UNUSED PyObject *__pyx_self, PY_LONG_LONG __pyx_v_buffer, int __pyx_v_offset, PY_LONG_LONG __pyx_v_element, PY_LONG_LONG __pyx_v_element_size, PY_LONG_LONG __pyx_v_data, PY_LONG_LONG __pyx_v_size); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
@@ -3752,14 +3752,11 @@ static PyObject *__pyx_pf_6cthree_4cEuler_setFromRotationMatrix(CYTHON_UNUSED Py
  * """
  * cpdef cPlane_distanceToPoint(np.ndarray[np.float32_t, ndim=1] normal ,             # <<<<<<<<<<<<<<
  *                             np.ndarray[np.float32_t, ndim=1] point ,
- *                             double constant ):
+ *                             np.float32_t constant ):
  */
 
 static PyObject *__pyx_pw_6cthree_7cPlane_distanceToPoint(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, double __pyx_v_constant, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  __pyx_t_5numpy_float32_t __pyx_v_rx;
-  __pyx_t_5numpy_float32_t __pyx_v_ry;
-  __pyx_t_5numpy_float32_t __pyx_v_rz;
+static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, __pyx_t_5numpy_float32_t __pyx_v_constant, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_normal;
   __Pyx_Buffer __pyx_pybuffer_normal;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_point;
@@ -3793,48 +3790,21 @@ static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *__pyx_v_n
   }
   __pyx_pybuffernd_point.diminfo[0].strides = __pyx_pybuffernd_point.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_point.diminfo[0].shape = __pyx_pybuffernd_point.rcbuffer->pybuffer.shape[0];
 
-  /* "cthree.pyx":177
+  /* "cthree.pyx":176
+ *                             np.float32_t constant ):
  * 
- *     cdef np.float32_t rx, ry, rz
- *     rx = normal[0] * point[0]             # <<<<<<<<<<<<<<
- *     ry = normal[1] * point[1]
- *     rz = normal[2] * point[2]
- */
-  __pyx_t_1 = 0;
-  __pyx_t_2 = 0;
-  __pyx_v_rx = ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_1, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_2, __pyx_pybuffernd_point.diminfo[0].strides)));
-
-  /* "cthree.pyx":178
- *     cdef np.float32_t rx, ry, rz
- *     rx = normal[0] * point[0]
- *     ry = normal[1] * point[1]             # <<<<<<<<<<<<<<
- *     rz = normal[2] * point[2]
- * 
- */
-  __pyx_t_3 = 1;
-  __pyx_t_4 = 1;
-  __pyx_v_ry = ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_point.diminfo[0].strides)));
-
-  /* "cthree.pyx":179
- *     rx = normal[0] * point[0]
- *     ry = normal[1] * point[1]
- *     rz = normal[2] * point[2]             # <<<<<<<<<<<<<<
- * 
- *     return rx + ry + rz + constant
- */
-  __pyx_t_5 = 2;
-  __pyx_t_6 = 2;
-  __pyx_v_rz = ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_point.diminfo[0].strides)));
-
-  /* "cthree.pyx":181
- *     rz = normal[2] * point[2]
- * 
- *     return rx + ry + rz + constant             # <<<<<<<<<<<<<<
+ *     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant             # <<<<<<<<<<<<<<
  * 
  * cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_7 = PyFloat_FromDouble((((__pyx_v_rx + __pyx_v_ry) + __pyx_v_rz) + __pyx_v_constant)); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_1 = 0;
+  __pyx_t_2 = 0;
+  __pyx_t_3 = 1;
+  __pyx_t_4 = 1;
+  __pyx_t_5 = 2;
+  __pyx_t_6 = 2;
+  __pyx_t_7 = PyFloat_FromDouble((((((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_1, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_2, __pyx_pybuffernd_point.diminfo[0].strides))) + ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_point.diminfo[0].strides)))) + ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_normal.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_normal.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_point.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_point.diminfo[0].strides)))) + __pyx_v_constant)); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_r = __pyx_t_7;
   __pyx_t_7 = 0;
@@ -3845,7 +3815,7 @@ static PyObject *__pyx_f_6cthree_cPlane_distanceToPoint(PyArrayObject *__pyx_v_n
  * """
  * cpdef cPlane_distanceToPoint(np.ndarray[np.float32_t, ndim=1] normal ,             # <<<<<<<<<<<<<<
  *                             np.ndarray[np.float32_t, ndim=1] point ,
- *                             double constant ):
+ *                             np.float32_t constant ):
  */
 
   /* function exit code */
@@ -3875,7 +3845,7 @@ static PyObject *__pyx_pw_6cthree_7cPlane_distanceToPoint(PyObject *__pyx_self, 
 static PyObject *__pyx_pw_6cthree_7cPlane_distanceToPoint(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_normal = 0;
   PyArrayObject *__pyx_v_point = 0;
-  double __pyx_v_constant;
+  __pyx_t_5numpy_float32_t __pyx_v_constant;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cPlane_distanceToPoint (wrapper)", 0);
@@ -3925,7 +3895,7 @@ static PyObject *__pyx_pw_6cthree_7cPlane_distanceToPoint(PyObject *__pyx_self, 
     }
     __pyx_v_normal = ((PyArrayObject *)values[0]);
     __pyx_v_point = ((PyArrayObject *)values[1]);
-    __pyx_v_constant = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_constant == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 174, __pyx_L3_error)
+    __pyx_v_constant = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_constant == ((npy_float32)-1)) && PyErr_Occurred())) __PYX_ERR(0, 174, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -3948,7 +3918,7 @@ static PyObject *__pyx_pw_6cthree_7cPlane_distanceToPoint(PyObject *__pyx_self, 
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cthree_6cPlane_distanceToPoint(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, double __pyx_v_constant) {
+static PyObject *__pyx_pf_6cthree_6cPlane_distanceToPoint(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_normal, PyArrayObject *__pyx_v_point, __pyx_t_5numpy_float32_t __pyx_v_constant) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_normal;
   __Pyx_Buffer __pyx_pybuffer_normal;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_point;
@@ -4004,8 +3974,8 @@ static PyObject *__pyx_pf_6cthree_6cPlane_distanceToPoint(CYTHON_UNUSED PyObject
   return __pyx_r;
 }
 
-/* "cthree.pyx":183
- *     return rx + ry + rz + constant
+/* "cthree.pyx":178
+ *     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
  * 
  * cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):             # <<<<<<<<<<<<<<
  *     """
@@ -4025,52 +3995,52 @@ static PyObject *__pyx_f_6cthree_cUpdateValueArrayElement(PY_LONG_LONG __pyx_v_b
   PY_LONG_LONG __pyx_t_4;
   __Pyx_RefNannySetupContext("cUpdateValueArrayElement", 0);
 
-  /* "cthree.pyx":192
+  /* "cthree.pyx":187
  *     :return:
  *     """
  *     cdef long offset = self.offset             # <<<<<<<<<<<<<<
  *     cdef long element_size = self.element_size
  *     cdef long long data = value.elements.ctypes.data
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_offset); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_offset); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 187, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 192, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 187, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_offset = __pyx_t_2;
 
-  /* "cthree.pyx":193
+  /* "cthree.pyx":188
  *     """
  *     cdef long offset = self.offset
  *     cdef long element_size = self.element_size             # <<<<<<<<<<<<<<
  *     cdef long long data = value.elements.ctypes.data
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_element_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_element_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_element_size = __pyx_t_2;
 
-  /* "cthree.pyx":194
+  /* "cthree.pyx":189
  *     cdef long offset = self.offset
  *     cdef long element_size = self.element_size
  *     cdef long long data = value.elements.ctypes.data             # <<<<<<<<<<<<<<
  * 
  *     memcpy(<void *>(buffer + offset + element * element_size), <void *>data, element_size)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_value, __pyx_n_s_elements); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_value, __pyx_n_s_elements); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_ctypes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_ctypes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_4 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 194, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_As_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_4 == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_data = __pyx_t_4;
 
-  /* "cthree.pyx":196
+  /* "cthree.pyx":191
  *     cdef long long data = value.elements.ctypes.data
  * 
  *     memcpy(<void *>(buffer + offset + element * element_size), <void *>data, element_size)             # <<<<<<<<<<<<<<
@@ -4079,8 +4049,8 @@ static PyObject *__pyx_f_6cthree_cUpdateValueArrayElement(PY_LONG_LONG __pyx_v_b
  */
   (void)(memcpy(((void *)((__pyx_v_buffer + __pyx_v_offset) + (__pyx_v_element * __pyx_v_element_size))), ((void *)__pyx_v_data), __pyx_v_element_size));
 
-  /* "cthree.pyx":183
- *     return rx + ry + rz + constant
+  /* "cthree.pyx":178
+ *     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
  * 
  * cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):             # <<<<<<<<<<<<<<
  *     """
@@ -4139,23 +4109,23 @@ static PyObject *__pyx_pw_6cthree_9cUpdateValueArrayElement(PyObject *__pyx_self
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_self)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 1); __PYX_ERR(0, 183, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 1); __PYX_ERR(0, 178, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_element)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 2); __PYX_ERR(0, 183, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 2); __PYX_ERR(0, 178, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 3); __PYX_ERR(0, 183, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, 3); __PYX_ERR(0, 178, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cUpdateValueArrayElement") < 0)) __PYX_ERR(0, 183, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cUpdateValueArrayElement") < 0)) __PYX_ERR(0, 178, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -4165,14 +4135,14 @@ static PyObject *__pyx_pw_6cthree_9cUpdateValueArrayElement(PyObject *__pyx_self
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_buffer = __Pyx_PyInt_As_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_buffer == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 183, __pyx_L3_error)
+    __pyx_v_buffer = __Pyx_PyInt_As_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_buffer == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 178, __pyx_L3_error)
     __pyx_v_self = values[1];
-    __pyx_v_element = __Pyx_PyInt_As_PY_LONG_LONG(values[2]); if (unlikely((__pyx_v_element == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 183, __pyx_L3_error)
+    __pyx_v_element = __Pyx_PyInt_As_PY_LONG_LONG(values[2]); if (unlikely((__pyx_v_element == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 178, __pyx_L3_error)
     __pyx_v_value = values[3];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 183, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("cUpdateValueArrayElement", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 178, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cthree.cUpdateValueArrayElement", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4191,7 +4161,7 @@ static PyObject *__pyx_pf_6cthree_8cUpdateValueArrayElement(CYTHON_UNUSED PyObje
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("cUpdateValueArrayElement", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_6cthree_cUpdateValueArrayElement(__pyx_v_buffer, __pyx_v_self, __pyx_v_element, __pyx_v_value, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_6cthree_cUpdateValueArrayElement(__pyx_v_buffer, __pyx_v_self, __pyx_v_element, __pyx_v_value, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4208,7 +4178,7 @@ static PyObject *__pyx_pf_6cthree_8cUpdateValueArrayElement(CYTHON_UNUSED PyObje
   return __pyx_r;
 }
 
-/* "cthree.pyx":198
+/* "cthree.pyx":193
  *     memcpy(<void *>(buffer + offset + element * element_size), <void *>data, element_size)
  * 
  * cpdef cUpdateValueMat3ArrayElement(long long buffer, int offset, long long element, long long element_size, long long data, long long size):             # <<<<<<<<<<<<<<
@@ -4223,7 +4193,7 @@ static PyObject *__pyx_f_6cthree_cUpdateValueMat3ArrayElement(PY_LONG_LONG __pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cUpdateValueMat3ArrayElement", 0);
 
-  /* "cthree.pyx":202
+  /* "cthree.pyx":197
  *     Mat3 are stored as 3 rows of vec4 in STD140
  *     """
  *     cdef long long start = buffer + offset + element * element_size             # <<<<<<<<<<<<<<
@@ -4232,7 +4202,7 @@ static PyObject *__pyx_f_6cthree_cUpdateValueMat3ArrayElement(PY_LONG_LONG __pyx
  */
   __pyx_v_start = ((__pyx_v_buffer + __pyx_v_offset) + (__pyx_v_element * __pyx_v_element_size));
 
-  /* "cthree.pyx":204
+  /* "cthree.pyx":199
  *     cdef long long start = buffer + offset + element * element_size
  * 
  *     memcpy(<void *>start, <void *>data, 12)             # <<<<<<<<<<<<<<
@@ -4241,7 +4211,7 @@ static PyObject *__pyx_f_6cthree_cUpdateValueMat3ArrayElement(PY_LONG_LONG __pyx
  */
   (void)(memcpy(((void *)__pyx_v_start), ((void *)__pyx_v_data), 12));
 
-  /* "cthree.pyx":205
+  /* "cthree.pyx":200
  * 
  *     memcpy(<void *>start, <void *>data, 12)
  *     memcpy(<void *>(start + 16), <void *>(data + 12), 12)             # <<<<<<<<<<<<<<
@@ -4249,14 +4219,14 @@ static PyObject *__pyx_f_6cthree_cUpdateValueMat3ArrayElement(PY_LONG_LONG __pyx
  */
   (void)(memcpy(((void *)(__pyx_v_start + 16)), ((void *)(__pyx_v_data + 12)), 12));
 
-  /* "cthree.pyx":206
+  /* "cthree.pyx":201
  *     memcpy(<void *>start, <void *>data, 12)
  *     memcpy(<void *>(start + 16), <void *>(data + 12), 12)
  *     memcpy(<void *>(start + 32), <void *>(data + 24), 12)             # <<<<<<<<<<<<<<
  */
   (void)(memcpy(((void *)(__pyx_v_start + 32)), ((void *)(__pyx_v_data + 24)), 12));
 
-  /* "cthree.pyx":198
+  /* "cthree.pyx":193
  *     memcpy(<void *>(buffer + offset + element * element_size), <void *>data, element_size)
  * 
  * cpdef cUpdateValueMat3ArrayElement(long long buffer, int offset, long long element, long long element_size, long long data, long long size):             # <<<<<<<<<<<<<<
@@ -4315,35 +4285,35 @@ static PyObject *__pyx_pw_6cthree_11cUpdateValueMat3ArrayElement(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_offset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 1); __PYX_ERR(0, 198, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 1); __PYX_ERR(0, 193, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_element)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 2); __PYX_ERR(0, 198, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 2); __PYX_ERR(0, 193, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_element_size)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 3); __PYX_ERR(0, 198, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 3); __PYX_ERR(0, 193, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 4); __PYX_ERR(0, 198, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 4); __PYX_ERR(0, 193, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_size)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 5); __PYX_ERR(0, 198, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, 5); __PYX_ERR(0, 193, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cUpdateValueMat3ArrayElement") < 0)) __PYX_ERR(0, 198, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cUpdateValueMat3ArrayElement") < 0)) __PYX_ERR(0, 193, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -4355,16 +4325,16 @@ static PyObject *__pyx_pw_6cthree_11cUpdateValueMat3ArrayElement(PyObject *__pyx
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_buffer = __Pyx_PyInt_As_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_buffer == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
-    __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
-    __pyx_v_element = __Pyx_PyInt_As_PY_LONG_LONG(values[2]); if (unlikely((__pyx_v_element == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
-    __pyx_v_element_size = __Pyx_PyInt_As_PY_LONG_LONG(values[3]); if (unlikely((__pyx_v_element_size == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
-    __pyx_v_data = __Pyx_PyInt_As_PY_LONG_LONG(values[4]); if (unlikely((__pyx_v_data == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
-    __pyx_v_size = __Pyx_PyInt_As_PY_LONG_LONG(values[5]); if (unlikely((__pyx_v_size == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L3_error)
+    __pyx_v_buffer = __Pyx_PyInt_As_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_buffer == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
+    __pyx_v_offset = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_offset == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
+    __pyx_v_element = __Pyx_PyInt_As_PY_LONG_LONG(values[2]); if (unlikely((__pyx_v_element == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
+    __pyx_v_element_size = __Pyx_PyInt_As_PY_LONG_LONG(values[3]); if (unlikely((__pyx_v_element_size == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyInt_As_PY_LONG_LONG(values[4]); if (unlikely((__pyx_v_data == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
+    __pyx_v_size = __Pyx_PyInt_As_PY_LONG_LONG(values[5]); if (unlikely((__pyx_v_size == (PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 198, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("cUpdateValueMat3ArrayElement", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 193, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cthree.cUpdateValueMat3ArrayElement", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4383,7 +4353,7 @@ static PyObject *__pyx_pf_6cthree_10cUpdateValueMat3ArrayElement(CYTHON_UNUSED P
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("cUpdateValueMat3ArrayElement", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_6cthree_cUpdateValueMat3ArrayElement(__pyx_v_buffer, __pyx_v_offset, __pyx_v_element, __pyx_v_element_size, __pyx_v_data, __pyx_v_size, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_6cthree_cUpdateValueMat3ArrayElement(__pyx_v_buffer, __pyx_v_offset, __pyx_v_element, __pyx_v_element_size, __pyx_v_data, __pyx_v_size, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;

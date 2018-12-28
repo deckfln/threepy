@@ -139,3 +139,9 @@ class Plane:
 
     def equals(self, plane ):
         return plane.normal.equals( self.normal ) and ( plane.constant == self.constant )
+
+    def toArray(self, array, i=0):
+        array[i] = self.normal.np[0]
+        array[i+1] = self.normal.np[1]
+        array[i+2] = self.normal.np[2]
+        array[i+3] = self.constant

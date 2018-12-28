@@ -7,7 +7,6 @@
 """
 from THREE.math.Plane import *
 from THREE.objects.BoundingSphere import *
-
 from THREE.cython.cFrustum import cFrustum_intersectsSphere
 
 _cython = True
@@ -29,13 +28,23 @@ class Frustum:
         self.updated = True        # was the frustum updated since the last frame
         self._cache = {}            # if the frusturm was not updated and the object were not updated,
                                     # pick the intersection from the cache
-        self.visible_spheres = []
-        self.invisible_spheres = []
+
+        self._planes = np.zeros(6 * 4, np.float32)
+        self._transpose()
 
     def is_updated(self):
         u = self.updated
         self.updated = False
         return u
+
+    def _transpose(self):
+        i = 0
+        planes = self.planes
+        _planes = self._planes
+
+        for j in range(6):
+            planes[j].toArray(_planes, i)
+            i += 4
 
     def set(self, p0, p1, p2, p3, p4, p5 ):
         planes = self.planes
@@ -47,6 +56,7 @@ class Frustum:
         planes[ 4 ].copy( p4 )
         planes[ 5 ].copy( p5 )
 
+        self._transpose()
         self.updated = True
         return self
 
@@ -59,6 +69,7 @@ class Frustum:
         for i in range(6):
             planes[ i ].copy( frustum.planes[ i ] )
 
+        self._transpose()
         self.updated = True
         return self
 
@@ -79,30 +90,11 @@ class Frustum:
             planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize()
             planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize()
             planes[ 5 ].setComponents( me3 + me2, me7 + me6, me11 + me10, me15 + me14 ).normalize()
+
+            self._transpose()
             self.updated = True
 
         return self
-
-    def reset_visible_spheres(self):
-        self.visible_spheres.clear()
-        self.invisible_spheres.clear()
-
-    @staticmethod
-    def optimize_spheres(sphere, r, spheres):
-        # the _sphere is entirely visible
-        # extrapolate the biggest visible sphere from it center
-        new_sphere = Sphere(sphere.center.clone(), r)
-
-        # optimize the spheres (check if some are included in others)
-        for i in range(len(spheres) - 1, -1, -1):
-            s = spheres[i]
-
-            if s.isIncludedIn(new_sphere):
-                del spheres[i]
-
-        spheres.append(new_sphere)
-
-        spheres.sort(key=lambda sphere: sphere.radius, reverse=True)
 
     def intersectsObject(self, object):
         geometry = object.geometry
@@ -115,37 +107,10 @@ class Frustum:
             if geometry.boundingSphere is None:
                 geometry.computeBoundingSphere()
 
-            _sphere.copy( geometry.boundingSphere )
-            _sphere.applyMatrix4( object.matrixWorld )
-
-            # check if the object is in an existing visible sphere
-            found = False
-            for s in self.visible_spheres:
-                if _sphere.isIncludedIn(s):
-                    self._cache[object.id] = 1
-                    found = True
-                    break
-
-            if not found:
-                # check if the object is in an existing invisible sphere
-                for s in self.invisible_spheres:
-                    if _sphere.isIncludedIn(s):
-                        self._cache[object.id] = -1
-                        found = True
-                        break
-
-                if not found:
-                    r = self.intersectsSphere(_sphere)
-
-                    if r >= 0:
-                        self.optimize_spheres(_sphere, r, self.visible_spheres)
-                    else:
-                        self.optimize_spheres(_sphere, -r, self.invisible_spheres)
-
-                    self._cache[object.id] = r
+            _sphere.applyMatrix4To(object.matrixWorld, geometry.boundingSphere)
 
             self._cache[object.id] = self.intersectsSphere( _sphere)
-        return self._cache[object.id] >= 0
+        return self._cache[object.id]
 
     def intersectsOctree(self, octree):
         # only compute the intersection if
@@ -192,8 +157,8 @@ class Frustum:
     def intersectsSphere(self, sphere):
         global _cython
 
-        if False:
-            return cFrustum_intersectsSphere(self.planes, sphere)
+        if _cython:
+            return cFrustum_intersectsSphere(self, sphere)
         else:
             return self._intersectsSphere(sphere)
 
@@ -207,19 +172,25 @@ class Frustum:
         center = sphere.center
         negRadius = - sphere.radius
 
-        shortest = float("+inf")    # shortest distance to a plance
-                                    # equivalent to the biggest entirely visible sphere
+        if sphere.cache >= 0:
+            plane = planes[sphere.cache]
+            distance = plane.distanceToPoint(center)
+            if distance < negRadius:
+                return False
+
         for p in range(6):
+            if p == sphere.cache:
+                continue
+
             plane = planes[p]
             distance = plane.distanceToPoint( center )
 
             if distance < negRadius:
-                return distance
+                sphere.cache = p
+                return False
 
-            if distance < shortest:
-                shortest = distance
-
-        return shortest
+        sphere.cache = -1
+        return True
 
     def intersectsBox(self, box):
         planes = self.planes

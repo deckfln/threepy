@@ -1,8 +1,9 @@
 // https://www.gamedev.net/articles/programming/general-and-gameplay-programming/frustum-culling-r4613/
+#include <xmmintrin.h>
+#include <emmintrin.h>
 
-void sse_culling_spheres(BSphere *sphere_data, int num_objects, int *culling_res, vec4 *frustum_planes)
+void sse_culling_spheres(float *spheres, int num_objects, int *culling_res, float *frustum_planes)
 {
-	float *sphere_data_ptr = reinterpret_cast(&sphere_data[0]);
 	int *culling_res_sse = &culling_res[0];
 
 	//to optimize calculations we gather xyzw elements in separate vectors
@@ -15,23 +16,24 @@ void sse_culling_spheres(BSphere *sphere_data, int num_objects, int *culling_res
 	int i, j;
 	for (i = 0; i < 6; i++)
 	{
-		frustum_planes_x = _mm_set1_ps(frustum_planes.x);
-		frustum_planes_y = _mm_set1_ps(frustum_planes.y);
-		frustum_planes_z = _mm_set1_ps(frustum_planes.z);
-		frustum_planes_d = _mm_set1_ps(frustum_planes.w);
+	    j = i *4;
+		frustum_planes_x[i] = _mm_set1_ps(frustum_planes[j]);
+		frustum_planes_y[i] = _mm_set1_ps(frustum_planes[j + 1]);
+		frustum_planes_z[i] = _mm_set1_ps(frustum_planes[j + 2]);
+		frustum_planes_d[i] = _mm_set1_ps(frustum_planes[j + 3]);
 	}
 
 	//we process 4 objects per step
 	for (i = 0; i < num_objects; i += 4)
 	{
-	//load bounding sphere data
-		__m128 spheres_pos_x = _mm_load_ps(sphere_data_ptr);
-		__m128 spheres_pos_y = _mm_load_ps(sphere_data_ptr + 4);
-		__m128 spheres_pos_z = _mm_load_ps(sphere_data_ptr + 8);
-		__m128 spheres_radius = _mm_load_ps(sphere_data_ptr + 12);
-		sphere_data_ptr += 16;
+    	//load bounding sphere data
+		__m128 spheres_pos_x = _mm_load_ps(spheres);
+		__m128 spheres_pos_y = _mm_load_ps(spheres + 4);
+		__m128 spheres_pos_z = _mm_load_ps(spheres + 8);
+		__m128 spheres_radius = _mm_load_ps(spheres + 12);
+		spheres += 16;
 
-	//but for our calculations we need transpose data, to collect x, y, z and w coordinates in separate vectors
+	    //but for our calculations we need transpose data, to collect x, y, z and w coordinates in separate vectors
 		_MM_TRANSPOSE4_PS(spheres_pos_x, spheres_pos_y, spheres_pos_z, spheres_radius);
 		__m128 spheres_neg_radius = _mm_sub_ps(zero_v, spheres_radius); // negate all elements
 
@@ -55,5 +57,6 @@ void sse_culling_spheres(BSphere *sphere_data, int num_objects, int *culling_res
 		//store result
 		__m128i intersection_res_i = _mm_cvtps_epi32(intersection_res);
 		_mm_store_si128((__m128i *)&culling_res_sse, intersection_res_i);
+		culling_res_sse += 4;
 	}
 }

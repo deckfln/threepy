@@ -826,9 +826,7 @@ class pyOpenGLRenderer:
 
         # update octree and get visible objects
         visible_objects = []
-        self._frustum.reset_visible_spheres()
         self._cull_objects(scene, camera, self.sortObjects, visible_objects)
-        # print(len(self._frustum.visible_spheres) , len(self._frustum.invisible_spheres))
 
         # project and update visible meshes
         for obj in visible_objects:

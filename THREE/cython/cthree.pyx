@@ -171,14 +171,9 @@ Plane
 """
 cpdef cPlane_distanceToPoint(np.ndarray[np.float32_t, ndim=1] normal ,
                             np.ndarray[np.float32_t, ndim=1] point ,
-                            double constant ):
+                            np.float32_t constant ):
 
-    cdef np.float32_t rx, ry, rz
-    rx = normal[0] * point[0]
-    ry = normal[1] * point[1]
-    rz = normal[2] * point[2]
-
-    return rx + ry + rz + constant
+    return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
 
 cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):
     """
