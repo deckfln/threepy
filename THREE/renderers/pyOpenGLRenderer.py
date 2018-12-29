@@ -767,7 +767,7 @@ class pyOpenGLRenderer:
 
     # Rendering
 
-    def render(self, scene, camera, renderTarget=None, forceClear=False):
+    def render(self, scene: Scene, camera: Camera, renderTarget=None, forceClear=False):
         """
         :param scene:
         :param camera:
@@ -851,8 +851,11 @@ class pyOpenGLRenderer:
 
         # update the shared uniforms
 
-        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
-        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        if camera.projectionMatrix.updated:
+            self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+
+        if camera.matrixWorldInverse.updated:
+                self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
 
         lights = self.renderStates.get(scene, camera).lights
         lights.update_uniform_block(self.uniformBlocks)
@@ -945,9 +948,11 @@ class pyOpenGLRenderer:
         self.currentRenderState = None
 
         # clean all updated flags
-        scene.reset_update_flags()
-        camera.reset_update_flags()
-        self._frustum.is_updated()
+        # but NOT during the 2 first frames. Shaders and all are still loading
+        if self.info.render.frame > 2:
+            scene.reset_update_flags()
+            camera.reset_update_flags()
+            self._frustum.is_updated()
 
     def _cull_objects_octree(self, scene, camera, sortObjects, visible):
         self.octree.update(scene)
@@ -2041,14 +2046,14 @@ class pyOpenGLRenderer:
             id = obj.id
             params[0].update_array_element("modelMatrices", id, matrixWorld)
 
-            if params[3]:
-                modelViewMatrix = obj.modelViewMatrix
-                normalMatrix = obj.normalMatrix
-                modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld)
-                normalMatrix.getNormalMatrix(modelViewMatrix)
+        if params[3] or matrixWorld.updated:
+            modelViewMatrix = obj.modelViewMatrix
+            normalMatrix = obj.normalMatrix
+            modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld)
+            normalMatrix.getNormalMatrix(modelViewMatrix)
 
-                params[1].update_array_element('modelViewMatrices', id, modelViewMatrix)
-                params[2].update_array_element('normalMatrices', id, normalMatrix)
+            params[1].update_array_element('modelViewMatrices', id, modelViewMatrix)
+            params[2].update_array_element('normalMatrices', id, normalMatrix)
 
     def _instantiateObjects(self, scene, objects, target):
         for k in objects.keys():

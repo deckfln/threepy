@@ -11,6 +11,8 @@ import sys
 from datetime import datetime
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.pyOpenGL.pyGUI import *
+from THREE.pyOpenGL.widgets.Stats import *
 
 
 class Params:
@@ -23,51 +25,55 @@ class Params:
         self.mesh1 = None
 
         
-def init(params):
-    params.container = pyOpenGL(params)
+def init(p):
+    p.container = pyOpenGL(p)
 
-    params.camera = THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000)
-    params.camera.position.z = 400
+    p.camera = THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000)
+    p.camera.position.z = 400
 
-    params.scene = THREE.Scene()
+    p.scene = THREE.Scene()
     texture = THREE.TextureLoader().load('textures/crate.gif')
 
     light = THREE.PointLight( 0xffffff )
-    light.position.copy( params.camera.position )
-    params.scene.add( light )
+    light.position.copy( p.camera.position )
+    p.scene.add( light )
 
     geometry = THREE.BoxBufferGeometry(200, 200, 200)
     material = THREE.MeshLambertMaterial({'map': texture})
 
-    params.mesh = THREE.Mesh(geometry, material)
-    params.scene.add(params.mesh)
+    p.mesh = THREE.Mesh(geometry, material)
+    p.scene.add(p.mesh)
 
-    params.mesh1 = THREE.Mesh(geometry, material)
-    params.mesh1.position.x = 50
-    params.mesh1.position.y = 50
-    params.mesh1.name = "extras"
-    params.scene.add(params.mesh1)
+    p.mesh1 = THREE.Mesh(geometry, material)
+    p.mesh1.position.x = 50
+    p.mesh1.position.y = 50
+    p.mesh1.name = "extras"
+    p.scene.add(p.mesh1)
 
-    params.renderer = params.renderer = THREE.pyOpenGLRenderer({'antialias': True})
-    params.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer = p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
 
     # //
 
-    params.container.addEventListener( 'resize', onWindowResize, False )
+    p.container.addEventListener( 'resize', onWindowResize, False )
+
+    p.gui = pyGUI(p.renderer)
+    p.gui.add(Stats())
 
 
-def onWindowResize(event, params):
-    params.camera.aspect = window.innerWidth / window.innerHeight
-    params.camera.updateProjectionMatrix()
+def onWindowResize(event, p):
+    p.camera.aspect = window.innerWidth / window.innerHeight
+    p.camera.updateProjectionMatrix()
 
-    params.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer.setSize( window.innerWidth, window.innerHeight )
 
     
-def animate(params):
-    params.mesh.rotation.x += 0.005
-    params.mesh.rotation.y += 0.01
+def animate(p):
+    p.mesh.rotation.x += 0.005
+    p.mesh.rotation.y += 0.01
 
-    params.renderer.render( params.scene, params.camera )
+    p.renderer.render( p.scene, p.camera )
+    p.gui.update()
 
     
 def main(argv=None):

@@ -54,7 +54,8 @@ class Camera(Object3D):
 
     def reset_update_flags(self):
         super().reset_update_flags()
-        self.matrixWorldInverse.is_updated()
+        self.matrixWorldInverse.updated = False
+        self.projectionMatrix.updated = False
 
     def clone(self, recursive=True):
         return type(self)().copy(self, recursive)
