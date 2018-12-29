@@ -118,7 +118,7 @@ def _updateValueArrayElement(self, value, buffer, element):
     """
     global _cython
     if _cython:
-        cUpdateValueArrayElement(buffer, self, element, value)
+        cUpdateValueArrayElement(self, value, buffer, element)
     else:
         ctypes.memmove(buffer + int(self.offset + element * self.element_size), value.elements.ctypes.data, self.size)
 
@@ -129,7 +129,7 @@ def _updateValueMat3ArrayElement(self, value, buffer, element):
     """
     global _cython
     if _cython:
-        cUpdateValueMat3ArrayElement(buffer, self.offset, element, self.element_size, value.elements.ctypes.data, self.size)
+        cUpdateValueMat3ArrayElement(self, value, buffer, element)
     else:
         start = buffer + int(self.offset + element * self.element_size)
 
@@ -372,6 +372,12 @@ class pyOpenGLUniformBlock:
         glUnmapBuffer(GL_UNIFORM_BUFFER)
         self.buffer = None
 
+    def get_uniform(self, uniform):
+        if uniform in self.uniforms:
+            return self.uniforms[uniform]
+
+        return None
+
     def update_array_element(self, name, index, value):
         uniform = self.uniforms[name]
         uniform._update_array_element(uniform, value, self.buffer, index)
@@ -429,6 +435,19 @@ class pyOpenGLUniformBlocks:
             return self.uniforms[name].uploaded
 
         return True
+
+    def get_uniform(self, uniform):
+        if uniform in self.uniforms:
+            block = self.uniforms[uniform].block()
+            return block.get_uniform(uniform)
+
+        return None
+
+    def get_block(self, uniform):
+        if uniform in self.uniforms:
+            return self.uniforms[uniform].block()
+
+        return None
 
     def set_value(self, uniform, value):
         if uniform in self.uniforms:

@@ -66,6 +66,7 @@ cpdef cMatrix4_sse_multiplyMatrices(object self, object a, object b):
     cdef float *af = &ae[0]
     cdef float *bf = &be[0]
     cdef float *cf = &te[0]
+
     M4x4(af, bf, cf)
 
 

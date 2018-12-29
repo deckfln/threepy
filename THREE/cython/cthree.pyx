@@ -175,7 +175,7 @@ cpdef cPlane_distanceToPoint(np.ndarray[np.float32_t, ndim=1] normal ,
 
     return normal[0] * point[0] + normal[1] * point[1] + normal[2] * point[2] + constant
 
-cpdef cUpdateValueArrayElement(long long buffer, object self, long long element, object value):
+cpdef cUpdateValueArrayElement(self, value, long long buffer, long long element):
     """
     Update a single uniform in an array of uniforms
     :param self:
@@ -184,18 +184,22 @@ cpdef cUpdateValueArrayElement(long long buffer, object self, long long element,
     :param element:
     :return:
     """
-    cdef long offset = self.offset
-    cdef long element_size = self.element_size
-    cdef long long data = value.elements.ctypes.data
+    cdef long long offset = self.offset
+    cdef long long element_size = self.element_size
+    cdef np.ndarray[np.float32_t, ndim=1] data = value.elements
 
-    memcpy(<void *>(buffer + offset + element * element_size), <void *>data, element_size)
+    memcpy(<void *>(buffer + offset + element * element_size), <void *>&data[0], element_size)
 
-cpdef cUpdateValueMat3ArrayElement(long long buffer, int offset, long long element, long long element_size, long long data, long long size):
+cpdef cUpdateValueMat3ArrayElement(self, value, long long buffer, long long element):
     """
     Mat3 are stored as 3 rows of vec4 in STD140
     """
+    cdef long long offset = self.offset
+    cdef long long element_size = self.element_size
     cdef long long start = buffer + offset + element * element_size
+    #cdef long long data = value.elements.ctypes.data
+    cdef np.ndarray[np.float32_t, ndim=1] data = value.elements
 
-    memcpy(<void *>start, <void *>data, 12)
-    memcpy(<void *>(start + 16), <void *>(data + 12), 12)
-    memcpy(<void *>(start + 32), <void *>(data + 24), 12)
+    memcpy(<void *>start, <void *>&data[0], 12)
+    memcpy(<void *>(start + 16), <void *>&data[3], 12)
+    memcpy(<void *>(start + 32), <void *>&data[6], 12)

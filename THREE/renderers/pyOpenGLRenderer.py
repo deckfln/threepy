@@ -2001,6 +2001,19 @@ class pyOpenGLRenderer:
         :param camera:
         :return:
         """
+        uniformBlocks = self.uniformBlocks
+        cameraUpdated = camera.matrixWorldInverse.updated
+
+        modelMatrices = uniformBlocks.get_block("modelMatrices")
+        modelViewMatrices = uniformBlocks.get_block("modelViewMatrices")
+        normalMatrices = uniformBlocks.get_block("normalMatrices")
+
+        if modelMatrices is None:
+            # shaders are not yet loaded
+            return
+
+        params = (modelMatrices, modelViewMatrices, normalMatrices, cameraUpdated)
+
         for renderItem in renderList:
             object = renderItem.object
             group = renderItem.group
@@ -2009,11 +2022,11 @@ class pyOpenGLRenderer:
                 raise RuntimeError("cannot update objects for multiple cameras")
                 cameras = camera.cameras
                 for camera2 in cameras:
-                    self._updateObject(object, scene, camera2, group)
+                    self._updateObject(object, camera2, group, params)
             else:
-                self._updateObject(object, scene, camera, group)
+                self._updateObject(object, camera, group, params)
 
-    def _updateObject(self, object, scene, camera, group):
+    def _updateObject(self, obj: Object3D, camera, group, params):
         """
         update the object matrices
         :param object:
@@ -2022,15 +2035,20 @@ class pyOpenGLRenderer:
         :param group:
         :return:
         """
-        if object.matrixWorld.updated:
-            self.uniformBlocks.set_array_value('modelMatrices', object.id, object.matrixWorld)
+        matrixWorld = obj.matrixWorld
 
-            if camera.matrixWorldInverse.updated:
-                object.modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
-                object.normalMatrix.getNormalMatrix(object.modelViewMatrix)
+        if matrixWorld.updated:
+            id = obj.id
+            params[0].update_array_element("modelMatrices", id, matrixWorld)
 
-                self.uniformBlocks.set_array_value('modelViewMatrices', object.id, object.modelViewMatrix)
-                self.uniformBlocks.set_array_value('normalMatrices', object.id, object.normalMatrix)
+            if params[3]:
+                modelViewMatrix = obj.modelViewMatrix
+                normalMatrix = obj.normalMatrix
+                modelViewMatrix.multiplyMatrices(camera.matrixWorldInverse, matrixWorld)
+                normalMatrix.getNormalMatrix(modelViewMatrix)
+
+                params[1].update_array_element('modelViewMatrices', id, modelViewMatrix)
+                params[2].update_array_element('normalMatrices', id, normalMatrix)
 
     def _instantiateObjects(self, scene, objects, target):
         for k in objects.keys():

@@ -140,7 +140,7 @@ class Matrix3(pyOpenGLObject):
     def getInverse(self, matrix, throwOnDegenerate=None):
         global _cython
         if _cython:
-            cMatrix3_getInverse(self.elements, matrix.elements)
+            cMatrix3_getInverse(self, matrix)
         else:
             self._getInverse(matrix)
         self.updated = True

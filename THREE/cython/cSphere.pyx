@@ -53,10 +53,14 @@ cpdef cSphere_applyMatrix4(object self, object matrix):
     self.radius = radius * sqrt(max(x, y, z))
 
 cpdef cSphere_applyMatrix4To(self, matrix, source):
-    cdef np.ndarray[np.float32_t, ndim=1] center = self.center.np
-    cdef np.ndarray[np.float32_t, ndim=1] center1 = source.center.np
-    cdef np.ndarray[np.float32_t, ndim=1] matrix4 = matrix.elements
+    cdef np.ndarray[np.float32_t, ndim=1] ncenter = self.center.np
+    cdef np.ndarray[np.float32_t, ndim=1] ncenter1 = source.center.np
+    cdef np.ndarray[np.float32_t, ndim=1] nmatrix4 = matrix.elements
     cdef float radius = self.radius
+
+    cdef float *center = <float *>&ncenter[0]
+    cdef float *center1 = <float *>&ncenter1[0]
+    cdef float *matrix4 = <float *>&nmatrix4[0]
 
     center[0] = center1[0]
     center[1] = center1[1]
