@@ -99,7 +99,7 @@ def init(p):
     #objectGeometry = THREE.SphereGeometry( 1.5, 16, 8 )
     objectGeometry = THREE.TorusGeometry(1.5, 0.4, 8, 16)
 
-    for i in range(1):
+    for i in range(1000):
         mesh = THREE.Mesh( objectGeometry, objectMaterial)
 
         mesh.position.set(400 * (0.5 - random.random()),

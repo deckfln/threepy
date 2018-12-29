@@ -2041,9 +2041,9 @@ class pyOpenGLRenderer:
         :return:
         """
         matrixWorld = obj.matrixWorld
+        id = obj.id
 
         if matrixWorld.updated:
-            id = obj.id
             params[0].update_array_element("modelMatrices", id, matrixWorld)
 
         if params[3] or matrixWorld.updated:

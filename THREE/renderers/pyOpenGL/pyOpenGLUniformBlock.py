@@ -281,28 +281,50 @@ class pyOpenGLUniformBlock:
         self.buffer = None
 
         data_size = arrays.GLintArray.zeros((1,))
-        glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_DATA_SIZE, data_size)
+        # https://forge.univ-lyon1.fr/Alexandre.Meyer/gkit2light/commit/972d7fb4ed2cb8b36da81ba6e72219663f59cee4
+        # glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_DATA_SIZE, data_size)
+        glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, GL_BUFFER_DATA_SIZE, 1, None, data_size)
         self.size = data_size[0]
 
         active_uniforms = arrays.GLintArray.zeros((1,))
-        glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, active_uniforms)
+        # glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, active_uniforms)
+        glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, GL_NUM_ACTIVE_VARIABLES, 1, None, active_uniforms)
+        nbuniforms = active_uniforms[0]
 
-        indices = arrays.GLintArray.zeros((active_uniforms[0],))
-        glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices)
+        indices = arrays.GLintArray.zeros((nbuniforms,))
+        # glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices)
+        glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, GL_ACTIVE_VARIABLES, nbuniforms, None, indices)
 
-        offsets = arrays.GLintArray.zeros((active_uniforms[0],))
-        glGetActiveUniformsiv(program, active_uniforms[0], indices, GL_UNIFORM_OFFSET, offsets)
+        # offsets = arrays.GLintArray.zeros((nbuniforms,))
+        # glGetActiveUniformsiv(program, active_uniforms[0], indices, GL_UNIFORM_OFFSET, offsets)
 
         self.uniforms = {}
         pattern = '(.*)\[ *(\d)\ *]\.(.*)'
         last_index = -1
 
+        query = arrays.GLintArray.zeros((4,))
+        query[0] = GL_OFFSET
+        query[1] = GL_NAME_LENGTH
+        query[2] = GL_TYPE
+        query[3] = GL_ARRAY_SIZE
+
+        result = arrays.GLintArray.zeros((4,))
+
         for i in range(len(indices)):
             uniform_index = indices[i]
-            offset = offsets[i]
 
-            uname, elements, gltype = glGetActiveUniform(program, uniform_index)
-            uname = uname.decode("utf-8")
+            glGetProgramResourceiv(program, GL_UNIFORM, uniform_index, 4, query, 4, None, result)
+            offset = result[0]
+            name_len = result[1]
+            gltype = result[2]
+            elements = result[3]
+
+            uname = ctypes.create_string_buffer(int(name_len))
+            glGetProgramResourceName(program, GL_UNIFORM, uniform_index, name_len, None, uname)
+            uname = uname.value[:int(name_len)].decode("utf-8")
+
+            # uname, elements, gltype = glGetActiveUniform(program, uniform_index)
+            # uname = uname.decode("utf-8")
 
             # if elements > 0 and we see an indices
             # mark basic variables + numbers : "vec3 data[10]" => 10 elements of data[0]
@@ -407,14 +429,20 @@ class pyOpenGLUniformBlocks:
 
     def add(self, program, vertex, fragment):
         # list the uniforms block
-        ub = glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS)
+        ub = glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES)
+
+        query = arrays.GLintArray.zeros((1,))
+        query[0] = GL_NAME_LENGTH
+        length = arrays.GLintArray.zeros((1,))
 
         for index in range(ub):
-            length = arrays.GLintArray.zeros((1,))
-            glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_NAME_LENGTH, length)
+            # length = arrays.GLintArray.zeros((1,))
+            # glGetActiveUniformBlockiv(program, index, GL_UNIFORM_BLOCK_NAME_LENGTH, length)
+            glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, query, 1, None, length)
 
-            name = ctypes.create_string_buffer(int(length))
-            glGetActiveUniformBlockName(program, index, length, None, name)
+            name = ctypes.create_string_buffer(int(length[0]))
+            # glGetActiveUniformBlockName(program, index, length, None, name)
+            glGetProgramResourceName(program, GL_UNIFORM_BLOCK, index, length, None, name)
             name = name.value[:int(length)].decode("utf-8")
 
             if name not in self.uniform_blocks:
