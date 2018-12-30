@@ -313,21 +313,59 @@ class pyOpenGLProgram:
             if len(prefixFragment) > 0:
                 prefixFragment += '\n'
 
-            # compatibility mode with threejs
-            vertexShader = vertexShader.replace("uniform mat4 modelViewMatrix;", "#include <modelViewMatrix>")
-            vertexShader = vertexShader.replace("uniform mat4 modelMatrix;", "#include <modelMatrix>")
-            vertexShader = vertexShader.replace("uniform mat4 viewMatrix;", "")
-            vertexShader = vertexShader.replace("uniform mat4 projectionMatrix;", """layout (std140) uniform camera
+            # convert three.js shaders to THREEpy structures
+            if 'uniform mat4 modelMatrix' not in vertexShader:
+                vertexShader = vertexShader.replace(
+                    "uniform mat4 modelViewMatrix;",
+                    """
+                    uniform mat4 modelMatrix;
+                    uniform mat4 modelViewMatrix;
+                    """)
+
+            if 'objectID' not in vertexShader:
+                vertexShader = vertexShader.replace(
+                    "uniform mat4 modelMatrix;",
+                    """
+                    #ifdef USE_INSTANCES
+                        in int objectID;
+                    #else
+                        uniform int objectID;
+                    #endif
+                    uniform mat4 modelMatrix;
+                    """)
+
+            vertexShader = vertexShader.replace(
+                "uniform mat4 modelMatrix;",
+                "#include <modelMatrix>")
+
+            if 'viewMatrix' not in vertexShader:
+                vertexShader = vertexShader.replace(
+                    "uniform mat4 projectionMatrix;",
+                    ""
+                )
+                vertexShader = vertexShader.replace(
+                    "uniform mat4 modelViewMatrix;",
+                    """
+                    uniform mat4 projectionMatrix;
+                    uniform mat4 modelViewMatrix;
+                    """
+                )
+            vertexShader = vertexShader.replace(
+                "uniform mat4 viewMatrix;",
+                "")
+            vertexShader = vertexShader.replace(
+                "uniform mat4 projectionMatrix;",
+                """
+                layout (std140) uniform camera
                 {
                     uniform mat4 projectionMatrix;
                     uniform mat4 viewMatrix;
                 };
+                """)
 
-                #ifdef USE_INSTANCES
-                    in int objectID;
-                #else
-                    uniform int objectID;
-                #endif""")
+            vertexShader = vertexShader.replace(
+                "uniform mat4 modelViewMatrix;",
+                "#include <modelViewMatrix>")
 
         else:
             _prefixVertex = [
