@@ -129,8 +129,7 @@ class Sphere:
         if _cython:
             cSphere_applyMatrix4To(self, matrix, source)
         else:
-            self.center.copy(source.center)
-            self.radius = source.radius
-            self.applyMatrix4(matrix)
+            self.copy(source)
+            self._applyMatrix4(matrix)
 
         return self
