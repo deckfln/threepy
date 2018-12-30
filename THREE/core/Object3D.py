@@ -50,8 +50,8 @@ class Object3D(pyOpenGLObject):
         self._quaternion = Quaternion()
         self._quaternion.onChange(self.onQuaternionChange)
         self.scale = Vector3(1, 1, 1)
-        self.modelViewMatrix = Matrix4()
-        self.normalMatrix = Matrix3()
+        # self.modelViewMatrix = Matrix4()      # now computed live on the GPU
+        # self.normalMatrix = Matrix3()         # now computed live on the GPU
         self.matrix = Matrix4()
         self.matrixWorld = Matrix4()
 
@@ -373,8 +373,8 @@ class Object3D(pyOpenGLObject):
     def reset_update_flags(self):
         self.matrix.updated = False
         self.matrixWorld.updated = False
-        self.normalMatrix.updated = False
-        self.modelViewMatrix.updated = False
+        # self.normalMatrix.updated = False
+        # self.modelViewMatrix.updated = False
         self._quaternion.updated = False
         self.position.updated = False
         self.scale.updated = False

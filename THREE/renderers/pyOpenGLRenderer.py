@@ -503,7 +503,9 @@ class pyOpenGLRenderer:
         :param group:
         :return:
         """
-        frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
+        #FIXME: normalMatrix being computed live on the GPU, is this really needed ?
+        # frontFaceCW = object.my_class(isMesh) and object.normalMatrix.determinant() < 0
+        frontFaceCW = False
         self.state.setMaterial(material, frontFaceCW)
 
         # program = self._setProgram(camera, fog, material, object)
@@ -2046,6 +2048,8 @@ class pyOpenGLRenderer:
         if matrixWorld.updated:
             params[0].update_array_element("modelMatrices", id, matrixWorld)
 
+        """
+        Everything here has been moved to the GPU
         if params[3] or matrixWorld.updated:
             modelViewMatrix = obj.modelViewMatrix
             normalMatrix = obj.normalMatrix
@@ -2054,6 +2058,7 @@ class pyOpenGLRenderer:
 
             params[1].update_array_element('modelViewMatrices', id, modelViewMatrix)
             params[2].update_array_element('normalMatrices', id, normalMatrix)
+        """
 
     def _instantiateObjects(self, scene, objects, target):
         for k in objects.keys():

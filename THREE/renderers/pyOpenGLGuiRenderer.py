@@ -156,8 +156,6 @@ class pyOpenGLGuiRenderer:
 
             '#define SHADER_NAME %s ' % 'GUIMaterial',
 
-            'uniform mat4 modelViewMatrix;',
-            'uniform mat4 projectionMatrix;',
             'uniform vec2 uvOffset;',
 
             'attribute vec2 position;',
@@ -167,11 +165,6 @@ class pyOpenGLGuiRenderer:
             'void main() {',
 
                 'vUv = vec2((position.x + 1) / 2, (position.y + 1) / 2);'
-
-                'vec4 finalPosition;',
-
-                'finalPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );',
-                'finalPosition = projectionMatrix * finalPosition;',
 
                 'gl_Position = vec4(position.x, position.y, 0.0, 1.0);',
 

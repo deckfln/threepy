@@ -23,7 +23,7 @@ void main() {
 
 	vec4 mvPosition;
 
-	mvPosition = modelViewMatrices[objectID] * vec4( 0.0, 0.0, 0.0, 1.0 );
+	mvPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );
 	mvPosition.xy += rotatedPosition;
 
 	gl_Position = projectionMatrix * mvPosition;
