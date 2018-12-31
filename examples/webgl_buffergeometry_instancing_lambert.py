@@ -1,6 +1,10 @@
 """
     <title>three.js webgl - instancing - lambert shader</title>
 """
+import sys, os.path
+mango_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) )
+sys.path.append(mango_dir)
+
 import math
 from datetime import datetime
 import random
@@ -11,6 +15,8 @@ from THREE.pyOpenGL.pyOpenGL import *
 from THREE.controls.OrbitControls import *
 from THREE.renderers.shaders.ShaderLib import _shader_lib as _shader_lib
 from extra.CurveExtras import *
+from THREE.pyOpenGL.pyGUI import *
+from THREE.pyOpenGL.widgets.Stats import *
 
 # this is a cut-and-paste of the depth shader -- modified to accommodate instancing for this app
 
@@ -300,6 +306,8 @@ def init(p: Params):
     p.scene.add(ground)
     p.scene.add(p.mesh)
 
+    p.gui = pyGUI(p.renderer)
+    p.gui.add(Stats())
 
 
 def onWindowResize(event, params):
@@ -313,6 +321,7 @@ def animate(p: Params):
     p.mesh.rotation.y += 0.005
 
     p.renderer.render(p.scene, p.camera)
+    p.gui.update()
 
 
 def main(argv=None):

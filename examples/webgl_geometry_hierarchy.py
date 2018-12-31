@@ -18,7 +18,6 @@ from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.pyOpenGL.pyGUI import *
 from THREE.pyOpenGL.widgets.Stats import *
-from THREE.OcTree import *
 
 
 class Params:

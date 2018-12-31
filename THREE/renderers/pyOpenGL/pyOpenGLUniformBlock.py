@@ -385,14 +385,16 @@ class pyOpenGLUniformBlock:
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
     def lock(self):
-        glBindBuffer(GL_UNIFORM_BUFFER, self._buffer)
-        self.buffer = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY)
-        # glUnmapBuffer(GL_UNIFORM_BUFFER)
+        if self.buffer is None:
+            glBindBuffer(GL_UNIFORM_BUFFER, self._buffer)
+            self.buffer = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY)
+            # glUnmapBuffer(GL_UNIFORM_BUFFER)
 
     def unlock(self):
-        glBindBuffer(GL_UNIFORM_BUFFER, self._buffer)
-        glUnmapBuffer(GL_UNIFORM_BUFFER)
-        self.buffer = None
+        if self.buffer is not None:
+            glBindBuffer(GL_UNIFORM_BUFFER, self._buffer)
+            glUnmapBuffer(GL_UNIFORM_BUFFER)
+            self.buffer = None
 
     def get_uniform(self, uniform):
         if uniform in self.uniforms:

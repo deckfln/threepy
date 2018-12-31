@@ -44,7 +44,8 @@ class Matrix4(pyOpenGLObject):
             ], dtype=np.float32)
         self.matrix = self.elements.view(dtype=np.float32).reshape(4, 4)
 
-        self.updated = True
+        self.updated = True     # something happended
+        self.uploaded = False   # uploaded to the GPU
 
     def is_updated(self):
         """
@@ -64,6 +65,7 @@ class Matrix4(pyOpenGLObject):
         te[3] = n41; te[7] = n42; te[11] = n43; te[15] = n44
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def get(self):
@@ -109,6 +111,7 @@ class Matrix4(pyOpenGLObject):
         te[14] = me[14]
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def extractBasis(self, xAxis, yAxis, zAxis):
@@ -118,6 +121,7 @@ class Matrix4(pyOpenGLObject):
 
         #FIXME : is this function chaning the value ?
         self.updated = True
+        self.uploaded = False
         return self
 
     def makeBasis(self, xAxis, yAxis, zAxis):
@@ -159,6 +163,7 @@ class Matrix4(pyOpenGLObject):
         te[15] = 1
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def makeRotationFromEuler(self, euler):
@@ -289,6 +294,7 @@ class Matrix4(pyOpenGLObject):
         te[15] = 1
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def makeRotationFromQuaternion(self, q):
@@ -305,6 +311,7 @@ class Matrix4(pyOpenGLObject):
             self._makeRotationFromQuaternion(q)
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def _makeRotationFromQuaternion(self, q):
@@ -349,6 +356,7 @@ class Matrix4(pyOpenGLObject):
         te[2] = x.np[2]; te[6] = y.np[2]; te[10] = z.np[2]
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def multiply(self, m, n=None):
@@ -363,13 +371,16 @@ class Matrix4(pyOpenGLObject):
 
     def multiplyMatrices(self, a, b):
         global _cython
-        self.updated = True
         if _cython:
             cMatrix4_sse_multiplyMatrices(self, a, b)
             #tmp = Matrix4()._multiplyMatrices(a, b)
             #print("*")
         else:
             self._multiplyMatrices(a, b)
+
+        self.updated = True
+        self.uploaded = False
+        return self
 
     def _multiplyMatrices(self, a, b):
         # self.matrix = np.dot(a.matrix, b.matrix)
@@ -407,9 +418,6 @@ class Matrix4(pyOpenGLObject):
         te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44
 
-        self.updated = True
-        return self
-
     def multiplyScalar(self, s):
         self.elements *= s
 
@@ -433,6 +441,7 @@ class Matrix4(pyOpenGLObject):
         te[15] *= s
         """
         self.updated = True
+        self.uploaded = False
         return self
 
     def applyToBufferAttribute(self, attribute):
@@ -508,6 +517,7 @@ class Matrix4(pyOpenGLObject):
         tmp = te[11]; te[11] = te[14]; te[14] = tmp
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def setPosition(self, v):
@@ -516,7 +526,9 @@ class Matrix4(pyOpenGLObject):
             cMatrix4_setPosition(self.elements, v.np)
         else:
             self._setPosition(v)
+
         self.updated = True
+        self.uploaded = False
         return self
 
     def _setPosition(self, v):
@@ -571,6 +583,8 @@ class Matrix4(pyOpenGLObject):
 
         self.elements /= det
         self.updated = True
+        self.uploaded = False
+
         return self
 
     def scale(self, v):
@@ -579,7 +593,9 @@ class Matrix4(pyOpenGLObject):
             cMatrix4_scale(self.elements, v.np)
         else:
             self._scale(v)
+
         self.updated = True
+        self.uploaded = False
         return self
 
     def _scale(self, v):
@@ -697,6 +713,7 @@ class Matrix4(pyOpenGLObject):
             self._compose(position, quaternion, scale)
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def _compose(self, position, quaternion, scale):
@@ -807,6 +824,7 @@ class Matrix4(pyOpenGLObject):
         te[3] = 0;    te[7] = 0;    te[11] = - 1;    te[15] = 0
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def makeOrthographic(self, left, right, top, bottom, near, far):
@@ -825,6 +843,7 @@ class Matrix4(pyOpenGLObject):
         te[3] = 0;    te[7] = 0;    te[11] = 0;    te[15] = 1
 
         self.updated = True
+        self.uploaded = False
         return self
 
     def equals(self, matrix):
@@ -840,6 +859,7 @@ class Matrix4(pyOpenGLObject):
     def fromArray(self, array, offset=0):
         self.elements[0:16] = array[offset:offset+16]
         self.updated = True
+        self.uploaded = False
         return self
 
     def toArray(self, array=None, offset=0):

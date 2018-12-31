@@ -800,9 +800,6 @@ class pyOpenGLRenderer:
             self.textures.dispose(texture)
         THREE.Global.dispose_properties_queue.clear()
 
-        # map the uniform blocks
-        self.uniformBlocks.lock()
-
         # // update scene graph
 
         if scene.autoUpdate:
@@ -823,24 +820,11 @@ class pyOpenGLRenderer:
         self._localClippingEnabled = self.localClippingEnabled
         self._clippingEnabled = self._clipping.init(self.clippingPlanes, self._localClippingEnabled, camera)
 
-        self.currentRenderList = self.renderLists.get(scene, camera)
-        self.currentRenderList.init()
-
-        # update octree and get visible objects
-        visible_objects = []
-        self._cull_objects(scene, camera, self.sortObjects, visible_objects)
-
-        # project and update visible meshes
-        for obj in visible_objects:
-            self._project_visible_mesh(obj, camera, self.sortObjects)
-
-        # project remaining objects and update the attributes
+        # project non mesh objects and update the attributes
         self._projectObject(scene, camera, self.sortObjects)
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        # ///////////////// Build the shadow maps /////////////
 
-        # //
         if self._clippingEnabled:
             self._clipping.beginShadows()
 
@@ -851,13 +835,44 @@ class pyOpenGLRenderer:
         if self._clippingEnabled:
             self._clipping.endShadows()
 
-        # update the shared uniforms
+        self.currentRenderList = self.renderLists.get(scene, camera)
+        self.currentRenderList.init()
 
-        if camera.projectionMatrix.updated:
-            self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        # update octree and get visible objects
+        visible_objects = []
+        self._cull_objects(scene, camera, self.sortObjects, visible_objects)
 
-        if camera.matrixWorldInverse.updated:
-                self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+        # update visible meshes attributes
+        for obj in visible_objects:
+            self._project_visible_mesh(obj, camera, self.sortObjects)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+        # /////// update shared matrices uniforms with visible objects matrix ////////
+
+        # map the uniform blocks
+        self.uniformBlocks.lock()
+
+        opaqueObjects = self.currentRenderList.opaque
+        transparentObjects = self.currentRenderList.transparent
+
+        if len(opaqueObjects) > 0:
+            self._updateObjects(opaqueObjects, scene, camera)
+
+        # // transparent pass (back-to-front order)
+        if len(transparentObjects) > 0:
+            self._updateObjects(transparentObjects, scene, camera)
+
+        # ////////////////// update the shared uniforms ///////////
+        # relock the UBO, they may have been updated by the shadowmaps
+        self.uniformBlocks.lock()
+
+        # we have to always update the values, because they may have been changed by the shadowmaps
+        self.uniformBlocks.set_value('projectionMatrix', camera.projectionMatrix)
+        self.uniformBlocks.set_value('viewMatrix', camera.matrixWorldInverse)
+
+        # ////////////////// update lights //////////////
 
         lights = self.renderStates.get(scene, camera).lights
         lights.update_uniform_block(self.uniformBlocks)
@@ -868,22 +883,12 @@ class pyOpenGLRenderer:
         # render the background
         self.background.render(self.currentRenderList, scene, camera, forceClear)
 
-        # instanciate geometry/materials
-        opaqueObjects = self.currentRenderList.opaque
-        transparentObjects = self.currentRenderList.transparent
-
-        # update shared matrices uniforms with visible objects matrix
-        if len(opaqueObjects) > 0:
-            self._updateObjects(opaqueObjects, scene, camera)
-
-        # // transparent pass (back-to-front order)
-        if len(transparentObjects) > 0:
-            self._updateObjects(transparentObjects, scene, camera)
-
+        # clean up info
         if self.info.autoReset:
             self.info.reset()
 
-        # bind same geometry/material into instances
+        # /////////// bind same geometry/material into instances ////////
+
         opaqueObjects = self.currentRenderList.opaq
         transparentObjects = self.currentRenderList.transp
 
@@ -2012,14 +2017,12 @@ class pyOpenGLRenderer:
         cameraUpdated = camera.matrixWorldInverse.updated
 
         modelMatrices = uniformBlocks.get_block("modelMatrices")
-        modelViewMatrices = uniformBlocks.get_block("modelViewMatrices")
-        normalMatrices = uniformBlocks.get_block("normalMatrices")
 
         if modelMatrices is None:
             # shaders are not yet loaded
             return
 
-        params = (modelMatrices, modelViewMatrices, normalMatrices, cameraUpdated)
+        params = (modelMatrices, cameraUpdated)
 
         for renderItem in renderList:
             object = renderItem.object
@@ -2045,8 +2048,9 @@ class pyOpenGLRenderer:
         matrixWorld = obj.matrixWorld
         id = obj.id
 
-        if matrixWorld.updated:
+        if matrixWorld.updated and not matrixWorld.uploaded:
             params[0].update_array_element("modelMatrices", id, matrixWorld)
+            matrixWorld.uploaded = True
 
         """
         Everything here has been moved to the GPU
