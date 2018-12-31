@@ -20,7 +20,7 @@ cimport numpy as np
 from libc.math cimport sqrt, atan2, sin
 
 import THREE.math.Interpolant
-from THREE.cython.cthree import cQuaternion_slerpFlat
+from THREE.cython.cQuaternion import cQuaternion_slerpFlat
 
 
 def cInterpolant_evaluate(self, float t ):

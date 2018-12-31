@@ -1,6 +1,9 @@
 ﻿"""
     <title>three.js webgl - indexed instancing (single box), dynamic updates</title>
 """
+import sys, os.path
+mango_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(mango_dir)
 
 import random
 
@@ -9,6 +12,8 @@ from datetime import datetime
 from THREE import *
 import THREE._Math as _Math
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.pyOpenGL.pyGUI import *
+from THREE.pyOpenGL.widgets.Stats import *
 
 
 vertexShader = """
@@ -59,8 +64,8 @@ class Params:
         self.scene = None
         self.renderer = None
         self.orientations = None
-        self.lastTime = 0
-        self.moveQ = ( THREE.Quaternion( .5, .5, .5, 0.0 ) ).normalize()
+        self.lastTime = datetime.now().timestamp()
+        self.moveQ = (THREE.Quaternion(.5, .5, .5, 0.0)).normalize()
         self.tmpQ = THREE.Quaternion()
         self.currentQ = THREE.Quaternion()
 
@@ -70,12 +75,14 @@ def init(p):
     p.container.addEventListener('resize', onWindowResize, False)
     p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
     p.renderer.setSize(window.innerWidth, window.innerHeight)
+    p.gui = pyGUI(p.renderer)
+    p.gui.add(Stats())
 
-    p.camera = THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 )
+    p.camera = THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
     #camera.position.z = 20;
 
     p.scene = THREE.Scene()
-    p.scene.background = THREE.Color( 0x101010 )
+    p.scene.background = THREE.Color(0x101010)
 
     # geometry
 
@@ -84,7 +91,7 @@ def init(p):
     geometry = THREE.InstancedBufferGeometry()
 
     # per mesh data
-    vertices = THREE.BufferAttribute( Float32Array( [
+    vertices = THREE.BufferAttribute(Float32Array([
         # Front
         -1, 1, 1,
         1, 1, 1,
@@ -115,11 +122,11 @@ def init(p):
         -1, -1, 1,
         1, -1, -1,
         -1, -1, -1
-    ] ), 3 )
+    ]), 3)
 
-    geometry.addAttribute( 'position', vertices )
+    geometry.addAttribute('position', vertices)
 
-    uvs = THREE.BufferAttribute( Float32Array( [
+    uvs = THREE.BufferAttribute(Float32Array([
                 #x    y    z
                 # Front
                 0, 0,
@@ -151,11 +158,11 @@ def init(p):
                 0, 0,
                 1, 1,
                 0, 1
-    ] ), 2 )
+    ]), 2)
 
-    geometry.addAttribute( 'uv', uvs )
+    geometry.addAttribute('uv', uvs)
 
-    indices = Uint16Array( [
+    indices = Uint16Array([
         0, 1, 2,
         2, 1, 3,
         4, 5, 6,
@@ -168,39 +175,39 @@ def init(p):
         18, 17, 19,
         20, 21, 22,
         22, 21, 23
-    ] )
+    ])
 
-    geometry.setIndex( THREE.BufferAttribute( indices, 1 ) )
+    geometry.setIndex(THREE.BufferAttribute(indices, 1))
 
     # per instance data
-    offsets = THREE.InstancedBufferAttribute( Float32Array( instances * 3 ), 3, 1 )
+    offsets = THREE.InstancedBufferAttribute(Float32Array(instances * 3), 3, 1)
 
     vector = THREE.Vector4()
     for i in range(offsets.count):
         x = random.random() * 100 - 50
         y = random.random() * 100 - 50
         z = random.random() * 100 - 50
-        vector.set( x, y, z, 0 ).normalize()
+        vector.set(x, y, z, 0).normalize()
         # move out at least 5 units from center in current direction
-        offsets.setXYZ( i, x + vector.x * 5, y + vector.y * 5, z + vector.z * 5 )
+        offsets.setXYZ(i, x + vector.x * 5, y + vector.y * 5, z + vector.z * 5)
 
-    geometry.addAttribute( 'offset', offsets ) # per mesh translation
+    geometry.addAttribute('offset', offsets)    # per mesh translation
 
-    p.orientations = THREE.InstancedBufferAttribute( Float32Array( instances * 4 ), 4, 1 ).setDynamic( True )
+    p.orientations = THREE.InstancedBufferAttribute(Float32Array(instances * 4), 4, 1).setDynamic(True)
 
     for i in range(p.orientations.count):
-        vector.set( random.random() * 2 - 1, random.random() * 2 - 1, random.random() * 2 - 1, random.random() * 2 - 1 )
+        vector.set(random.random() * 2 - 1, random.random() * 2 - 1, random.random() * 2 - 1, random.random() * 2 - 1)
         vector.normalize()
 
-        p.orientations.setXYZW( i, vector.x, vector.y, vector.z, vector.w )
+        p.orientations.setXYZW(i, vector.x, vector.y, vector.z, vector.w)
 
-    geometry.addAttribute( 'orientation', p.orientations )     # per mesh orientation
+    geometry.addAttribute('orientation', p.orientations)     # per mesh orientation
 
     # material
-    texture = THREE.TextureLoader().load( 'textures/crate.gif' )
+    texture = THREE.TextureLoader().load('textures/crate.gif')
     texture.anisotropy = p.renderer.capabilities.getMaxAnisotropy()
 
-    material = THREE.RawShaderMaterial( {
+    material = THREE.RawShaderMaterial({
         'uniforms': {
             'map': UniformValue(texture)
         },
@@ -208,10 +215,10 @@ def init(p):
         'fragmentShader': fragmentShader,
         'side': THREE.DoubleSide,
         'transparent': False
-    } )
+    })
 
-    mesh = THREE.Mesh( geometry, material )
-    p.scene.add( mesh )
+    mesh = THREE.Mesh(geometry, material)
+    p.scene.add(mesh)
 
 
 def animate(p):
@@ -225,27 +232,34 @@ def render(p):
 
     object.rotation.y = time * 0.05
 
-    p.renderer.render( p.scene, p.camera )
+    p.renderer.render(p.scene, p.camera)
 
-    delta = ( time - p.lastTime ) / 5000
-    p.tmpQ.set( p.moveQ.x * delta, p.moveQ.y * delta, p.moveQ.z * delta, 1 ).normalize()
+    delta = (time - p.lastTime) / 5
+    p.tmpQ.set(p.moveQ.x * delta, p.moveQ.y * delta, p.moveQ.z * delta, 1).normalize()
+
+    oarray = p.orientations.array
+    currentQ = p.currentQ
+    tmpQ = p.tmpQ
 
     for i in range(p.orientations.count):
         index = i * 4
-        p.currentQ.set( p.orientations.array[index], p.orientations.array[index + 1], p.orientations.array[index + 2], p.orientations.array[index + 3] )
-        p.currentQ.multiply( p.tmpQ )
+        currentQ.fromArray(oarray, index)
+        currentQ.multiply(tmpQ)
 
-        p.orientations.setXYZW( i, p.currentQ.x, p.currentQ.y, p.currentQ.z, p.currentQ.w )
+        currentQ.toArray(oarray, index)
+        # p.orientations.setXYZW( i, currentQ.x, currentQ.y, currentQ.z, currentQ.w )
 
     p.orientations.needsUpdate = True
     p.lastTime = time
+
+    p.gui.update()
 
 
 def onWindowResize(event, p):
     p.camera.aspect = window.innerWidth / window.innerHeight
     p.camera.updateProjectionMatrix()
 
-    p.renderer.setSize( window.innerWidth, window.innerHeight )
+    p.renderer.setSize(window.innerWidth, window.innerHeight)
 
 
 def main(argv=None):

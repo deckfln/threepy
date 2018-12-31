@@ -56,21 +56,15 @@ cpdef cSphere_applyMatrix4To(self, matrix, source):
     cdef np.ndarray[np.float32_t, ndim=1] ncenter = self.center.np
     cdef np.ndarray[np.float32_t, ndim=1] ncenter1 = source.center.np
     cdef np.ndarray[np.float32_t, ndim=1] nmatrix4 = matrix.elements
-    cdef float radius = self.radius
 
     cdef float *center = <float *>&ncenter[0]
     cdef float *center1 = <float *>&ncenter1[0]
     cdef float *matrix4 = <float *>&nmatrix4[0]
 
-    center[0] = center1[0]
-    center[1] = center1[1]
-    center[2] = center1[2]
-    self.radius = source.radius
-
     #cVector3_applyMatrix4(self.center, matrix)
-    cdef np.float32_t x = center[0]
-    cdef np.float32_t y = center[1]
-    cdef np.float32_t z = center[2]
+    cdef np.float32_t x = center1[0]
+    cdef np.float32_t y = center1[1]
+    cdef np.float32_t z = center1[2]
 
     cdef np.float32_t w = 1 / ( matrix4[ 3 ] * x + matrix4[ 7 ] * y + matrix4[ 11 ] * z + matrix4[ 15 ] );
 
@@ -83,4 +77,4 @@ cpdef cSphere_applyMatrix4To(self, matrix, source):
     y = matrix4[4] * matrix4[4] + matrix4[5] * matrix4[5] + matrix4[6] * matrix4[6]
     z = matrix4[8] * matrix4[8] + matrix4[9] * matrix4[9] + matrix4[10] * matrix4[10]
 
-    self.radius = radius * sqrt(max(x, y, z))
+    self.radius = source.radius * sqrt(max(x, max(y, z)))

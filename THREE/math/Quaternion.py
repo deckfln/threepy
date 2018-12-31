@@ -10,17 +10,18 @@
 from THREE.math.Vector3 import *
 from THREE.Constants import *
 from THREE.cython.cthree import *
+import numpy as np
 
-cython = True
+from THREE.cython.cQuaternion import cQuaternion_setFromRotationMatrix, cQuaternion_multiplyQuaternions, cQuaternion_slerpFlat
+
+_cython = True
 _v1 = Vector3()
+_temp = np.zeros(4, np.float32)
 
 
 class Quaternion:
-    def __init__(self, x=0, y=0, z=0, w=1 ):
-        self._x = x
-        self._y = y
-        self._z = z
-        self._w = w
+    def __init__(self, x=0, y=0, z=0, w=1):
+        self.np = np.array([x, y, z, w], np.float32)
         self.onChangeCallback = None
         self.updated = True
 
@@ -34,59 +35,59 @@ class Quaternion:
         return u
 
     def setX(self, x):
-        self._x = x
+        self.np[0] = x
         self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setY(self, y):
-        self._y = y
+        self.np[1] = y
         self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setZ(self, z):
-        self._z = z
+        self.np[2] = z
         self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def setW(self, w):
-        self._w = w
+        self.np[3] = w
         self.updated = True
         if self.onChangeCallback:
             self.onChangeCallback(self)
 
     def getX(self):
-        return self._x
+        return self.np[0]
 
     def getY(self):
-        return self._y
+        return self.np[1]
 
     def getZ(self):
-        return self._z
+        return self.np[2]
 
     def getW(self):
-        return self._w
+        return self.np[3]
 
     x = property(getX, setX)
     y = property(getY, setY)
     z = property(getZ, setZ)
     w = property(getW, setW)
         
-    def slerp(self, qa, qb, qm=None, t=None ):
+    def slerp(self, qa, qb, qm=None, t=None):
         if qm is None:
             return self._slerp(qa, qb)
         else:
             return qm.copy(qa).slerp(qb, t)
 
-    def slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
-        if cython:
-            cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t )
+    def slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t):
+        if _cython:
+            cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
         else:
-            self._pslerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
+            self._slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
 
-    def _pslerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t ):
+    def _slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t):
         # // fuzz-free, array-based Quaternion SLERP operation
 
         x0 = src0[srcOffset0 + 0]
@@ -137,10 +138,10 @@ class Quaternion:
         dst[dstOffset + 3] = w0
 
     def set(self, x, y, z, w):
-        self._x = x
-        self._y = y
-        self._z = z
-        self._w = w
+        self.np[0] = x
+        self.np[1] = y
+        self.np[2] = z
+        self.np[3] = w
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -149,13 +150,10 @@ class Quaternion:
         return self
 
     def clone(self):
-        return type(self)(self._x, self._y, self._z, self._w)
+        return type(self)(self.np[0], self.np[1], self.np[2], self.np[3])
 
     def copy(self, quaternion):
-        self._x = quaternion._x
-        self._y = quaternion._y
-        self._z = quaternion._z
-        self._w = quaternion._w
+        self.np[:] = quaternion.np[:]
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -167,7 +165,10 @@ class Quaternion:
         if not (euler and euler.isEuler):
             print('THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.')
 
-        x = euler._x; y = euler._y; z = euler._z; order = euler.order
+        x = euler._x
+        y = euler._y
+        z = euler._z
+        order = euler.order
 
         # // http://www.mathworks.com/matlabcentral/fileexchange/
         # //     20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
@@ -185,35 +186,35 @@ class Quaternion:
         s3 = sin(z / 2)
 
         if order == 'XYZ':
-            self._x = s1 * c2 * c3 + c1 * s2 * s3
-            self._y = c1 * s2 * c3 - s1 * c2 * s3
-            self._z = c1 * c2 * s3 + s1 * s2 * c3
-            self._w = c1 * c2 * c3 - s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 + c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 - s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 + s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 - s1 * s2 * s3
         elif order == 'YXZ':
-            self._x = s1 * c2 * c3 + c1 * s2 * s3
-            self._y = c1 * s2 * c3 - s1 * c2 * s3
-            self._z = c1 * c2 * s3 - s1 * s2 * c3
-            self._w = c1 * c2 * c3 + s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 + c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 - s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 - s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 + s1 * s2 * s3
         elif order == 'ZXY':
-            self._x = s1 * c2 * c3 - c1 * s2 * s3
-            self._y = c1 * s2 * c3 + s1 * c2 * s3
-            self._z = c1 * c2 * s3 + s1 * s2 * c3
-            self._w = c1 * c2 * c3 - s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 - c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 + s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 + s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 - s1 * s2 * s3
         elif order == 'ZYX':
-            self._x = s1 * c2 * c3 - c1 * s2 * s3
-            self._y = c1 * s2 * c3 + s1 * c2 * s3
-            self._z = c1 * c2 * s3 - s1 * s2 * c3
-            self._w = c1 * c2 * c3 + s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 - c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 + s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 - s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 + s1 * s2 * s3
         elif order == 'YZX':
-            self._x = s1 * c2 * c3 + c1 * s2 * s3
-            self._y = c1 * s2 * c3 + s1 * c2 * s3
-            self._z = c1 * c2 * s3 - s1 * s2 * c3
-            self._w = c1 * c2 * c3 - s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 + c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 + s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 - s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 - s1 * s2 * s3
         elif order == 'XZY':
-            self._x = s1 * c2 * c3 - c1 * s2 * s3
-            self._y = c1 * s2 * c3 - s1 * c2 * s3
-            self._z = c1 * c2 * s3 + s1 * s2 * c3
-            self._w = c1 * c2 * c3 + s1 * s2 * s3
+            self.np[0] = s1 * c2 * c3 - c1 * s2 * s3
+            self.np[1] = c1 * s2 * c3 - s1 * c2 * s3
+            self.np[2] = c1 * c2 * s3 + s1 * s2 * c3
+            self.np[3] = c1 * c2 * c3 + s1 * s2 * s3
 
         if update:
             self.onChangeCallback(self)
@@ -224,12 +225,21 @@ class Quaternion:
     def setFromAxisAngle(self, axis, angle):
         # // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
         # // assumes axis is normalized
-        halfAngle = angle / 2; s = math.sin(halfAngle)
+        global _temp
 
-        self._x = axis.x * s
-        self._y = axis.y * s
-        self._z = axis.z * s
-        self._w = math.cos(halfAngle)
+        halfAngle = angle / 2
+        s = math.sin(halfAngle)
+
+        _temp[0] = s
+        _temp[1] = s
+        _temp[2] = s
+        _temp[3] = 1
+
+        self.np[0] = axis.x
+        self.np[1] = axis.y
+        self.np[2] = axis.z
+        self.np[3] = math.cos(halfAngle)
+        self.np *= _temp
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -237,9 +247,24 @@ class Quaternion:
         self.updated = True
         return self
 
-    def setFromRotationMatrix(self, m ):
+    def setFromRotationMatrix(self, m):
+        global _cython
+        if _cython:
+            cQuaternion_setFromRotationMatrix(self, m)
+        else:
+            self._setFromRotationMatrix(m)
+
+        if self.onChangeCallback:
+            self.onChangeCallback(self)
+
+        self.updated = True
+        return self
+
+    def _setFromRotationMatrix(self, m):
         # // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
         # // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+        global _temp
+
         te = m.elements
         m11 = te[0]; m12 = te[4]; m13 = te[8]
         m21 = te[1]; m22 = te[5]; m23 = te[9]
@@ -249,34 +274,34 @@ class Quaternion:
 
         if trace > 0:
             s = 0.5 / math.sqrt(trace + 1.0)
-            self._w = 0.25 / s
-            self._x = (m32 - m23) * s
-            self._y = (m13 - m31) * s
-            self._z = (m21 - m12) * s
+
+            self.np[3] = 0.25 / s
+            self.np[0] = (m32 - m23) * s
+            self.np[1] = (m13 - m31) * s
+            self.np[2] = (m21 - m12) * s
         elif m11 > m22 and m11 > m33:
             s = 2.0 * math.sqrt(1.0 + m11 - m22 - m33)
-            self._w = (m32 - m23) / s
-            self._x = 0.25 * s
-            self._y = (m12 + m21) / s
-            self._z = (m13 + m31) / s
+
+            self.np[3] = (m32 - m23) / s
+            self.np[0] = 0.25 * s
+            self.np[1] = (m12 + m21) / s
+            self.np[2] = (m13 + m31) / s
+
         elif m22 > m33:
             s = 2.0 * math.sqrt(1.0 + m22 - m11 - m33)
-            self._w = (m13 - m31) / s
-            self._x = (m12 + m21) / s
-            self._y = 0.25 * s
-            self._z = (m23 + m32) / s
+
+            self.np[3] = (m13 - m31) / s
+            self.np[0] = (m12 + m21) / s
+            self.np[1] = 0.25 * s
+            self.np[2] = (m23 + m32) / s
+
         else:
             s = 2.0 * math.sqrt(1.0 + m33 - m11 - m22)
-            self._w = (m21 - m12) / s
-            self._x = (m13 + m31) / s
-            self._y = (m23 + m32) / s
-            self._z = 0.25 * s
 
-        if self.onChangeCallback:
-            self.onChangeCallback(self)
-
-        self.updated = True
-        return self
+            self.np[3] = (m21 - m12) / s
+            self.np[0] = (m13 + m31) / s
+            self.np[1] = (m23 + m32) / s
+            self.np[2] = 0.25 * s
 
     def setFromUnitVectors(self, vFrom, vTo):
         global _v1
@@ -294,10 +319,8 @@ class Quaternion:
         else:
             _v1.crossVectors(vFrom, vTo)
 
-        self._x = _v1.x
-        self._y = _v1.y
-        self._z = _v1.z
-        self._w = r
+        self.np[0:3] = _v1.np[:]
+        self.np[3] = r
 
         return self.normalize()
 
@@ -321,9 +344,12 @@ class Quaternion:
         return self.conjugate()
 
     def conjugate(self):
-        self._x *= - 1
-        self._y *= - 1
-        self._z *= - 1
+        _temp[0] = -1
+        _temp[1] = -1
+        _temp[2] = -1
+        _temp[3] = 1
+
+        self.np *= _temp
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -332,28 +358,29 @@ class Quaternion:
         return self
 
     def dot(self, v ):
-        return self._x * v._x + self._y * v._y + self._z * v._z + self._w * v._w
+        global _temp
+        _temp = self.np * v.np
+        return np.sum(_temp)
 
     def lengthSq(self):
-        return self._x * self._x + self._y * self._y + self._z * self._z + self._w * self._w
+        global _temp
+        _temp = self.np * self.np
+        return np.sum(_temp)
 
     def length(self):
-        return math.sqrt(self._x * self._x + self._y * self._y + self._z * self._z + self._w * self._w)
+        return math.sqrt(self.lengthSq())
 
     def normalize(self):
         l = self.length()
 
         if l == 0:
-            self._x = 0
-            self._y = 0
-            self._z = 0
-            self._w = 1
+            self.np[0] = 0
+            self.np[1] = 0
+            self.np[2] = 0
+            self.np[3] = 1
         else:
             l = 1 / l
-            self._x = self._x * l
-            self._y = self._y * l
-            self._z = self._z * l
-            self._w = self._w * l
+            self.np *= l
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -366,21 +393,18 @@ class Quaternion:
             print('THREE.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.')
             return self.multiplyQuaternions(q, p)
 
-        return self.multiplyQuaternions( self, q)
+        return self.multiplyQuaternions(self, q)
 
-    def premultiply(self, q ):
+    def premultiply(self, q):
         return self.multiplyQuaternions(q, self)
 
     def multiplyQuaternions(self, a, b):
-        # // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+        global _cython
 
-        qax = a._x; qay = a._y; qaz = a._z; qaw = a._w
-        qbx = b._x; qby = b._y; qbz = b._z; qbw = b._w
-
-        self._x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby
-        self._y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz
-        self._z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx
-        self._w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz
+        if _cython:
+            cQuaternion_multiplyQuaternions(self, a, b)
+        else:
+            self._multiplyQuaternions(a, b)
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -388,33 +412,74 @@ class Quaternion:
         self.updated = True
         return self
 
+    def _multiplyQuaternions(self, a, b):
+        # // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+        global _temp
+
+        # qax = a.np[0]; qay = a.np[1]; qaz = a.np[2]; qaw = a.np[3]
+        # qbx = b.np[0]; qby = b.np[1]; qbz = b.np[2]; qbw = b.np[3]
+
+        # self.np[0] = qax * qbw + qaw * qbx + qay * qbz - qaz * qby
+        _temp[0] = a.np[3]
+        _temp[1] = a.np[2]
+        _temp[2] = a.np[1]
+        _temp[3] = a.np[0]
+        _temp *= b.np
+        x = _temp[3] + _temp[0] + _temp[2] - _temp[1]
+
+        # self.np[1] = qay * qbw + qaw * qby + qaz * qbx - qax * qbz
+        _temp[0] = a.np[2]
+        _temp[1] = a.np[3]
+        _temp[2] = a.np[0]
+        _temp[3] = a.np[1]
+        _temp *= b.np
+        y = _temp[3] + _temp[1] + _temp[0] - _temp[2]
+
+        # self.np[2] = qaz * qbw + qaw * qbz + qax * qby - qay * qbx
+        _temp[0] = a.np[1]
+        _temp[1] = a.np[0]
+        _temp[2] = a.np[3]
+        _temp[3] = a.np[2]
+        _temp *= b.np
+        z = _temp[3] + _temp[2] + _temp[1] - _temp[0]
+
+        # self.np[3] = qaw * qbw - qax * qbx - qay * qby - qaz * qbz
+        _temp[:] = a.np[:]
+        _temp *= b.np
+        w = _temp[3] - _temp[0] - _temp[1] - _temp[2]
+
+        self.np[0] = x
+        self.np[1] = y
+        self.np[2] = z
+        self.np[3] = w
+
     def slerp2(self, qb, t):
         if t == 0:
             return self
         if t == 1:
             return self.copy(qb)
 
-        x = self._x; y = self._y; z = self._z; w = self._w
+        x = self.np[0]; y = self.np[1]; z = self.np[2]; w = self.np[3]
 
         # // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
 
-        cosHalfTheta = w * qb._w + x * qb._x + y * qb._y + z * qb._z
+        cosHalfTheta = w * qb.np[3] + x * qb.np[0] + y * qb.np[1] + z * qb.np[2]
 
         if cosHalfTheta < 0:
-            self._w = - qb._w
-            self._x = - qb._x
-            self._y = - qb._y
-            self._z = - qb._z
+            self.np[3] = - qb.np[3]
+            self.np[0] = - qb.np[0]
+            self.np[1] = - qb.np[1]
+            self.np[2] = - qb.np[2]
 
             cosHalfTheta = - cosHalfTheta
         else:
             self.copy(qb)
 
         if cosHalfTheta >= 1.0:
-            self._w = w
-            self._x = x
-            self._y = y
-            self._z = z
+            self.np[3] = w
+            self.np[0] = x
+            self.np[1] = y
+            self.np[2] = z
 
             self.updated = True
             return self
@@ -423,10 +488,10 @@ class Quaternion:
 
         if sqrSinHalfTheta <= Number.EPSILON < 0.001:
             s = 1 - t
-            self._w = s * w + t * self._w
-            self._x = s * x + t * self._x
-            self._y = s * y + t * self._y
-            self._z = s * z + t * self._z
+            self.np[3] = s * w + t * self.np[3]
+            self.np[0] = s * x + t * self.np[0]
+            self.np[1] = s * y + t * self.np[1]
+            self.np[2] = s * z + t * self.np[2]
 
             return self.normalize()
 
@@ -435,10 +500,10 @@ class Quaternion:
         ratioA = math.sin((1 - t) * halfTheta) / sinHalfTheta
         ratioB = math.sin(t * halfTheta) / sinHalfTheta
 
-        self._w = (w * ratioA + self._w * ratioB)
-        self._x = (x * ratioA + self._x * ratioB)
-        self._y = (y * ratioA + self._y * ratioB)
-        self._z = (z * ratioA + self._z * ratioB)
+        self.np[3] = (w * ratioA + self.np[3] * ratioB)
+        self.np[0] = (x * ratioA + self.np[0] * ratioB)
+        self.np[1] = (y * ratioA + self.np[1] * ratioB)
+        self.np[2] = (z * ratioA + self.np[2] * ratioB)
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -447,13 +512,10 @@ class Quaternion:
         return self
 
     def equals(self, quaternion):
-        return quaternion._x == self._x and quaternion._y == self._y and quaternion._z == self._z and quaternion._w == self._w
+        return quaternion.np == self.np
 
     def fromArray(self, array, offset=0):
-        self._x = array[offset]
-        self._y = array[offset + 1]
-        self._z = array[offset + 2]
-        self._w = array[offset + 3]
+        self.np[:] = array[offset:offset + 4]
 
         if self.onChangeCallback:
             self.onChangeCallback(self)
@@ -465,10 +527,7 @@ class Quaternion:
         if array is None:
             array = []
 
-        array[offset] = self._x
-        array[offset + 1] = self._y
-        array[offset + 2] = self._z
-        array[offset + 3] = self._w
+        array[offset:offset + 4] = self.np[:]
 
         return array
             

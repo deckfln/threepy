@@ -1711,10 +1711,10 @@ static const char __pyx_k_intervalChanged[] = "intervalChanged_";
 static const char __pyx_k_cInterpolant_pyx[] = "cInterpolant.pyx";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_parameterPositions[] = "parameterPositions";
-static const char __pyx_k_THREE_cython_cthree[] = "THREE.cython.cthree";
 static const char __pyx_k_cInterpolant_evaluate[] = "cInterpolant_evaluate";
 static const char __pyx_k_cQuaternion_slerpFlat[] = "cQuaternion_slerpFlat";
 static const char __pyx_k_THREE_math_Interpolant[] = "THREE.math.Interpolant";
+static const char __pyx_k_THREE_cython_cQuaternion[] = "THREE.cython.cQuaternion";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_cLinearInterpolant_interpolate[] = "cLinearInterpolant_interpolate_";
 static const char __pyx_k_author_mrdoob_http_mrdoob_com_a[] = "\n    /**\n     * @author mrdoob / http://mrdoob.com/\n     * @author kile / http://kile.stravaganza.org/\n     * @author philogb / http://blog.thejit.org/\n     * @author mikael emtinger / http://gomo.se/\n     * @author egraether / http://egraether.com/\n     * @author WestLangley / http://github.com/WestLangley\n     */\n";
@@ -1732,7 +1732,7 @@ static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_THREE;
-static PyObject *__pyx_n_s_THREE_cython_cthree;
+static PyObject *__pyx_n_s_THREE_cython_cQuaternion;
 static PyObject *__pyx_n_s_THREE_math_Interpolant;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_a;
@@ -6611,7 +6611,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_THREE, __pyx_k_THREE, sizeof(__pyx_k_THREE), 0, 0, 1, 1},
-  {&__pyx_n_s_THREE_cython_cthree, __pyx_k_THREE_cython_cthree, sizeof(__pyx_k_THREE_cython_cthree), 0, 0, 1, 1},
+  {&__pyx_n_s_THREE_cython_cQuaternion, __pyx_k_THREE_cython_cQuaternion, sizeof(__pyx_k_THREE_cython_cQuaternion), 0, 0, 1, 1},
   {&__pyx_n_s_THREE_math_Interpolant, __pyx_k_THREE_math_Interpolant, sizeof(__pyx_k_THREE_math_Interpolant), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_a, __pyx_k_a, sizeof(__pyx_k_a), 0, 0, 1, 1},
@@ -7120,7 +7120,7 @@ if (!__Pyx_RefNanny) {
  * from libc.math cimport sqrt, atan2, sin
  * 
  * import THREE.math.Interpolant             # <<<<<<<<<<<<<<
- * from THREE.cython.cthree import cQuaternion_slerpFlat
+ * from THREE.cython.cQuaternion import cQuaternion_slerpFlat
  * 
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_THREE_math_Interpolant, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
@@ -7131,7 +7131,7 @@ if (!__Pyx_RefNanny) {
   /* "cInterpolant.pyx":23
  * 
  * import THREE.math.Interpolant
- * from THREE.cython.cthree import cQuaternion_slerpFlat             # <<<<<<<<<<<<<<
+ * from THREE.cython.cQuaternion import cQuaternion_slerpFlat             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -7140,7 +7140,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_cQuaternion_slerpFlat);
   __Pyx_GIVEREF(__pyx_n_s_cQuaternion_slerpFlat);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_cQuaternion_slerpFlat);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_THREE_cython_cthree, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_THREE_cython_cQuaternion, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_cQuaternion_slerpFlat); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)

@@ -294,10 +294,10 @@ class Matrix4(pyOpenGLObject):
     def makeRotationFromQuaternion(self, q):
         global _cython
         te = self.elements
-        x = q._x
-        y = q._y
-        z = q._z
-        w = q._w
+        x = q.x
+        y = q.y
+        z = q.z
+        w = q.w
 
         if _cython:
             c_Matrix4_makeRotationFromQuaternion(te, x, y, z, w)
@@ -686,10 +686,10 @@ class Matrix4(pyOpenGLObject):
     def compose(self, position, quaternion, scale):
         global _cython
 
-        x = quaternion._x
-        y = quaternion._y
-        z = quaternion._z
-        w = quaternion._w
+        x = quaternion.x
+        y = quaternion.y
+        z = quaternion.z
+        w = quaternion.w
 
         if _cython:
             cMatrix4_compose(self.elements, position.np, scale.np, x, y, z, w)
@@ -702,10 +702,10 @@ class Matrix4(pyOpenGLObject):
     def _compose(self, position, quaternion, scale):
         te = self.elements
 
-        x = quaternion._x
-        y = quaternion._y
-        z = quaternion._z
-        w = quaternion._w
+        x = quaternion.x
+        y = quaternion.y
+        z = quaternion.z
+        w = quaternion.w
         x2 = x + x
         y2 = y + y
         z2 = z + z
