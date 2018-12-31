@@ -8,6 +8,7 @@ from datetime import datetime
 from THREE import *
 from THREE.pyOpenGL.pyOpenGL import *
 from THREE.pyOpenGL.pyOpenGL import *
+from THREE.helpers.AxesHelper import *
 
 
 class Params:
@@ -96,7 +97,7 @@ def init(p):
     object.position.set( 0, 0, -200 )
     p.scene.add( object )
 
-    object = THREE.AxisHelper( 50 )
+    object = AxesHelper( 50 )
     object.position.set( 200, 0, -200 )
     p.scene.add( object )
 
