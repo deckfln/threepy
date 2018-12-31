@@ -11,8 +11,8 @@ from THREE.objects.Skeleton import *
 class SkinnedMesh(Mesh):
     isSkinnedMesh = True
 
-    def __init__(self, geometry, material ):
-        super().__init__( geometry, material )
+    def __init__(self, geometry, material):
+        super().__init__(geometry, material)
         self.set_class(isSkinnedMesh)
 
         self.type = 'SkinnedMesh'
@@ -23,9 +23,9 @@ class SkinnedMesh(Mesh):
         self.skeleton = None
 
         bones = self.initBones()
-        skeleton = Skeleton( bones )
+        skeleton = Skeleton(bones)
 
-        self.bind( skeleton, self.matrixWorld )
+        self.bind(skeleton, self.matrixWorld)
 
         self.normalizeSkinWeights()
 
@@ -39,45 +39,45 @@ class SkinnedMesh(Mesh):
                 # create 'Bone' object
 
                 bone = Bone()
-                bones.append( bone )
+                bones.append(bone)
 
                 # apply values
 
                 bone.name = gbone.name
-                bone.position.fromArray( gbone.pos )
-                bone.quaternion.fromArray( gbone.rotq )
+                bone.position.fromArray(gbone.pos)
+                bone.quaternion.fromArray(gbone.rotq)
                 if gbone.scl is not None:
-                    bone.scale.fromArray( gbone.scl )
+                    bone.scale.fromArray(gbone.scl)
 
             # second, create bone hierarchy
             for gbone in self.geometry.bones:
-                if gbone.parent != - 1 and gbone.parent is not None and bones[ gbone.parent ] is not None:
+                if gbone.parent != - 1 and gbone.parent is not None and bones[gbone.parent] is not None:
                     # subsequent bones in the hierarchy
-                    bones[ gbone.parent ].add( bones[ i ] )
+                    bones[gbone.parent].add(bones[i])
 
                 else:
                     # topmost bone, immediate child of the skinned mesh
-                    self.add( bones[ i ] )
+                    self.add(bones[i])
 
         # now the bones are part of the scene graph and children of the skinned mesh.
         # let's update the corresponding matrices
 
-        self.updateMatrixWorld( True )
+        self.updateMatrixWorld(True)
 
         return bones
 
-    def bind(self, skeleton, bindMatrix ):
+    def bind(self, skeleton, bindMatrix):
         self.skeleton = skeleton
 
         if bindMatrix is None:
-            self.updateMatrixWorld( True )
+            self.updateMatrixWorld(True)
 
             self.skeleton.calculateInverses()
 
             bindMatrix = self.matrixWorld
 
-        self.bindMatrix.copy( bindMatrix )
-        self.bindMatrixInverse.getInverse( bindMatrix )
+        self.bindMatrix.copy(bindMatrix)
+        self.bindMatrixInverse.getInverse(bindMatrix)
 
     def pose(self):
         self.skeleton.pose()
@@ -88,10 +88,10 @@ class SkinnedMesh(Mesh):
                 scale = 1.0 / sw.manhattanLength()
 
                 if scale != float("+inf"):
-                    sw.multiplyScalar( scale )
+                    sw.multiplyScalar(scale)
 
                 else:
-                    sw.set( 1, 0, 0, 0 )     # do something reasonable
+                    sw.set(1, 0, 0, 0)     # do something reasonable
 
         elif self.geometry and self.geometry.my_class(isBufferGeometry):
             vec = Vector4()
@@ -99,32 +99,32 @@ class SkinnedMesh(Mesh):
             skinWeight = self.geometry.attributes.skinWeight
 
             for i in range(skinWeight.count):
-                vec.x = skinWeight.getX( i )
-                vec.y = skinWeight.getY( i )
-                vec.z = skinWeight.getZ( i )
-                vec.w = skinWeight.getW( i )
+                vec.x = skinWeight.getX(i)
+                vec.y = skinWeight.getY(i)
+                vec.z = skinWeight.getZ(i)
+                vec.w = skinWeight.getW(i)
 
                 scale = 1.0 / vec.manhattanLength()
 
                 if scale != float("+inf"):
-                    vec.multiplyScalar( scale )
+                    vec.multiplyScalar(scale)
 
                 else:
-                    vec.set( 1, 0, 0, 0 )     # do something reasonable
+                    vec.set(1, 0, 0, 0)     # do something reasonable
 
-                skinWeight.setXYZW( i, vec.x, vec.y, vec.z, vec.w )
+                skinWeight.setXYZW(i, vec.x, vec.y, vec.z, vec.w)
 
-    def updateMatrixWorld(self, force=False ):
-        super().updateMatrixWorld( force )
+    def updateMatrixWorld(self, force=False, parent_matrixWorld_is_updated=True):
+        super().updateMatrixWorld(force, parent_matrixWorld_is_updated)
 
         if self.bindMode == 'attached':
-            self.bindMatrixInverse.getInverse( self.matrixWorld )
+            self.bindMatrixInverse.getInverse(self.matrixWorld)
 
         elif self.bindMode == 'detached':
-            self.bindMatrixInverse.getInverse( self.bindMatrix )
+            self.bindMatrixInverse.getInverse(self.bindMatrix)
 
         else:
-            print( 'THREE.SkinnedMesh: Unrecognized bindMode: ' + self.bindMode )
+            print('THREE.SkinnedMesh: Unrecognized bindMode: ' + self.bindMode)
 
     def clone(self):
-        return type(self)(self.geometry, self.material ).copy( self )
+        return type(self)(self.geometry, self.material ).copy(self)
