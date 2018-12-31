@@ -46,8 +46,8 @@ class Camera(Object3D):
 
         return target.set(0, 0, - 1).applyQuaternion(quaternion)
 
-    def updateMatrixWorld(self, force=False):
-        super().updateMatrixWorld(force)
+    def updateMatrixWorld(self, force=False, parent_matrixWorld_is_updated=True):
+        super().updateMatrixWorld(force, parent_matrixWorld_is_updated)
 
         if self.matrixWorld.updated:
             self.matrixWorldInverse.getInverse(self.matrixWorld)
