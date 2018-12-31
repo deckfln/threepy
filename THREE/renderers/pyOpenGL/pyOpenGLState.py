@@ -337,7 +337,10 @@ class pyOpenGLState:
                  self.extensions.get( 'GL_EXT_texture_compression_s3tc' ) or\
                  self.extensions.get( 'GL_EXT_texture_compression_latc' ) or\
                  self.extensions.get( 'WEBGL_compressed_texture_astc'):
-                formats = glGetIntegerv( GL_COMPRESSED_TEXTURE_FORMATS )
+
+                n = glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS)
+                formats = arrays.GLintArray.zeros((n,))
+                glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formats)
 
                 for format in formats:
                     self.compressedTextureFormats.append( format )

@@ -69,7 +69,7 @@ class pyOpenGLUtils():
         if p == RGB_S3TC_DXT1_Format or p == RGBA_S3TC_DXT1_Format or \
             p == RGBA_S3TC_DXT3_Format or p == RGBA_S3TC_DXT5_Format:
 
-            extension = self.extensions.get( 'texture_compression_s3tc')  # compressed_texture_s3tc' )
+            extension = self.extensions.get( 'GL_EXT_texture_compression_s3tc')  # compressed_texture_s3tc' )
             if extension:
                 if p == RGB_S3TC_DXT1_Format:
                     return 0x83F0  # // COMPRESSED_RGB_S3TC_DXT1_EXT
@@ -83,7 +83,7 @@ class pyOpenGLUtils():
         if p == RGB_PVRTC_4BPPV1_Format or p == RGB_PVRTC_2BPPV1_Format or \
             p == RGBA_PVRTC_4BPPV1_Format or p == RGBA_PVRTC_2BPPV1_Format:
 
-            extension = self.extensions.get( 'compressed_texture_pvrtc' )
+            extension = self.extensions.get( 'GL_EXT_compressed_texture_pvrtc' )
 
             if extension:
                 if p == RGB_PVRTC_4BPPV1_Format:

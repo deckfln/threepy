@@ -16,7 +16,7 @@ class pyOpenGLExtensions():
         self.s = []
         n = glGetIntegerv(GL_NUM_EXTENSIONS)
         for i in range(n):
-            self.s.append(glGetStringi(GL_EXTENSIONS, i))
+            self.s.append(glGetStringi(GL_EXTENSIONS, i).decode("utf-8"))
 
     def get(self, name):
         if name in self.extensions: 
