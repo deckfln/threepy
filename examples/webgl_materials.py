@@ -93,7 +93,7 @@ def init(p):
     p.pointLight = THREE.PointLight( 0xffffff, 1 )
     p.scene.add( p.pointLight )
 
-    p.pointLight.add( THREE.Mesh( THREE.SphereGeometry( 4, 8, 8 ), THREE.MeshBasicMaterial( { color: 0xffffff } ) ) )
+    p.pointLight.add( THREE.Mesh( THREE.SphereBufferGeometry( 4, 8, 8 ), THREE.MeshBasicMaterial( { 'color': 0xffffff } ) ) )
 
 
 def addMesh(p, geometry, material ):
