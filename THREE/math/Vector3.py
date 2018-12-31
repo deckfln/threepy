@@ -472,9 +472,7 @@ class Vector3(pyOpenGLObject):
         return self
 
     def setFromMatrixPosition(self, m):
-        self.np[0] = m.elements[12]
-        self.np[1] = m.elements[13]
-        self.np[2] = m.elements[14]
+        self.np[0:3] = m.elements[12:15]
         self.updated = True
         return self
 

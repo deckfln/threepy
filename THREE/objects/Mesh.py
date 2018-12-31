@@ -64,20 +64,18 @@ class Mesh(Object3D):
 
         if geometry.my_class(isBufferGeometry):
             morphAttributes = geometry.morphAttributes
-            k = morphAttributes.__dict__
 
             if len(morphAttributes.position) > 0 or len(morphAttributes.normal) > 0:
-                morphAttribute = morphAttributes[ k[ 0 ] ]
+                morphAttribute = morphAttributes.position
 
-                if morphAttribute is not None:
-                    self.morphTargetInfluences = []
-                    self.morphTargetDictionary = {}
+                self.morphTargetInfluences = []
+                self.morphTargetDictionary = {}
 
-                    for m in range(len(morphAttribute)):
-                        name = morphAttribute[ m ].name or str( m )
+                for m in range(len(morphAttribute)):
+                    name = morphAttribute[ m ].name or str( m )
 
-                        self.morphTargetInfluences.append( 0 )
-                        self.morphTargetDictionary[ name ] = m
+                    self.morphTargetInfluences.append( 0 )
+                    self.morphTargetDictionary[ name ] = m
 
         else:
             morphTargets = geometry.morphTargets
