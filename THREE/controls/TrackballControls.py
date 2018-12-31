@@ -437,6 +437,6 @@ class TrackballControls(EventManager):
 
         self.lastPosition.copy( self.object.position )
 
-    def dispose(self):
+    def __del__(self):
         for event in self.events.keys():
             self.domElement.removeEventListener(event, self.events[event])

@@ -128,6 +128,3 @@ class pyOpenGLRenderLists:
             list = self.lists[ hash ]
 
         return list
-
-    def dispose(self):
-        self.lists = {}

@@ -44,5 +44,5 @@ class pyOpenGLRenderStates:
 
 		return renderState
 
-	def dispose(self):
+	def __del__(self):
 		self.renderStates.clear()

@@ -435,7 +435,7 @@ class OrbitControls(EventManager):
 
         return False
 
-    def dispose(self):
+    def __del__(self):
         for event in self.events.keys():
             self.domElement.removeEventListener(event, self.events[event])
         # //self.dispatchEvent( { type: 'dispose' } ); # // should self be added here?

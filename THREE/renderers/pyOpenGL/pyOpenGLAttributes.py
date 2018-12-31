@@ -104,6 +104,9 @@ class pyOpenGLAttributes(pyOpenGLObject):
 
         return self.buffers[attribute.uuid] if attribute.uuid in self.buffers else None
 
+    def __del__(self):
+        self.dispose()
+
     def dispose(self, attribute=None, parent=None):
         if attribute is None:
             # delete all attributes

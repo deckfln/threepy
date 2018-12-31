@@ -41,7 +41,7 @@ class pyOpenGLProperties:
 
     def remove(self, object):
         property = self.properties[object.uuid]
-        property.object.dispose()
+        del property.object
 
         del self.properties[object.uuid]
 

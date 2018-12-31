@@ -51,10 +51,6 @@ class SpotLightHelper(Object3D):
 
         self.update()
 
-    def dispose(self):
-        self.cone.geometry.dispose()
-        self.cone.material.dispose()
-
     def update(self):
         vector = Vector3()
         vector2 = Vector3()

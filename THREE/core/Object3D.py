@@ -16,6 +16,20 @@ from THREE.math.Quaternion import *
 from THREE.core.Layers import *
 
 _object3DId = 0
+_available_ids = []
+
+
+def _get_new_id():
+    global _object3DId, _available_ids
+
+    if len(_available_ids) == 0:
+        id = _object3DId
+        _object3DId += 1
+    else:
+        id = _available_ids.pop()
+
+    return id
+
 
 _matrix4 = Matrix4()
 _vector3 = Vector3()
@@ -28,8 +42,7 @@ class Object3D(pyOpenGLObject):
 
     def __init__(self):
         global _object3DId
-        self.id = _object3DId
-        _object3DId += 1
+        self.id = _get_new_id()
 
         super().__init__()
         self.set_class(isObject3D)
@@ -86,6 +99,10 @@ class Object3D(pyOpenGLObject):
 
         self.vao = [None, None, None]
         self.update_vao = [True, True, True]
+
+    def __del__(self):
+        global _available_ids
+        _available_ids.append(self.id)
 
     def __iter__(self):
         return iter(self.__dict__)

@@ -203,7 +203,7 @@ class Texture(pyOpenGLObject):
 
         return output
 
-    def dispose(self):
+    def __del__(self):
         THREE.Global.dispose_properties_queue.append(self)
 
     def transformUv(self, uv ):

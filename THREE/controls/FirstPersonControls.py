@@ -204,6 +204,6 @@ class FirstPersonControls(EventManager):
 
         self.object.lookAt( targetPosition )
 
-    def dispose(self):
+    def __del__(self):
         for event in self.events.keys():
             self.domElement.removeEventListener(event, self.events[event])

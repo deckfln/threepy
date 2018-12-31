@@ -394,13 +394,7 @@ class pyOpenGLRenderer:
         self.setRenderTarget(renderTarget)
         self.clear(color, depth, stencil)
 
-    def dispose(self):
-        self.renderLists.dispose()
-        self.renderStates.dispose()
-        self.properties.dispose()
-        self.objects.dispose()
-        self.attributes.dispose()
-        self.textures.dispose()
+    def __del__(self):
         self.animation.stop()
 
     def _releaseMaterialProgramReference(self, material):

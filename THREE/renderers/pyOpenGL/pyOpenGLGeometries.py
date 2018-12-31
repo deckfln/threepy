@@ -20,7 +20,10 @@ class pyOpenGLGeometries:
         self.attributes = attributes
         self.info = info
 
-    def dispose(self, object, geometry):
+    def __del__(self):
+        self.dispose()
+
+    def dispose(self, object=None, geometry=None):
         if object is None:
             return
 

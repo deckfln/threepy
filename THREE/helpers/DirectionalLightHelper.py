@@ -51,12 +51,6 @@ class DirectionalLightHelper(Object3D):
 
         self.update()
 
-    def dispose(self):
-        self.lightPlane.geometry.dispose()
-        self.lightPlane.material.dispose()
-        self.targetLine.geometry.dispose()
-        self.targetLine.material.dispose()
-
     def update(self):
         _v1.setFromMatrixPosition(self.light.matrixWorld)
         _v2.setFromMatrixPosition(self.light.target.matrixWorld)

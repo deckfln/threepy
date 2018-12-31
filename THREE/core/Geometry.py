@@ -970,7 +970,7 @@ class Geometry(pyOpenGLObject):
     def onDispose(self, callback):
         self.callback = callback
 
-    def dispose(self):
+    def __del__(self):
         if self.callback:
             return self.callback(self)
 

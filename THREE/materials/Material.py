@@ -400,7 +400,7 @@ class Material(pyOpenGLObject):
 
         return self
 
-    def dispose(self, callback):
+    def __del__(self):
         if self.callback:
             self.callback(self)
 

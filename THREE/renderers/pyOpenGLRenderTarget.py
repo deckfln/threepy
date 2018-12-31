@@ -64,7 +64,8 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
             self.width = width
             self.height = height
 
-            self.dispose()
+            if self.callback:
+                self.callback(self)
 
         self.viewport.set( 0, 0, width, height )
         self.scissor.set( 0, 0, width, height )
@@ -89,6 +90,6 @@ class pyOpenGLRenderTarget(pyOpenGLObject):
     def onDispose(self, callback):
         self.callback = callback
         
-    def dispose(self):
+    def __del__(self):
         if self.callback:
             self.callback(self)
