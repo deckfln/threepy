@@ -92,7 +92,7 @@ def init(p):
     p.uniforms = shaderMaterial.uniforms
 
     url = "three.js.geometry"
-    cached = pyCache(url)
+    cached = pyCache(".", url)
     geometry = cached.load(True)
     if geometry is None:
         geometry = TextBufferGeometry('three.js', {

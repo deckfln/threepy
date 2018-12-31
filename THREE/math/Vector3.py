@@ -528,7 +528,7 @@ class Vector3(pyOpenGLObject):
         if array is None:
             array = [0, 0, 0]
 
-        array[offset:3] = self.np[0:3]
+        array[offset:offset+3] = self.np[0:3]
 
         return array
 
