@@ -10,8 +10,8 @@ from THREE.geometries.PolyhedronGeometry import *
 # // IcosahedronGeometry
 
 class IcosahedronGeometry(Geometry):
-    def __init__(self, radius, detail ):
-        super().__init__( )
+    def __init__(self, radius, detail):
+        super().__init__()
 
         self.type = 'IcosahedronGeometry'
 
@@ -20,15 +20,15 @@ class IcosahedronGeometry(Geometry):
             'detail': detail
         }
 
-        self.fromBufferGeometry( IcosahedronBufferGeometry( radius, detail ) )
+        self.fromBufferGeometry(IcosahedronBufferGeometry(radius, detail))
         self.mergeVertices()
 
 
 # // IcosahedronBufferGeometry
 
 class IcosahedronBufferGeometry(PolyhedronBufferGeometry):
-    def __init__(self, radius, detail ):
-        t = ( 1 + math.sqrt( 5 ) ) / 2
+    def __init__(self, radius, detail):
+        t = (1 + math.sqrt(5)) / 2
 
         vertices = [
             - 1,  t,  0,    1,  t,  0,   - 1, - t,  0,    1, - t,  0,
@@ -43,7 +43,7 @@ class IcosahedronBufferGeometry(PolyhedronBufferGeometry):
              4,  9,  5,    2,  4, 11,    6,  2, 10,    8,  6,  7,    9,  8,  1
         ]
 
-        super().__init__( vertices, indices, radius, detail )
+        super().__init__(vertices, indices, radius, detail)
 
         self.type = 'IcosahedronBufferGeometry'
 
@@ -51,3 +51,6 @@ class IcosahedronBufferGeometry(PolyhedronBufferGeometry):
             'radius': radius,
             'detail': detail
         }
+
+    def clone(self):
+        return type(self)(self.parameters['radius'], self.parameters['detail']).copy(self)
