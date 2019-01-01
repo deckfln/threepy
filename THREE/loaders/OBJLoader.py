@@ -127,15 +127,15 @@ class _state:
             self.object._finalize(True)
 
     def parseVertexIndex(self, value, len):
-        index = int(value)
+        index = int(value or 0)
         return (index - 1 if index >= 0 else index + len / 3) * 3
 
     def parseNormalIndex(self, value, len):
-        index = int(value)
+        index = int(value or 0)
         return (index - 1 if index >= 0 else index + len / 3) * 3
 
     def parseUVIndex(self, value, len):
-        index = int(value)
+        index = int(value or 0)
         return (index - 1 if index >= 0 else index + len / 2) * 2
 
     def addVertex(self, a, b, c):
@@ -190,7 +190,8 @@ class _state:
             ib = self.parseUVIndex(ub, uvLen)
             ic = self.parseUVIndex(uc, uvLen)
 
-            self.addUV(ia, ib, ic)
+            if ia > 0 and ib > 0 and ic > 0:
+                self.addUV(ia, ib, ic)
 
         if na is not None:
             # Normals are many times the same. If so, skip function call and parseInt.

@@ -106,9 +106,7 @@ class Matrix4(pyOpenGLObject):
         te = self.elements
         me = m.elements
 
-        te[12] = me[12]
-        te[13] = me[13]
-        te[14] = me[14]
+        te[12:15] = me[12:15]
 
         self.updated = True
         self.uploaded = False

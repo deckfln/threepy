@@ -4,7 +4,7 @@
  */
 """
 
-from OpenGL.raw.GL.VERSION.GL_2_0 import glCreateProgram
+from OpenGL.raw.GL.VERSION.GL_2_0 import glCreateProgram, glDeleteProgram
 
 from THREE.renderers.shaders.ShaderChunk import *
 from THREE.renderers.pyOpenGL.pyOpenGLUniformBlock import *

@@ -33,10 +33,6 @@ class Mesh(Object3D):
 
         self.updateMorphTargets()
 
-    def __del__(self):
-        super().__del__()
-        pyOpenGLObjects.dispose_queue.append(self)
-
     def __getitem__(self, item):
         return self.__dict__[item]
 

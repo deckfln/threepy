@@ -71,6 +71,11 @@ class pyOpenGLBackground:
 
             self.boxMesh.material.uniforms.tCube.value = background
 
+            scale = camera.far
+
+            self.boxMesh.matrixWorld.makeScale(scale, scale, scale)
+            self.boxMesh.matrixWorld.copyPosition(camera.matrixWorld)
+
             renderList.push( self.boxMesh, self.boxMesh.geometry, self.boxMesh.material, 0, None )
 
         elif background and background.my_class(isTexture):

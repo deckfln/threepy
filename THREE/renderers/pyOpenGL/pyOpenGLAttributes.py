@@ -110,8 +110,8 @@ class pyOpenGLAttributes(pyOpenGLObject):
     def dispose(self, attribute=None, parent=None):
         if attribute is None:
             # delete all attributes
-            for data in self.buffers:
-                glDeleteBuffers(data.buffer)
+            for data in self.buffers.values():
+                glDeleteBuffers(1, [data.buffer])
             return
 
         if attribute.my_class(isInterleavedBufferAttribute):

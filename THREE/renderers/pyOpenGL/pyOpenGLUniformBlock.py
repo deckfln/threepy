@@ -428,6 +428,8 @@ class pyOpenGLUniformBlocks:
     def __init__(self):
         self.uniform_blocks = {}
         self.uniforms = {}
+        self._mapping = np.full(1024, -1, np.int16)    # mapping table for the modelMatrices UBO
+        self._mapping_max = 0
 
     def add(self, program, vertex, fragment):
         # list the uniforms block
@@ -505,4 +507,13 @@ class pyOpenGLUniformBlocks:
 
     def update(self, block=None):
         return
+
+    def map_id(self, id: int):
+        index = self._mapping[id]
+        if index < 0:
+            index = self._mapping_max
+            self._mapping[index] = id
+            self._mapping_max += 1
+
+        return index
 

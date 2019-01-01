@@ -428,8 +428,14 @@ class pyOpenGLState:
             self.enable( GL_CULL_FACE )
 
         flipSided = ( material.side == BackSide )
+        #FIXME look at pyOpenGLRenderer:500
+        #the frontFaceCW is now computer on the GPU
         if frontFaceCW:
-            flipSided = not flipSided
+           flipSided = not flipSided
+        #if flipSided:
+        #    self.setCullFace(CullFaceFront)
+        #else:
+        #    self.setCullFace(CullFaceBack)
 
         self.setFlipSided(flipSided)
 

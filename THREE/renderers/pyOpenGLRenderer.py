@@ -840,6 +840,10 @@ class pyOpenGLRenderer:
         for obj in visible_objects:
             self._project_visible_mesh(obj, camera, self.sortObjects)
 
+        # /////// get the background object prepared and added
+
+        self.background.render(self.currentRenderList, scene, camera, forceClear)
+
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
@@ -873,9 +877,6 @@ class pyOpenGLRenderer:
 
         self.setRenderTarget(renderTarget)
         self.state.enable(GL_MULTISAMPLE)
-
-        # render the background
-        self.background.render(self.currentRenderList, scene, camera, forceClear)
 
         # clean up info
         if self.info.autoReset:
@@ -2043,6 +2044,9 @@ class pyOpenGLRenderer:
         id = obj.id
 
         if matrixWorld.updated and not matrixWorld.uploaded:
+            # find the object in the modelMatrices mapping table
+            # index = self.uniformBlocks.map_id(id)
+
             params[0].update_array_element("modelMatrices", id, matrixWorld)
             matrixWorld.uploaded = True
 
