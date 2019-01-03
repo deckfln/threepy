@@ -656,7 +656,7 @@ class pyOpenGLProgram:
     # // free resource
 
     def destroy(self):
-        glDeleteProgram(self.program)
+        print("glDeleteProgram(self.program)")
         self.program = None
 
     # // DEPRECATED

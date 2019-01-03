@@ -17,10 +17,6 @@ layout (std140) uniform camera
 #include <modelMatrix>
 #include <modelViewMatrix>
 
-layout (std140) uniform normalMatricesBlock
-{
-    uniform mat3 normalMatrices[1024];
-};
 
 //uniform mat4 modelMatrix;
 //uniform mat4 modelViewMatrix;

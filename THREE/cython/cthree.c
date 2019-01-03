@@ -1726,7 +1726,6 @@ static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_author_tschw[] = "\n * @author tschw\n";
 static const char __pyx_k_element_size[] = "element_size";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
-static const char __pyx_k_cVector3_getInverse[] = "cVector3_getInverse";
 static const char __pyx_k_THREE_cython_cMatrix4[] = "THREE.cython.cMatrix4";
 static const char __pyx_k_THREE_cython_cVector3[] = "THREE.cython.cVector3";
 static const char __pyx_k_cVector3_applyMatrix4[] = "cVector3_applyMatrix4";
@@ -1758,7 +1757,6 @@ static PyObject *__pyx_n_s_ZYX;
 static PyObject *__pyx_n_s_buffer;
 static PyObject *__pyx_n_s_cMatrix4_getMaxScaleOnAxis;
 static PyObject *__pyx_n_s_cVector3_applyMatrix4;
-static PyObject *__pyx_n_s_cVector3_getInverse;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_constant;
 static PyObject *__pyx_n_s_element;
@@ -6217,7 +6215,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_buffer, __pyx_k_buffer, sizeof(__pyx_k_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_cMatrix4_getMaxScaleOnAxis, __pyx_k_cMatrix4_getMaxScaleOnAxis, sizeof(__pyx_k_cMatrix4_getMaxScaleOnAxis), 0, 0, 1, 1},
   {&__pyx_n_s_cVector3_applyMatrix4, __pyx_k_cVector3_applyMatrix4, sizeof(__pyx_k_cVector3_applyMatrix4), 0, 0, 1, 1},
-  {&__pyx_n_s_cVector3_getInverse, __pyx_k_cVector3_getInverse, sizeof(__pyx_k_cVector3_getInverse), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_constant, __pyx_k_constant, sizeof(__pyx_k_constant), 0, 0, 1, 1},
   {&__pyx_n_s_element, __pyx_k_element, sizeof(__pyx_k_element), 0, 0, 1, 1},
@@ -6655,7 +6652,7 @@ if (!__Pyx_RefNanny) {
  * 
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
- * from THREE.cython.cVector3 import cVector3_applyMatrix4, cVector3_getInverse
+ * from THREE.cython.cVector3 import cVector3_applyMatrix4
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -6665,18 +6662,15 @@ if (!__Pyx_RefNanny) {
   /* "cthree.pyx":12
  * import numpy as np
  * cimport numpy as np
- * from THREE.cython.cVector3 import cVector3_applyMatrix4, cVector3_getInverse             # <<<<<<<<<<<<<<
+ * from THREE.cython.cVector3 import cVector3_applyMatrix4             # <<<<<<<<<<<<<<
  * from THREE.cython.cMatrix4 import cMatrix4_getMaxScaleOnAxis
  * 
  */
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_cVector3_applyMatrix4);
   __Pyx_GIVEREF(__pyx_n_s_cVector3_applyMatrix4);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_cVector3_applyMatrix4);
-  __Pyx_INCREF(__pyx_n_s_cVector3_getInverse);
-  __Pyx_GIVEREF(__pyx_n_s_cVector3_getInverse);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_n_s_cVector3_getInverse);
   __pyx_t_2 = __Pyx_Import(__pyx_n_s_THREE_cython_cVector3, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -6684,15 +6678,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cVector3_applyMatrix4, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_cVector3_getInverse); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_cVector3_getInverse, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "cthree.pyx":13
  * cimport numpy as np
- * from THREE.cython.cVector3 import cVector3_applyMatrix4, cVector3_getInverse
+ * from THREE.cython.cVector3 import cVector3_applyMatrix4
  * from THREE.cython.cMatrix4 import cMatrix4_getMaxScaleOnAxis             # <<<<<<<<<<<<<<
  * 
  * 

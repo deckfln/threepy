@@ -152,7 +152,10 @@ class pyOpenGL(EventManager):
         previous = time.clock()
         target = previous + 0.03333333333333
 
-        while self.run or not glfw.window_should_close(self.win):
+        while self.run:
+            if glfw.window_should_close(self.win):
+                break
+
             current = time.clock()
 
             if self.start is not None:

@@ -9,7 +9,7 @@ cimport cython
 
 import numpy as np
 cimport numpy as np
-from THREE.cython.cVector3 import cVector3_applyMatrix4, cVector3_getInverse
+from THREE.cython.cVector3 import cVector3_applyMatrix4
 from THREE.cython.cMatrix4 import cMatrix4_getMaxScaleOnAxis
 
 

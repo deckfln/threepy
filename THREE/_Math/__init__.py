@@ -3,7 +3,7 @@ import array
 import sys
 import random
 
-from THREE.cython.cthree import *
+from THREE.cython.cthree import cMath_clamp
 
 DEG2RAD = math.pi / 180
 RAD2DEG = 180 / math.pi

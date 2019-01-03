@@ -6,6 +6,7 @@
 import THREE._Math as _Math
 from THREE.lights.Light import *
 from THREE.cameras.Camera import *
+from THREE.cameras.PerspectiveCamera import *
 
 
 class _power:
@@ -30,13 +31,13 @@ class _power:
 class SpotLight(Light):
     isSpotLight = True
     
-    def __init__(self, color=0xffffff, intensity=1, distance=0, angle=math.pi/3, penumbra=0, decay=1 ):
-        super().__init__( color, intensity )
+    def __init__(self, color=0xffffff, intensity=1, distance=0, angle=math.pi/3, penumbra=0, decay=1):
+        super().__init__(color, intensity)
         self.set_class(isSpotLight)
 
         self.type = 'SpotLight'
 
-        self.position.copy( Object3D.DefaultUp )
+        self.position.copy(Object3D.DefaultUp)
         self.updateMatrix()
 
         self.target = Object3D()
@@ -75,7 +76,7 @@ class SpotLightShadow(LightShadow):
     isSpotLightShadow = True
     
     def __init__(self):
-        super().__init__(PerspectiveCamera( 50, 1, 0.5, 500 ))
+        super().__init__(PerspectiveCamera(50, 1, 0.5, 500))
         self.set_class(isSpotLightShadow)
 
     def update(self, light ):

@@ -136,15 +136,15 @@ class pyOpenGLTextures:
     def deallocateTexture(self, texture):
         textureProperties = self.properties.get(texture)
 
-        if texture.image and textureProperties.__imageopenglTextureCube:
+        if texture.image and textureProperties.imageopenglTextureCube:
             # // cube texture
-            glDeleteTextures(1, textureProperties.__imageopenglTextureCube)
+            glDeleteTextures(1, textureProperties.imageopenglTextureCube)
         else:
             # // 2D texture
-            if textureProperties.__webglInit is None:
+            if not textureProperties.openglInit:
                 return
 
-            glDeleteTextures(1, textureProperties.openglTexture)
+            glDeleteTextures(1, [textureProperties.openglTexture])
 
         # // remove all webgl properties
         self.properties.remove(texture)
