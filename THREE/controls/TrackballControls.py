@@ -10,6 +10,8 @@ import math
 import THREE.math.Vector3
 from THREE.pyOpenGL.EventManager import *
 
+_vector2 = THREE.Vector2()
+
 
 class TrackballControls(EventManager):
     _STATE_NONE = -1
@@ -57,6 +59,12 @@ class TrackballControls(EventManager):
                       68   # /*D*/
                       ]
 
+        # button mapping between glfw to javascript
+        self.buttons = [
+            0,
+            2,
+            1
+        ]
         # // internals
 
         self.target = THREE.Vector3()
@@ -93,9 +101,9 @@ class TrackballControls(EventManager):
 
         # // events
 
-        self.changeEvent = { 'type': 'change' }
-        self.startEvent = { 'type': 'start' }
-        self.endEvent = { 'type': 'end' }
+        self.changeEvent = {'type': 'change'}
+        self.startEvent = {'type': 'start'}
+        self.endEvent = {'type': 'end'}
 
         # // listeners
 
@@ -135,7 +143,7 @@ class TrackballControls(EventManager):
             event.stopPropagation()
 
             if self._state == self._STATE_NONE:
-                self._state = event.button
+                self._state = self.buttons[event.button]
 
             if self._state == self._STATE_ROTATE and not self.noRotate:
                 self._moveCurr.copy(self.getMouseOnCircle(event.pageX, event.pageY))
@@ -264,16 +272,16 @@ class TrackballControls(EventManager):
 
             event.preventDefault()
 
-        self.domElement.addEventListener( 'contextmenu', contextmenu, False )
-        self.domElement.addEventListener( 'mousedown', mousedown, False )
-        self.domElement.addEventListener( 'wheel', mousewheel, False )
+        self.domElement.addEventListener('contextmenu', contextmenu, False)
+        self.domElement.addEventListener('mousedown', mousedown, False)
+        self.domElement.addEventListener('wheel', mousewheel, False)
 
-        self.domElement.addEventListener( 'touchstart', touchstart, False )
-        self.domElement.addEventListener( 'touchend', touchend, False )
-        self.domElement.addEventListener( 'touchmove', touchmove, False )
+        self.domElement.addEventListener('touchstart', touchstart, False)
+        self.domElement.addEventListener('touchend', touchend, False)
+        self.domElement.addEventListener('touchmove', touchmove, False)
 
-        self.domElement.addEventListener( 'keydown', keydown, False )
-        self.domElement.addEventListener( 'keyup', keyup, False )
+        self.domElement.addEventListener('keydown', keydown, False)
+        self.domElement.addEventListener('keyup', keyup, False)
 
         self.screen.width = self.domElement.clientWidth
         self.screen.height = self.domElement.clientHeight
@@ -290,22 +298,24 @@ class TrackballControls(EventManager):
         self.screen.height = height
 
     def getMouseOnScreen(self, pageX, pageY):
-        vector = THREE.Vector2()
+        global _vector2
+        vector = _vector2
 
         vector.set(
-            ( pageX - self.screen.left ) / self.screen.width,
-            ( pageY - self.screen.top ) / self.screen.height
-        )
+            (pageX - self.screen.left) / self.screen.width,
+            (pageY - self.screen.top) / self.screen.height
+       )
 
         return vector
 
     def getMouseOnCircle(self, pageX, pageY):
-        vector = THREE.Vector2()
+        global _vector2
+        vector = _vector2
 
         vector.set(
-            ( ( pageX - self.screen.width * 0.5 - self.screen.left ) / ( self.screen.width * 0.5 ) ),
-            ( ( self.screen.height + 2 * ( self.screen.top - pageY ) ) / self.screen.width ) # // screen.width intentional
-        )
+            ((pageX - self.screen.width * 0.5 - self.screen.left) / (self.screen.width * 0.5)),
+            ((self.screen.height + 2 * (self.screen.top - pageY)) / self.screen.width)  # // screen.width intentional
+       )
 
         return vector
 
@@ -317,90 +327,91 @@ class TrackballControls(EventManager):
         objectSidewaysDirection = THREE.Vector3()
         moveDirection = THREE.Vector3()
 
-        moveDirection.set( self._moveCurr.x - self._movePrev.x, self._moveCurr.y - self._movePrev.y, 0 )
+        moveDirection.set(self._moveCurr.x - self._movePrev.x, self._moveCurr.y - self._movePrev.y, 0)
         angle = moveDirection.length()
 
         if angle:
-            self._eye.copy( self.object.position ).sub( self.target )
+            self._eye.copy(self.object.position).sub(self.target)
 
-            eyeDirection.copy( self._eye ).normalize()
-            objectUpDirection.copy( self.object.up ).normalize()
-            objectSidewaysDirection.crossVectors( objectUpDirection, eyeDirection ).normalize()
+            eyeDirection.copy(self._eye).normalize()
+            objectUpDirection.copy(self.object.up).normalize()
+            objectSidewaysDirection.crossVectors(objectUpDirection, eyeDirection).normalize()
 
-            objectUpDirection.setLength( self._moveCurr.y - self._movePrev.y )
-            objectSidewaysDirection.setLength( self._moveCurr.x - self._movePrev.x )
+            objectUpDirection.setLength(self._moveCurr.y - self._movePrev.y)
+            objectSidewaysDirection.setLength(self._moveCurr.x - self._movePrev.x)
 
-            moveDirection.copy( objectUpDirection.add( objectSidewaysDirection ) )
+            moveDirection.copy(objectUpDirection.add(objectSidewaysDirection))
 
-            axis.crossVectors( moveDirection, self._eye ).normalize()
+            axis.crossVectors(moveDirection, self._eye).normalize()
 
             angle *= self.rotateSpeed
-            quaternion.setFromAxisAngle( axis, angle )
+            quaternion.setFromAxisAngle(axis, angle)
 
-            self._eye.applyQuaternion( quaternion )
-            self.object.up.applyQuaternion( quaternion )
+            self._eye.applyQuaternion(quaternion)
+            self.object.up.applyQuaternion(quaternion)
 
-            self._lastAxis.copy( axis )
+            self._lastAxis.copy(axis)
             self._lastAngle = angle
         elif not self.staticMoving and self._lastAngle:
-            self._lastAngle *= math.sqrt( 1.0 - self.dynamicDampingFactor )
-            self._eye.copy( self.object.position ).sub( self.target )
-            quaternion.setFromAxisAngle( self._lastAxis, self._lastAngle )
-            self._eye.applyQuaternion( quaternion )
-            self.object.up.applyQuaternion( quaternion )
+            self._lastAngle *= math.sqrt(1.0 - self.dynamicDampingFactor)
+            self._eye.copy(self.object.position).sub(self.target)
+            quaternion.setFromAxisAngle(self._lastAxis, self._lastAngle)
+            self._eye.applyQuaternion(quaternion)
+            self.object.up.applyQuaternion(quaternion)
 
-        self._movePrev.copy( self._moveCurr )
+        self._movePrev.copy(self._moveCurr)
 
     def zoomCamera(self):
         if self._state == self._STATE_TOUCH_ZOOM_PAN:
             factor = self._touchZoomDistanceStart / self._touchZoomDistanceEnd
             self._touchZoomDistanceStart = self._touchZoomDistanceEnd
-            self._eye.multiplyScalar( factor )
+            self._eye.multiplyScalar(factor)
         else:
-            factor = 1.0 + ( self._zoomEnd.y - self._zoomStart.y ) * self.zoomSpeed
+            factor = 1.0 + (self._zoomEnd.y - self._zoomStart.y) * self.zoomSpeed
 
             if factor != 1.0 and factor > 0.0:
-                self._eye.multiplyScalar( factor )
+                self._eye.multiplyScalar(factor)
 
             if self.staticMoving:
-                self._zoomStart.copy( self._zoomEnd )
+                self._zoomStart.copy(self._zoomEnd)
             else:
-                self._zoomStart.y += ( self._zoomEnd.y - self._zoomStart.y ) * self.dynamicDampingFactor
+                self._zoomStart.y += (self._zoomEnd.y - self._zoomStart.y) * self.dynamicDampingFactor
 
     def panCamera(self):
-        mouseChange = THREE.Vector2()
+        global _vector2
+        mouseChange = _vector2
         objectUp = THREE.Vector3()
         pan = THREE.Vector3()
 
-        mouseChange.copy( self._panEnd ).sub( self._panStart )
+        mouseChange.copy(self._panEnd).sub(self._panStart)
 
         if mouseChange.lengthSq():
-                mouseChange.multiplyScalar( self._eye.length() * self.panSpeed )
+                mouseChange.multiplyScalar(self._eye.length() * self.panSpeed)
 
-        pan.copy( self._eye ).cross( self.object.up ).setLength( mouseChange.x )
-        pan.add( objectUp.copy( self.object.up ).setLength( mouseChange.y ) )
+        pan.copy(self._eye).cross(self.object.up).setLength(mouseChange.x)
+        pan.add(objectUp.copy(self.object.up).setLength(mouseChange.y))
 
-        self.object.position.add( pan )
-        self.target.add( pan )
+        self.object.position.add(pan)
+        self.target.add(pan)
 
         if self.staticMoving:
-            self._panStart.copy( self._panEnd )
+            self._panStart.copy(self._panEnd)
         else:
-            self._panStart.add( mouseChange.subVectors( self._panEnd, self._panStart ).multiplyScalar( self.dynamicDampingFactor ) )
+            self._panStart.add(mouseChange.subVectors(self._panEnd, self._panStart).multiplyScalar(self.dynamicDampingFactor))
 
     def checkDistances(self):
         if not self.noZoom or not self.noPan:
             if self._eye.lengthSq() > self.maxDistance * self.maxDistance:
-                self.object.position.addVectors( self.target, self._eye.setLength( self.maxDistance ) )
-                self._zoomStart.copy( self._zoomEnd )
+                self.object.position.addVectors(self.target, self._eye.setLength(self.maxDistance))
+                self._zoomStart.copy(self._zoomEnd)
 
             if self._eye.lengthSq() < self.minDistance * self.minDistance:
-                self.object.position.addVectors( self.target, self._eye.setLength( self.minDistance ) )
-                self._zoomStart.copy( self._zoomEnd )
+                self.object.position.addVectors(self.target, self._eye.setLength(self.minDistance))
+                self._zoomStart.copy(self._zoomEnd)
 
     def update(self, timer=None):
         # TODO FDE : some examples are calling it with a timer, but the javascrip code has no such variable
-        self._eye.subVectors( self.object.position, self.target )
+        self._eye.subVectors(self.object.position, self.target)
 
         if not self.noRotate:
             self.rotateCamera()
@@ -411,32 +422,32 @@ class TrackballControls(EventManager):
         if not self.noPan:
             self.panCamera()
 
-        self.object.position.addVectors( self.target, self._eye )
+        self.object.position.addVectors(self.target, self._eye)
 
         self.checkDistances()
 
-        self.object.lookAt( self.target )
+        self.object.lookAt(self.target)
 
-        if self.lastPosition.distanceToSquared( self.object.position ) > self.EPS:
-            self.dispatchEvent( self.changeEvent )
-            self.lastPosition.copy( self.object.position )
+        if self.lastPosition.distanceToSquared(self.object.position) > self.EPS:
+            self.dispatchEvent(self.changeEvent)
+            self.lastPosition.copy(self.object.position)
 
     def reset(self):
         self._state = self._STATE_NONE
         self._prevState = self._STATE_NONE
 
-        self.target.copy( self.target0 )
-        self.object.position.copy( self.position0 )
-        self.object.up.copy( self.up0 )
+        self.target.copy(self.target0)
+        self.object.position.copy(self.position0)
+        self.object.up.copy(self.up0)
 
-        self._eye.subVectors( self.object.position, self.target )
+        self._eye.subVectors(self.object.position, self.target)
 
-        self.object.lookAt( self.target )
+        self.object.lookAt(self.target)
 
-        self.dispatchEvent( self.changeEvent )
+        self.dispatchEvent(self.changeEvent)
 
-        self.lastPosition.copy( self.object.position )
+        self.lastPosition.copy(self.object.position)
 
-    def __del__(self):
+    def dispose(self):
         for event in self.events.keys():
             self.domElement.removeEventListener(event, self.events[event])
