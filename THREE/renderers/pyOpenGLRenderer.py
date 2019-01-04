@@ -2043,7 +2043,7 @@ class pyOpenGLRenderer:
         matrixWorld = obj.matrixWorld
         id = obj.id
 
-        if matrixWorld.updated and not matrixWorld.uploaded:
+        if matrixWorld.updated or not matrixWorld.uploaded:
             # find the object in the modelMatrices mapping table
             # index = self.uniformBlocks.map_id(id)
 

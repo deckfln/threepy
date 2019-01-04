@@ -363,8 +363,8 @@ class Object3D(pyOpenGLObject):
     def updateMatrixWorld(self, force=False, parent_matrixWorld_is_updated=True):
         # bold optimization
         # do NOT compute the matrices for hidden objects
-        if not self.visible:
-            return
+        # if not self.visible:
+        #    return
 
         if self.matrixAutoUpdate:
             self.updateMatrix()

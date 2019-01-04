@@ -25,8 +25,6 @@ class Matrix3(pyOpenGLObject):
             0, 0, 1
         ], dtype=np.float32)
 
-        # self.matrix = self.elements.reshape(3, 3)
-
         super().__init__()
         self.set_class(isMatrix3)
         self.updated = True
