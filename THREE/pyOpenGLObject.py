@@ -34,6 +34,7 @@ isDepthTexture = np.uint64(1048576)
 isCompressedTexture = np.uint64(2097152)
 isCanvasTexture = np.uint64(4194304)
 isVideoTexture = np.uint64(8388608)
+isTextureArray = np.uint64(16777216)
 
 isFont = np.uint64(1048576)
 

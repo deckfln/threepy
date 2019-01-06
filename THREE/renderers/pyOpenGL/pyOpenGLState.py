@@ -532,14 +532,17 @@ class pyOpenGLState:
             boundTexture.type = webglType
             boundTexture.texture = webglTexture
 
-    def compressedTexImage2D(self, target, level, glFormat, width, height, border, data):
+    @staticmethod
+    def compressedTexImage2D(target, level, glFormat, width, height, border, data):
         glCompressedTexImage2D(target, level, glFormat, width, height, border, data.size, data)
 
-    def texImage2D(self, target, level, internalFormat, width, height, border, format, type, data):
+    @staticmethod
+    def texImage2D(target, level, internalFormat, width, height, border, format, type, data):
         OpenGL.raw.GL.VERSION.GL_1_0.glTexImage2D(target, level, internalFormat, width, height, border, format, type, data)
 
-    def texImage2Df(self, target, level, internalFormat, border, format, data):
-        glTexImage2Df( target, level, internalFormat, border, format, data )
+    @staticmethod
+    def texImage2Df(target, level, internalFormat, border, format, data):
+        glTexImage2Df(target, level, internalFormat, border, format, data)
 
     def scissor(self, scissor ):
         if not self.currentScissor.equals( scissor ):

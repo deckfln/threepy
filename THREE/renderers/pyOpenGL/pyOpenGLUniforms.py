@@ -221,6 +221,7 @@ _cache_size = {
 
     0x8b5e: 1,
     0x8d66: 1,  # // SAMPLER_2D, SAMPLER_EXTERNAL_OES
+    GL_SAMPLER_2D_ARRAY: 1,  # // SAMPLER_2D_ARRAY
     0x8b60: 1,  # // SAMPLER_CUBE
 
     0x1404: 1,
@@ -250,6 +251,7 @@ class SingleUniform:
 
             0x8b5e: self.setValueT1,
             0x8d66: self.setValueT1,  # // SAMPLER_2D, SAMPLER_EXTERNAL_OES
+            GL_SAMPLER_2D_ARRAY: self.setValueT1,
             0x8b60: self.setValueT6,  # // SAMPLER_CUBE
 
             0x1404: self.setValue1i,

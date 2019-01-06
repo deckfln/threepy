@@ -285,7 +285,7 @@ class pyOpenGLProgram:
         if material.my_class(isRawShaderMaterial):
             # compatibility mode for threejs
             if '#version 330' not in vertexShader:
-                _glversion = '#version 330'
+                _glversion = '#version 430 core'
             else:
                 _glversion = ''
 
@@ -299,8 +299,8 @@ class pyOpenGLProgram:
                 prefixVertex += '\n'
 
             # compatibility mode for threejs
-            if '#version 330' not in fragmentShader:
-                _glversion = '#version 330'
+            if '#version 430 core' not in fragmentShader:
+                _glversion = '#version 430 core'
             else:
                 _glversion = ''
 
@@ -369,7 +369,7 @@ class pyOpenGLProgram:
 
         else:
             _prefixVertex = [
-                '#version 330',
+                '#version 430 core',
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
 
@@ -425,7 +425,7 @@ class pyOpenGLProgram:
             prefixVertex = '\n'.join([string for string in _prefixVertex if string != ''])
 
             _prefixFragment = [
-                '#version 330\n',
+                '#version 430 core\n',
                 customExtensions,
                 'precision ' + parameters['precision'] + ' float;',
                 'precision ' + parameters['precision'] + ' int;',
