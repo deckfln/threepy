@@ -18,6 +18,7 @@ class _map:
         self.openglFrameBuffer = None
         self.openglDepthBuffer = None
         self.version = -1
+        self._versions = None       # used by TextureArray to test each image
         self.clippingState = None
         self.imageopenglTextureCube = None
         self.image_powerof2 = None

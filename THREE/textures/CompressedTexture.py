@@ -22,7 +22,15 @@ class CompressedImage:
 class CompressedTexture(Texture):
     isCompressedTexture = True
     
-    def __init__(self, mipmaps=None, width=None, height=None, format=None, gltype=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, anisotropy=None, encoding=None):
+    def __init__(self, mipmaps=None, width=None, height=None,
+                format=RGBAFormat,
+                gltype=UnsignedByteType,
+                mapping=None,
+                wrapS=ClampToEdgeWrapping, wrapT=ClampToEdgeWrapping,
+                magFilter=LinearFilter, minFilter=LinearMipMapLinearFilter,
+                anisotropy=1,
+                encoding=LinearEncoding):
+
         super().__init__(None, mapping, wrapS, wrapT, magFilter, minFilter, format, gltype, anisotropy, encoding)
 
         self.set_class(isCompressedTexture)

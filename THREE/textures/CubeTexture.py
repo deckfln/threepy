@@ -9,8 +9,14 @@ from THREE.textures.Texture import *
 class CubeTexture(Texture):
     isCubeTexture = True
 
-    def __init__(self, images=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, format=None,
-                 gltype=None, anisotropy=None, encoding=None):
+    def __init__(self, images=None,
+                 mapping=None,
+                 wrapS=ClampToEdgeWrapping, wrapT=ClampToEdgeWrapping,
+                 magFilter=LinearFilter, minFilter=LinearMipMapLinearFilter,
+                 format=RGBAFormat,
+                 gltype=UnsignedByteType,
+                 anisotropy=1,
+                 encoding=LinearEncoding):
         if images is None:
             images = [None, None, None, None, None, None]
 

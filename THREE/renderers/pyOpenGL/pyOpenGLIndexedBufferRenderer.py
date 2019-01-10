@@ -33,10 +33,7 @@ class pyOpenGLIndexedBufferRenderer:
         else:
             pointer = int(start * self._bytesPerElement)
 
-        try:
-            glDrawElements(self.mode, int(count), self._type, pointer)
-        except:
-            print("down")
+        glDrawElements(self.mode, int(count), self._type, pointer)
 
         self.info.update(count, self.mode)
 

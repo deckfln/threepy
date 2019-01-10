@@ -20,7 +20,14 @@ class Texture(pyOpenGLObject):
     DEFAULT_MAPPING = UVMapping
     isTexture = True
     
-    def __init__(self, image=None, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, format=None, gltype=None, anisotropy=None, encoding=None):
+    def __init__(self, image=None,
+                 mapping=None,
+                 wrapS=ClampToEdgeWrapping, wrapT=ClampToEdgeWrapping,
+                 magFilter=LinearFilter, minFilter=LinearMipMapLinearFilter,
+                 format=RGBAFormat,
+                 gltype=UnsignedByteType,
+                 anisotropy=1,
+                 encoding=LinearEncoding):
         global _textureId
         self.id = _textureId
         _textureId += 1
@@ -39,13 +46,13 @@ class Texture(pyOpenGLObject):
 
         self.mapping = mapping if mapping is not None else Texture.DEFAULT_MAPPING
 
-        self.wrapS = wrapS if wrapS is not None else ClampToEdgeWrapping
-        self.wrapT = wrapT if wrapT is not None else ClampToEdgeWrapping
+        self.wrapS = wrapS
+        self.wrapT = wrapT
 
-        self.magFilter = magFilter if magFilter is not None else LinearFilter
-        self.minFilter = minFilter if minFilter is not None else LinearMipMapLinearFilter
+        self.magFilter = magFilter
+        self.minFilter = minFilter
 
-        self.anisotropy = anisotropy if anisotropy is not None else 1
+        self.anisotropy = anisotropy
 
         if image is not None:
             if type(image) is list:
@@ -56,9 +63,9 @@ class Texture(pyOpenGLObject):
             else:
                 self.format = RGBFormat if image.mode == 'RGB' else RGBAFormat
         else:
-            self.format = format if format is not None else RGBAFormat
+            self.format = format
 
-        self.type = gltype if gltype is not None else UnsignedByteType
+        self.type = gltype
 
         self.offset = Vector2(0, 0)
         self.repeat = Vector2(1, 1)
@@ -77,7 +84,7 @@ class Texture(pyOpenGLObject):
         # //
         # // Also changing the encoding after already used by a Material will not automatically make the Material
         # // update.  You need to explicitly call Material.needsUpdate to trigger it to recompile.
-        self.encoding = encoding if encoding is not None else LinearEncoding
+        self.encoding = encoding
 
         self.version = 0
         self.onUpdate = None

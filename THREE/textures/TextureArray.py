@@ -1,24 +1,23 @@
-###
-#
-#
-#
+"""
+
+"""
 
 from THREE.textures.Texture import *
 from THREE.Constants import *
-
-
-class _DataTextureImage:
-    def __init__(self, data, width, height):
-        self.data = data
-        self.width = width
-        self.height = height
+from PIL import Image
 
 
 class TextureArray(Texture):
     isTextureArrayTexture = True
 
-    def __init__(self, image, width: int, height: int, layerCount: int, mipmaps: int, format, gltype, mapping=None, wrapS=None, wrapT=None, magFilter=None,
-                 minFilter=None, anisotropy=None, encoding=None):
+    def __init__(self, image, width: int, height: int, layerCount: int, mipmaps: int = 1,
+                 format=RGBAFormat,
+                 gltype=UnsignedByteType,
+                 mapping=None,
+                 wrapS=ClampToEdgeWrapping, wrapT=ClampToEdgeWrapping,
+                 magFilter=LinearFilter, minFilter=LinearMipMapLinearFilter,
+                 anisotropy=1,
+                 encoding=LinearEncoding):
         super().__init__(image, mapping, wrapS, wrapT, magFilter, minFilter, format, gltype, anisotropy, encoding)
 
         self.set_class(isTextureArray)
@@ -26,6 +25,8 @@ class TextureArray(Texture):
         self.height = height
         self.layerCount = layerCount
         self.mipmaps = mipmaps
+        self.images = None
+        self._versions = None
 
         if not isinstance(image, list):
             # rearrange bytes in memory. For a Texture Array images need to be contiguous in memory
@@ -53,6 +54,16 @@ class TextureArray(Texture):
                             p += 3
 
             self.img_data = temp
+        else:
+            self.img_data = [None for i in range(len(image))]
+            for i in range(len(image)):
+                img = image[i]
+                if img is not None:
+                    img_data = np.fromstring(img.tobytes(), np.uint8)
+                    self.img_data[i] = img_data
+
+            self.images = image
+            self._versions = np.full(len(image), -1, np.int32)
 
     @staticmethod
     def fromTexture(source: Texture, layerCount: int, mipmaps: int):
@@ -62,3 +73,14 @@ class TextureArray(Texture):
         texArray = TextureArray(source.image, size, size, layerCount, mipmaps, source.format, source.type)
         texArray.needsUpdate = True
         return texArray
+
+    def updateData(self, i: int, img_data: np.ndarray):
+        self.img_data[i] = img_data
+        self._versions[i] += 1
+        self.needsUpdate = True
+
+    def updateImage(self, i: int, image: Image):
+        self.image[i] = image
+        self.img_data[i] = np.fromstring(image.tobytes(), np.uint8)
+        self._versions[i] += 1
+        self.needsUpdate = True

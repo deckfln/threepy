@@ -322,7 +322,7 @@ class pyOpenGLProgram:
                     uniform mat4 modelViewMatrix;
                     """)
 
-            if 'objectID' not in vertexShader:
+            if '#ifdef USE_INSTANCES' not in vertexShader:
                 vertexShader = vertexShader.replace(
                     "uniform mat4 modelMatrix;",
                     """

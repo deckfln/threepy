@@ -15,15 +15,15 @@ class _DataTextureImage:
 class DataTexture(Texture):
     isDataTexture = True
     
-    def __init__(self, data, width, height, format, gltype, mapping=None, wrapS=None, wrapT=None, magFilter=None, minFilter=None, anisotropy=None, encoding=None):
+    def __init__(self, data, width, height, format=RGBAFormat, gltype=FloatType, mapping=None,
+                 wrapS=ClampToEdgeWrapping, wrapT=ClampToEdgeWrapping,
+                 magFilter=NearestFilter, minFilter=NearestFilter,
+                 anisotropy=1,
+                 encoding=LinearEncoding):
         super().__init__(None, mapping, wrapS, wrapT, magFilter, minFilter, format, gltype, anisotropy, encoding)
 
         self.set_class(isDataTexture)
-        self.format = RGBA32Format
         self.image = _DataTextureImage(data, width, height)
-
-        self.magFilter = magFilter if magFilter is not None else NearestFilter
-        self.minFilter = minFilter if minFilter is not None else NearestFilter
 
         self.generateMipmaps = False
         self.flipY = False
