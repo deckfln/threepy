@@ -20,3 +20,7 @@ class InstancedBufferAttribute(BufferAttribute):
         self.meshPerAttribute = source.meshPerAttribute
 
         return self
+
+    def clone(self):
+        array = np.copy(self.array)
+        return type(self)(array, self.itemSize).copy(self)

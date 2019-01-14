@@ -252,7 +252,8 @@ class pyOpenGLState:
 
         self.emptyTextures = {
                 GL_TEXTURE_2D: createTexture( GL_TEXTURE_2D, GL_TEXTURE_2D, 1 ),
-                GL_TEXTURE_CUBE_MAP: createTexture( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_POSITIVE_X, 6 )
+                GL_TEXTURE_CUBE_MAP: createTexture( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_POSITIVE_X, 6 ),
+                GL_TEXTURE_2D_ARRAY: createTexture( GL_TEXTURE_2D, GL_TEXTURE_2D, 1 )
         }
 
         # // init

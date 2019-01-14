@@ -15,11 +15,11 @@ class InstancedBufferGeometry(BufferGeometry):
         self.type = 'InstancedBufferGeometry'
         self.maxInstancedCount = None
 
-    def copy(self, source ):
-        super().copy(source)
+    def copy(self, source, deep=True):
+        super().copy(source, deep)
         if hasattr(source, 'maxInstancedCount'):
             self.maxInstancedCount = source.maxInstancedCount
         return self
 
-    def clone(self):
-        return type(self)().copy(self)
+    def clone(self, deep=True):
+        return type(self)().copy(self, deep)

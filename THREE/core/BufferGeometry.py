@@ -576,7 +576,7 @@ class BufferGeometry(pyOpenGLObject):
     def clone(self):
         return type(self)().copy(self)
         
-    def copy(self, source):
+    def copy(self, source, deep=True):
         # // reset
         self.index = None
         self.attributes = _attributesList()
@@ -591,14 +591,20 @@ class BufferGeometry(pyOpenGLObject):
         # // index
         index = source.index
         if index is not None:
-            self.setIndex(index.clone())
+            if deep:
+                self.setIndex(index.clone())
+            else:
+                self.setIndex(index)
 
         # // attributes
         attributes = source.attributes
         for name in attributes.__dict__:
             attribute = attributes.__dict__[name]
             if attribute is not None:
-                self.addAttribute(name, attribute.clone())
+                if deep:
+                    self.addAttribute(name, attribute.clone())
+                else:
+                    self.addAttribute(name, attribute)
 
         # // morph attributes
         morphAttributes = source.morphAttributes
@@ -608,7 +614,10 @@ class BufferGeometry(pyOpenGLObject):
 
             if morphAttribute is not None:
                 for morphAttribut in morphAttribute:
-                    array.append(morphAttribut.clone())
+                    if deep:
+                        array.append(morphAttribut.clone())
+                    else:
+                        array.append(morphAttribut)
 
                 self.morphAttributes.__dict__[name] = array
 
@@ -633,6 +642,9 @@ class BufferGeometry(pyOpenGLObject):
 
         # user data
         self.userData = self.userData
+
+        if hasattr(source, 'parameters'):
+            self.parameters = source.parameters
 
         return self
 
