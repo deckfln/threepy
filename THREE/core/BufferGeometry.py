@@ -11,6 +11,8 @@ from THREE.objects.BoundingSphere import *
 from THREE.core.Object3D import *
 from THREE.core.BufferAttribute import *
 from THREE.core.DirectGeometry import *
+from THREE.core.Geometry import *
+
 
 _gIdcount = 0
 _box = Box3()
@@ -45,6 +47,16 @@ _v3 = Vector3()
 
 
 class BufferGeometry(pyOpenGLObject):
+    id: int
+    uuid: str
+    name: str
+    type: str
+    index: Uint16BufferAttribute
+    attributes: _attributesList
+    _groups: list
+    boundingSphere: BoundingSphere
+    drawRange: _drawRange
+
     count = 0
     isBufferGeometry = True
 
@@ -70,6 +82,7 @@ class BufferGeometry(pyOpenGLObject):
         self.drawRange = _drawRange(0, float('+inf'))
         self.callback = None
         self.bones = None
+        self.parameters = None
         self.userData = {}
 
     def getIndex(self):
@@ -78,53 +91,53 @@ class BufferGeometry(pyOpenGLObject):
     def setIndex(self, index):
         if isinstance(index, list):
             if arrayMax(index) > 65535:
-                self.index = Uint32BufferAttribute( index, 1 )
+                self.index = Uint32BufferAttribute(index, 1)
             else:
                 self.index = Uint16BufferAttribute(index, 1)
         else:
             self.index = index
 
-    def addAttribute(self, name, attribute):
-        if not ( attribute and attribute.my_class(isBufferAttribute) ) and not ( attribute and attribute.my_class(isInterleavedBufferAttribute)):
-            print( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' )
-            return self.addAttribute( name, BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) )
+    def addAttribute(self, name: str, attribute: BufferAttribute):
+        if not (attribute and attribute.my_class(isBufferAttribute)) and not (attribute and attribute.my_class(isInterleavedBufferAttribute)):
+            print('THREE.BufferGeometry: .addAttribute() now expects (name, attribute).')
+            return self.addAttribute(name, BufferAttribute(arguments[1], arguments[2]))
 
         if name == 'index':
-            print( 'THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.' )                
-            self.setIndex( attribute )
+            print('THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.')                
+            self.setIndex(attribute)
             return self
 
         self.attributes.__dict__[name] = attribute
         return self
 
-    def getAttribute(self, name ):
+    def getAttribute(self, name: str):
         return self.attributes.__dict__[name]
 
-    def removeAttribute(self, name ):
+    def removeAttribute(self, name: str):
         if hasattr(self.attributes, name):
             del self.attributes.__dict__[name]
         return self
         
-    def addGroup(self, start, count, materialIndex=0 ):
-        self.groups.append( _groups(start, count, materialIndex))
+    def addGroup(self, start: int, count: int, materialIndex: int=0):
+        self.groups.append(_groups(start, count, materialIndex))
 
     def clearGroups(self):
         self.groups = []
         
-    def setDrawRange(self, start, count ):
+    def setDrawRange(self, start: int, count: int):
         self.drawRange.start = start
         self.drawRange.count = count
         
-    def applyMatrix(self, matrix ):
+    def applyMatrix(self, matrix: Matrix4):
         if self.attributes.position is not None:
             position = self.attributes.position
-            matrix.applyToBufferAttribute( position )
+            matrix.applyToBufferAttribute(position)
             position.needsUpdate = True
 
         if self.attributes.normal is not None:
             normal = self.attributes.normal
-            normalMatrix = Matrix3().getNormalMatrix( matrix )
-            normalMatrix.applyToBufferAttribute( normal )
+            normalMatrix = Matrix3().getNormalMatrix(matrix)
+            normalMatrix.applyToBufferAttribute(normal)
             normal.needsUpdate = True
 
         if self.boundingBox is not None:
@@ -135,66 +148,66 @@ class BufferGeometry(pyOpenGLObject):
 
         return self
         
-    def rotateX(self, angle):
+    def rotateX(self, angle: float):
         # // rotate geometry around world x-axis
         m1 = Matrix4()
-        m1.makeRotationX( angle )
-        self.applyMatrix( m1 )
+        m1.makeRotationX(angle)
+        self.applyMatrix(m1)
         return self
 
-    def rotateY(self, angle):
+    def rotateY(self, angle: float):
         # // rotate geometry around world y-axis
         m1 = Matrix4()
-        m1.makeRotationY( angle )
-        self.applyMatrix( m1 )
+        m1.makeRotationY(angle)
+        self.applyMatrix(m1)
         return self
 
-    def rotateZ(self, angle):
+    def rotateZ(self, angle: float):
         # // rotate geometry around world z-axis
         m1 = Matrix4()
-        m1.makeRotationZ( angle )
-        self.applyMatrix( m1 )
+        m1.makeRotationZ(angle)
+        self.applyMatrix(m1)
         return self
 
-    def translate(self, x, y, z):
+    def translate(self, x: float, y: float, z: float):
         # // translate geometry
         m1 = Matrix4()
-        m1.makeTranslation( x, y, z )
-        self.applyMatrix( m1 )
+        m1.makeTranslation(x, y, z)
+        self.applyMatrix(m1)
         return self
 
-    def scale(self, x, y, z):
+    def scale(self, x: float, y: float, z: float):
         # // scale geometry
         m1 = Matrix4()
-        m1.makeScale( x, y, z )
-        self.applyMatrix( m1 )
+        m1.makeScale(x, y, z)
+        self.applyMatrix(m1)
         return self
 
-    def lookAt(self, vector):
+    def lookAt(self, vector: Vector3):
         obj = Object3D()
-        obj.lookAt( vector )
+        obj.lookAt(vector)
         obj.updateMatrix()
-        self.applyMatrix( obj.matrix )
+        self.applyMatrix(obj.matrix)
 
     def center(self):
         global _v3
         offset = _v3
         self.computeBoundingBox()
         self.boundingBox.getCenter(offset).negate()
-        self.translate( offset.x, offset.y, offset.z )
+        self.translate(offset.x, offset.y, offset.z)
         return self
         
-    def setFromObject(self, object ):
-        # // console.log( 'THREE.BufferGeometry.setFromObject(). Converting', object, self )
+    def setFromObject(self, object: Object3D):
+        # // console.log('THREE.BufferGeometry.setFromObject(). Converting', object, self)
         geometry = object.geometry
         if object.my_class(isPoints) or object.my_class(isLine):
-            positions = Float32BufferAttribute( len(geometry.vertices) * 3, 3 )
-            colors = Float32BufferAttribute( len(geometry.colors) * 3, 3 )
-            self.addAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) )
-            self.addAttribute( 'color', colors.copyColorsArray( geometry.colors ) )
+            positions = Float32BufferAttribute(len(geometry.vertices) * 3, 3)
+            colors = Float32BufferAttribute(len(geometry.colors) * 3, 3)
+            self.addAttribute('position', positions.copyVector3sArray(geometry.vertices))
+            self.addAttribute('color', colors.copyColorsArray(geometry.colors))
             if geometry.lineDistances and len(geometry.lineDistances) == len(geometry.vertices):
-                lineDistances = Float32BufferAttribute( len(geometry.lineDistances), 1 )
-                self.addAttribute( 'lineDistance', lineDistances.copyArray( geometry.lineDistances ) )
+                lineDistances = Float32BufferAttribute(len(geometry.lineDistances), 1)
+                self.addAttribute('lineDistance', lineDistances.copyArray(geometry.lineDistances))
 
             if geometry.boundingSphere is not None:
                 self.boundingSphere = geometry.boundingSphere.clone()
@@ -203,21 +216,21 @@ class BufferGeometry(pyOpenGLObject):
                 self.boundingBox = geometry.boundingBox.clone()
         elif object.my_class(isMesh):
             if geometry and geometry.my_class(isGeometry):
-                self.fromGeometry( geometry )
+                self.fromGeometry(geometry)
 
         return self
 
-    def setFromPoints(self, points):
+    def setFromPoints(self, points: list):
         position = []
 
         for point in points:
-            position.append( point.x, point.y, point.z or 0 )
+            position.append(point.x, point.y, point.z or 0)
 
-        self.addAttribute( 'position', Float32BufferAttribute( position, 3 ) )
+        self.addAttribute('position', Float32BufferAttribute(position, 3))
 
         return self
 
-    def updateFromObject(self, object ):
+    def updateFromObject(self, object: Object3D):
         geometry = object.geometry
         if object.my_class(isMesh):
             direct = geometry._directGeometry
@@ -226,7 +239,7 @@ class BufferGeometry(pyOpenGLObject):
                 geometry.elementsNeedUpdate = False
 
             if direct is None:
-                return self.fromGeometry( geometry )
+                return self.fromGeometry(geometry)
 
             direct.verticesNeedUpdate = geometry.verticesNeedUpdate
             direct.normalsNeedUpdate = geometry.normalsNeedUpdate            
@@ -243,7 +256,7 @@ class BufferGeometry(pyOpenGLObject):
         if geometry.verticesNeedUpdate:
             attribute = self.attributes.position
             if attribute is not None:
-                attribute.copyVector3sArray( geometry.vertices )
+                attribute.copyVector3sArray(geometry.vertices)
                 attribute.needsUpdate = True
 
             geometry.verticesNeedUpdate = False
@@ -251,7 +264,7 @@ class BufferGeometry(pyOpenGLObject):
         if geometry.normalsNeedUpdate:
             attribute = self.attributes.normal
             if attribute is not None:
-                attribute.copyVector3sArray( geometry.normals )
+                attribute.copyVector3sArray(geometry.normals)
                 attribute.needsUpdate = True
 
             geometry.normalsNeedUpdate = False
@@ -259,7 +272,7 @@ class BufferGeometry(pyOpenGLObject):
         if geometry.colorsNeedUpdate:
             attribute = self.attributes.color
             if attribute is not None:
-                attribute.copyColorsArray( geometry.colors )
+                attribute.copyColorsArray(geometry.colors)
                 attribute.needsUpdate = True
 
             geometry.colorsNeedUpdate = False
@@ -267,7 +280,7 @@ class BufferGeometry(pyOpenGLObject):
         if geometry.uvsNeedUpdate:
             attribute = self.attributes.uv
             if attribute is not None:
-                attribute.copyVector2sArray( geometry.uvs )
+                attribute.copyVector2sArray(geometry.uvs)
                 attribute.needsUpdate = True
 
             geometry.uvsNeedUpdate = False
@@ -275,61 +288,61 @@ class BufferGeometry(pyOpenGLObject):
         if geometry.lineDistancesNeedUpdate:
             attribute = self.attributes.lineDistance
             if attribute is not None:
-                attribute.copyArray( geometry.lineDistances )
+                attribute.copyArray(geometry.lineDistances)
                 attribute.needsUpdate = True
 
             geometry.lineDistancesNeedUpdate = False
 
         if geometry.groupsNeedUpdate:
-            geometry.computeGroups( object.geometry )
+            geometry.computeGroups(object.geometry)
             self.groups = geometry.groups
             geometry.groupsNeedUpdate = False
 
         return self
         
-    def fromGeometry(self, geometry ):
-        geometry._directGeometry = DirectGeometry().fromGeometry( geometry )
-        return self.fromDirectGeometry( geometry._directGeometry )
+    def fromGeometry(self, geometry):
+        geometry._directGeometry = DirectGeometry().fromGeometry(geometry)
+        return self.fromDirectGeometry(geometry._directGeometry)
         
-    def fromDirectGeometry(self, geometry ):
-        positions = np.zeros( len(geometry.vertices) * 3, 'f' )
-        self.addAttribute( 'position', BufferAttribute( positions, 3 ).copyVector3sArray( geometry.vertices ) )
-        if len(geometry.normals)> 0:
-            normals = np.zeros( len(geometry.normals) * 3, 'f' )
-            self.addAttribute( 'normal', BufferAttribute( normals, 3 ).copyVector3sArray( geometry.normals ) )
+    def fromDirectGeometry(self, geometry: DirectGeometry):
+        positions = np.zeros(len(geometry.vertices) * 3, 'f')
+        self.addAttribute('position', BufferAttribute(positions, 3).copyVector3sArray(geometry.vertices))
+        if len(geometry.normals) > 0:
+            normals = np.zeros(len(geometry.normals) * 3, 'f')
+            self.addAttribute('normal', BufferAttribute(normals, 3).copyVector3sArray(geometry.normals))
 
         if len(geometry.colors) > 0:
-            colors = np.zeros( len(geometry.colors) * 3, 'f' )
-            self.addAttribute( 'color', BufferAttribute( colors, 3 ).copyColorsArray( geometry.colors ) )
+            colors = np.zeros(len(geometry.colors) * 3, 'f')
+            self.addAttribute('color', BufferAttribute(colors, 3).copyColorsArray(geometry.colors))
 
-        if len(geometry.uvs)> 0:
-            uvs = np.zeros( len(geometry.uvs) * 2, 'f' )
-            self.addAttribute( 'uv', BufferAttribute( uvs, 2 ).copyVector2sArray( geometry.uvs ) )
+        if len(geometry.uvs) > 0:
+            uvs = np.zeros(len(geometry.uvs) * 2, 'f')
+            self.addAttribute('uv', BufferAttribute(uvs, 2).copyVector2sArray(geometry.uvs))
 
         if len(geometry.uvs2) > 0:
-            uvs2 = np.zeros( len(geometry.uvs2) * 2, 'f' )
-            self.addAttribute( 'uv2', BufferAttribute( uvs2, 2 ).copyVector2sArray( geometry.uvs2 ) )
+            uvs2 = np.zeros(len(geometry.uvs2) * 2, 'f')
+            self.addAttribute('uv2', BufferAttribute(uvs2, 2).copyVector2sArray(geometry.uvs2))
 
         # // groups
         self.groups = geometry.groups
         # // morphs
         for name in geometry.morphTargets:
             array = []
-            morphTargets = geometry.morphTargets[ name ]
+            morphTargets = geometry.morphTargets[name]
             for morphTarget in morphTargets:
-                attribute = Float32BufferAttribute( len(morphTarget) * 3, 3 )
-                array.append( attribute.copyVector3sArray( morphTarget ) )
+                attribute = Float32BufferAttribute(len(morphTarget) * 3, 3)
+                array.append(attribute.copyVector3sArray(morphTarget))
 
-            self.morphAttributes[ name ] = array
+            self.morphAttributes[name] = array
 
         # // skinning
-        if len(geometry.skinIndices)> 0:
-            skinIndices = Float32BufferAttribute( len(geometry.skinIndices) * 4, 4 )
-            self.addAttribute( 'skinIndex', skinIndices.copyVector4sArray( geometry.skinIndices ) )
+        if len(geometry.skinIndices) > 0:
+            skinIndices = Float32BufferAttribute(len(geometry.skinIndices) * 4, 4)
+            self.addAttribute('skinIndex', skinIndices.copyVector4sArray(geometry.skinIndices))
 
-        if len(geometry.skinWeights)> 0:
-            skinWeights = Float32BufferAttribute( len(geometry.skinWeights) * 4, 4 )
-            self.addAttribute( 'skinWeight', skinWeights.copyVector4sArray( geometry.skinWeights ) )
+        if len(geometry.skinWeights) > 0:
+            skinWeights = Float32BufferAttribute(len(geometry.skinWeights) * 4, 4)
+            self.addAttribute('skinWeight', skinWeights.copyVector4sArray(geometry.skinWeights))
 
         # //
         if geometry.boundingSphere is not None:
@@ -346,12 +359,12 @@ class BufferGeometry(pyOpenGLObject):
 
         position = self.attributes.position
         if position is not None:
-            self.boundingBox.setFromBufferAttribute( position )
+            self.boundingBox.setFromBufferAttribute(position)
         else:
             self.boundingBox.makeEmpty()
 
-        if math.isnan( self.boundingBox.min.x ) or math.isnan( self.boundingBox.min.y ) or math.isnan( self.boundingBox.min.z ):
-            print( 'THREE.BufferGeometry.computeBoundingBox: Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', self )
+        if math.isnan(self.boundingBox.min.x) or math.isnan(self.boundingBox.min.y) or math.isnan(self.boundingBox.min.z):
+            print('THREE.BufferGeometry.computeBoundingBox: Computed min/max have NaN values. The "position" attribute is likely to have NaN values.', self)
 
     def computeBoundingSphere(self):
         if self.boundingSphere is None:
@@ -360,21 +373,21 @@ class BufferGeometry(pyOpenGLObject):
         position = self.attributes.position
         if position:
             center = self.boundingSphere.center
-            _box.setFromBufferAttribute( position )
-            _box.getCenter( center )
+            _box.setFromBufferAttribute(position)
+            _box.getCenter(center)
             # // hoping to find a boundingSphere with a radius smaller than the
             # // boundingSphere of the boundingBox: sqrt(3) smaller in the best case
 
             maxRadiusSq = 0
             for i in range(0, len(position.array) - 2, position.itemSize):
-                _vector.np[0] = position.array[ i ]
-                _vector.np[1] = position.array[ i + 1 ]
-                _vector.np[2] = position.array[ i + 2 ]
-                maxRadiusSq = max( maxRadiusSq, center.distanceToSquared( _vector ) )
+                _vector.np[0] = position.array[i]
+                _vector.np[1] = position.array[i + 1]
+                _vector.np[2] = position.array[i + 2]
+                maxRadiusSq = max(maxRadiusSq, center.distanceToSquared(_vector))
 
-            self.boundingSphere.radius = math.sqrt( maxRadiusSq )
-            if math.isnan( self.boundingSphere.radius ):
-                print( 'THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', self )
+            self.boundingSphere.radius = math.sqrt(maxRadiusSq)
+            if math.isnan(self.boundingSphere.radius):
+                print('THREE.BufferGeometry.computeBoundingSphere(): Computed radius is NaN. The "position" attribute is likely to have NaN values.', self)
 
     def computeFaceNormals(self):
         # // backwards compatibility
@@ -387,12 +400,12 @@ class BufferGeometry(pyOpenGLObject):
         if attributes.position:
             positions = attributes.position.array
             if attributes.normal is None:
-                self.addAttribute( 'normal', BufferAttribute( np.zeros( len(positions), 'f' ), 3 ) )
+                self.addAttribute('normal', BufferAttribute(np.zeros(len(positions), 'f'), 3))
             else:
                 # // reset existing normals to zero
                 array = attributes.normal.array
                 for i in range(len(array)):
-                    array[ i ] = 0
+                    array[i] = 0
 
             normals = attributes.normal.array
             
@@ -405,65 +418,65 @@ class BufferGeometry(pyOpenGLObject):
             if index:
                 indices = index.array
                 if len(groups) == 0:
-                    self.addGroup( 0, len(indices) )
+                    self.addGroup(0, len(indices))
 
                 for j in range(len(groups)):
-                    group = groups[ j ]
+                    group = groups[j]
                     start = int(group.start)
                     count = int(group.count)
-                    for i in range(start, start + count, 3 ):
-                        vA = indices[ i + 0 ] * 3
-                        vB = indices[ i + 1 ] * 3
-                        vC = indices[ i + 2 ] * 3
-                        pA.fromArray( positions, vA )
-                        pB.fromArray( positions, vB )
-                        pC.fromArray( positions, vC )
-                        cb.subVectors( pC, pB )
-                        ab.subVectors( pA, pB )
-                        cb.cross( ab )
-                        normals[ vA ] += cb.x
-                        normals[ vA + 1 ] += cb.y
-                        normals[ vA + 2 ] += cb.z
-                        normals[ vB ] += cb.x
-                        normals[ vB + 1 ] += cb.y
-                        normals[ vB + 2 ] += cb.z
-                        normals[ vC ] += cb.x
-                        normals[ vC + 1 ] += cb.y
-                        normals[ vC + 2 ] += cb.z
+                    for i in range(start, start + count, 3):
+                        vA = indices[i + 0] * 3
+                        vB = indices[i + 1] * 3
+                        vC = indices[i + 2] * 3
+                        pA.fromArray(positions, vA)
+                        pB.fromArray(positions, vB)
+                        pC.fromArray(positions, vC)
+                        cb.subVectors(pC, pB)
+                        ab.subVectors(pA, pB)
+                        cb.cross(ab)
+                        normals[vA] += cb.x
+                        normals[vA + 1] += cb.y
+                        normals[vA + 2] += cb.z
+                        normals[vB] += cb.x
+                        normals[vB + 1] += cb.y
+                        normals[vB + 2] += cb.z
+                        normals[vC] += cb.x
+                        normals[vC + 1] += cb.y
+                        normals[vC + 2] += cb.z
             else:
                 # // non-indexed elements (unconnected triangle soup)
                 for i in range(0, len(positions), 9):
-                    pA.fromArray( positions, i )
-                    pB.fromArray( positions, i + 3 )
-                    pC.fromArray( positions, i + 6 )
-                    cb.subVectors( pC, pB )
-                    ab.subVectors( pA, pB )
-                    cb.cross( ab )
-                    normals[ i ] = cb.x
-                    normals[ i + 1 ] = cb.y
-                    normals[ i + 2 ] = cb.z
-                    normals[ i + 3 ] = cb.x
-                    normals[ i + 4 ] = cb.y
-                    normals[ i + 5 ] = cb.z
-                    normals[ i + 6 ] = cb.x
-                    normals[ i + 7 ] = cb.y
-                    normals[ i + 8 ] = cb.z
+                    pA.fromArray(positions, i)
+                    pB.fromArray(positions, i + 3)
+                    pC.fromArray(positions, i + 6)
+                    cb.subVectors(pC, pB)
+                    ab.subVectors(pA, pB)
+                    cb.cross(ab)
+                    normals[i] = cb.x
+                    normals[i + 1] = cb.y
+                    normals[i + 2] = cb.z
+                    normals[i + 3] = cb.x
+                    normals[i + 4] = cb.y
+                    normals[i + 5] = cb.z
+                    normals[i + 6] = cb.x
+                    normals[i + 7] = cb.y
+                    normals[i + 8] = cb.z
 
             self.normalizeNormals()
             attributes.normal.needsUpdate = True
 
-    def merge(self, geometry, offset=0 ):
-        if not ( geometry and geometry.my_class(isBufferGeometry) ):
-            print( 'THREE.BufferGeometry.merge(): geometry not an instance of THREE.BufferGeometry.', geometry )
+    def merge(self, geometry, offset=0):
+        if not (geometry and geometry.my_class(isBufferGeometry)):
+            print('THREE.BufferGeometry.merge(): geometry not an instance of THREE.BufferGeometry.', geometry)
             return
 
         attributes = self.attributes
         for key in attributes.__dict__:
-            if geometry.attributes.__dict__[ key ] is None:
+            if geometry.attributes.__dict__[key] is None:
                 continue
 
-            attribute2 = geometry.attributes.__dict__[ key ]
-            attribute1 = attributes.__dict__[ key ]
+            attribute2 = geometry.attributes.__dict__[key]
+            attribute1 = attributes.__dict__[key]
 
             if attribute1 is None:
                 attributes.__dict__[key] = attribute2.clone()
@@ -477,40 +490,40 @@ class BufferGeometry(pyOpenGLObject):
         vector = Vector3()
         normals = self.attributes.normal
         for i in range(int(normals.count)):
-            vector.x = normals.getX( i )
-            vector.y = normals.getY( i )
-            vector.z = normals.getZ( i )
+            vector.x = normals.getX(i)
+            vector.y = normals.getY(i)
+            vector.z = normals.getZ(i)
             vector.normalize()
-            normals.setXYZ( i, vector.x, vector.y, vector.z )
+            normals.setXYZ(i, vector.x, vector.y, vector.z)
 
     def toNonIndexed(self):
         if self.index == None:
-            print( 'THREE.BufferGeometry.toNonIndexed(): Geometry is already non-indexed.' )
+            print('THREE.BufferGeometry.toNonIndexed(): Geometry is already non-indexed.')
             return self
 
         geometry2 = BufferGeometry()
         indices = self.index.array
         attributes = self.attributes
         for name in attributes:
-            attribute = attributes[ name ]
+            attribute = attributes[name]
             array = attribute.array
             itemSize = attribute.itemSize
-            array2 = array.constructor( len(indices) * itemSize )
+            array2 = array.constructor(len(indices) * itemSize)
             index = 0
             index2 = 0
             for i in range(len(indices)):
-                index = indices[ i ] * itemSize
+                index = indices[i] * itemSize
                 for j in range(itemSize):
-                    array2[ index2 ] = array[ index ]
+                    array2[index2] = array[index]
                     index2 += 1
                     index += 1
 
-            geometry2.addAttribute( name, BufferAttribute( array2, itemSize ) )
+            geometry2.addAttribute(name, BufferAttribute(array2, itemSize))
 
         groups = self.groups
 
         for group in groups:
-            geometry2.addGroup( group.start, group.count, group.materialIndex )
+            geometry2.addGroup(group.start, group.count, group.materialIndex)
 
         return geometry2
         
@@ -533,8 +546,8 @@ class BufferGeometry(pyOpenGLObject):
         if self.parameters is not None:
             parameters = self.parameters
             for key in parameters:
-                if parameters[ key ] is not None:
-                    data[ key ] = parameters[ key ]
+                if parameters[key] is not None:
+                    data[key] = parameters[key]
 
             return data
 
@@ -550,10 +563,10 @@ class BufferGeometry(pyOpenGLObject):
 
         attributes = self.attributes
         for key in attributes:
-            attribute = attributes[ key ]
+            attribute = attributes[key]
             array = attribute.array.tolist()
             type = attribute.__class__.__name__.replace("BufferAttribute", "Array")
-            data['data']['attributes'][ key ] = {
+            data['data']['attributes'][key] = {
                 'itemSize': attribute.itemSize,
                 'type': type,
                 'array': array,
@@ -562,7 +575,7 @@ class BufferGeometry(pyOpenGLObject):
 
         groups = self.groups
         if len(groups) > 0:
-            data['data']['groups'] = json.loads( json.dumps( groups ) )
+            data['data']['groups'] = json.loads(json.dumps(groups))
 
         boundingSphere = self.boundingSphere
         if boundingSphere is not None:
