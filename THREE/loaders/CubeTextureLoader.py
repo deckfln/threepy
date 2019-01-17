@@ -5,6 +5,7 @@
 """
 from THREE.loaders.ImageLoader import *
 from THREE.textures.CubeTexture import *
+from THREE.loaders.TextureLoader import *
 
 
 class CubeTextureLoader:
@@ -16,13 +17,14 @@ class CubeTextureLoader:
     def load(self, urls, onLoad=None, onProgress=None, onError=None):
         texture = CubeTexture()
 
-        loader = ImageLoader( self.manager )
-        loader.setPath( self.path )
+        loader = ImageLoader(self.manager)
+        loader.setPath(self.path)
 
         loaded = 0
 
         for i in range(len(urls)):
             texture.images[i] = loader.load(urls[i])
+            texture.format = GetImageFormat(texture.images[i])
             loaded += 1
             if loaded == 6:
                 texture.needsUpdate = True
@@ -31,10 +33,10 @@ class CubeTextureLoader:
 
         return texture
 
-    def setCrossOrigin(self, value ):
+    def setCrossOrigin(self, value):
         self.crossOrigin = value
         return self
 
-    def setPath(self, value ):
+    def setPath(self, value):
         self.path = value
         return self

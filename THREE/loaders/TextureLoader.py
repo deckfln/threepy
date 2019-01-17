@@ -25,6 +25,10 @@ _ImageFormat = {
 }
 
 
+def GetImageFormat(image):
+    return _ImageFormat[image.mode]
+
+
 class TextureLoader:
     def __init__(self, manager=None):
         global DefaultLoadingManager
@@ -39,7 +43,7 @@ class TextureLoader:
         texture.unpackAlignment = 1
         loader.setTarget(texture)
         texture.image = loader.load(url, _onLoad, onProgress, onError)
-        texture.format = _ImageFormat[texture.image.mode]
+        texture.format = GetImageFormat(texture.image)
         texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
         texture.name = url
 
