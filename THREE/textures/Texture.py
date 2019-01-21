@@ -11,6 +11,8 @@ import THREE._Math as _Math
 from THREE.math.Vector2 import *
 from THREE.math.Matrix3 import *
 import THREE.Global
+from PIL import Image
+
 
 _textureId = 0
 
@@ -243,3 +245,10 @@ class Texture(pyOpenGLObject):
 
         if self.flipY:
             uv.y = 1 - uv.y
+
+    def flip_image(self):
+        """
+        Image are flipped by default at load time in ImageLoader
+        """
+        if not self.flipY:
+            self.image = self.image.transpose(Image.FLIP_TOP_BOTTOM)

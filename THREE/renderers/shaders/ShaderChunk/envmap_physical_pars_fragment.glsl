@@ -18,7 +18,9 @@
 			#else
 
 				// force the bias high to get the last LOD level as it is the most blurred.
-				vec4 envMapColor = textureCube( envMap, queryVec, float( maxMIPLevel ) );
+				// FIXME: make it compatible with opengl 4.3
+				// vec4 envMapColor = textureCube( envMap, queryVec, float( maxMIPLevel ) );
+				vec4 envMapColor = textureCube( envMap, queryVec);
 
 			#endif
 
@@ -79,7 +81,9 @@
 
 			#else
 
-				vec4 envMapColor = textureCube( envMap, queryReflectVec, specularMIPLevel );
+                // FIXME get it to work with opengl 4.3
+				// vec4 envMapColor = textureCube( envMap, queryReflectVec, specularMIPLevel );
+				vec4 envMapColor = textureCube( envMap, queryReflectVec);
 
 			#endif
 

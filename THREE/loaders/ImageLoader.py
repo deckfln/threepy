@@ -23,7 +23,7 @@ class ImageLoader:
         if self.path is not None:
             url = self.path + url
 
-        cached = Cache.get( url )
+        cached = Cache.get(url)
 
         if cached:
             return cached
@@ -46,7 +46,7 @@ class ImageLoader:
 
         Cache.add(url, image)
 
-        self.manager.itemStart( url )
+        self.manager.itemStart(url)
 
         if onLoad:
             onLoad(url, self.target)

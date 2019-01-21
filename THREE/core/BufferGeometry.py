@@ -28,6 +28,15 @@ class _attributesList:
         self.colors = None
         self.skinIndex = None
 
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
 
 class _drawRange:
     def __init__(self, start, count):

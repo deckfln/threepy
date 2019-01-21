@@ -44,7 +44,7 @@ class TextureLoader:
         loader.setTarget(texture)
         texture.image = loader.load(url, _onLoad, onProgress, onError)
         texture.format = GetImageFormat(texture.image)
-        texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
+        #texture.img_data = numpy.fromstring(texture.image.tobytes(), numpy.uint8)
         texture.name = url
 
         return texture

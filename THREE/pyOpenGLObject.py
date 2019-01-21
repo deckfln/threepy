@@ -3,6 +3,7 @@ placeholder to simulate javascript feature like "isObject"
 """
 from numba import *
 import numpy as np
+from numpy import uintp
 
 isColor = np.uint64(1)
 isMatrix3 = np.uint64(2)
@@ -60,6 +61,7 @@ isLineBasicMaterial = np.uint64(137438953472)
 isPointsMaterial = np.uint64(274877906944)
 isShadowMaterial = np.uint64(549755813888)
 isMeshPhysicalMaterial = np.uint64(9007199254740992)
+isGLTFSpecularGlossinessMaterial = np.uint64(262144)
 
 isGroup = np.uint64(72057594037927936)
 
@@ -99,6 +101,7 @@ class pyOpenGLObject:
 
         raise AttributeError("Missing attribute %s" % item)
     """
+    class_code: np.uint64(0)
 
     def __init__(self):
         self._onDispose = None

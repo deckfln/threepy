@@ -98,7 +98,6 @@ def init(p):
     p.container.addEventListener( 'resize', onWindowResize, False )
 
     p.renderer.shadowMap.enabled = True
-    p.renderer.shadowMap.renderSingleSided = False
 
     # // ***** Clipping setup (renderer): *****
     globalPlanes = [ globalPlane ]

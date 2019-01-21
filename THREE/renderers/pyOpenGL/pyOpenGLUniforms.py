@@ -390,14 +390,7 @@ class SingleUniform:
     def setValue3fm(self, v, renderer=None, force=False):
         cache = self.cache
 
-        if not hasattr(v, 'elements'):
-            if arraysEqual(cache, v):
-                return
-
-            glUniformMatrix3fv(self.addr, GL_FALSE, v)
-            copyArray(cache, v)
-
-        else:
+        if hasattr(v, 'elements'):
             elements = v.elements
 
             if not force and arraysEqual(cache, elements):
@@ -408,6 +401,23 @@ class SingleUniform:
             OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix3fv(self.addr, 1, GL_FALSE, elements)
             if not force:
                 copyArray(cache, elements)
+        elif hasattr(v, 'np'):
+            elements = v.np
+
+            if not force and arraysEqual(cache, elements):
+                return
+
+            # np.copyto(mat3array, elements)
+
+            OpenGL.raw.GL.VERSION.GL_2_0.glUniformMatrix3fv(self.addr, 1, GL_FALSE, elements)
+            if not force:
+                copyArray(cache, elements)
+        else:
+            if arraysEqual(cache, v):
+                return
+
+            glUniformMatrix3fv(self.addr, 1, GL_FALSE, v)
+            copyArray(cache, v)
 
     def setValue4fm(self, v, renderer=None, force=False):
         cache = self.cache
@@ -803,6 +813,7 @@ def _parseShaderForUniforms(shader, uniforms):
 
         b = block.replace("\n", "")
         b = b.replace("\t", "")
+        b = b.replace("    ", "")
 
         attributes = b.split(";")
 

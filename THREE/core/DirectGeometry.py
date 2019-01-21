@@ -17,6 +17,9 @@ class morphTargets:
         self.position = []
         self.normal = []
 
+    def empty(self):
+        return len(self.position) == 0 and len(self.normal) == 0
+
     def __getitem__(self, item):
         return self.__dict__[item]
 

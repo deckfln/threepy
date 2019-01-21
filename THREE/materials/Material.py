@@ -130,6 +130,7 @@ class Material(pyOpenGLObject):
         self.dashSize = None
         self.gapSize = None
         self.scale = None
+        self.reflectivity = None
 
     def onBeforeCompile(self, shader):
         return True
