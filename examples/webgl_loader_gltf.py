@@ -61,46 +61,11 @@ def init(p):
     p.light.position.set( 0, 1, 0 )
     p.scene.add( p.light )
 
-    floader = FileLoader()
-    uniforms = {
-        'diffuse': {'type': 'v3', 'value': Vector3(1.0, 1.0, 1.0)},
-        'emissive': {'type': 'v3', 'value': None},
-        'roughness': {'type': 'f', 'value': None},
-        'metalness': {'type': "f", 'value': None},
-        'opacity': {'type': "f", 'value': None},
-        'uvTransform': {'type': 'v3', 'value': Matrix3()},
-        'map': {'type': "t", 'value': None},
-    }
-
-    material = THREE.RawShaderMaterial({
-        'uniforms': uniforms,
-        'vertexShader': floader.load('debug_vertex.glsl'),
-        'fragmentShader': floader.load('debug_fragment.glsl'),
-        'wireframe': False
-    })
-
     # model
     def function(gltf):
         def fn(child, scope):
             if child.my_class(isMesh):
                 child.material.envMap = envMap
-
-        mat = gltf.scene.children[0].material
-        material.uniforms.emissive.value = mat.emissive
-        material.uniforms.roughness.value = mat.roughness
-        material.uniforms.metalness.value = mat.metalness
-        material.uniforms.opacity.value = mat.opacity
-        material.uniforms.map.value = mat.map
-        """
-        mat.aoMap = None
-        mat.emissiveMap = None
-        material.metalnessMap = None
-        mat.normalMap = None
-        mat.roughnessMap = None
-        mat.color = None
-        mat.emissive = None
-        """
-        #gltf.scene.children[0].material = material
 
         gltf.scene.traverse(fn)
         p.scene.add(gltf.scene)
