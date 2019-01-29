@@ -133,3 +133,12 @@ class Sphere:
             self._applyMatrix4(matrix)
 
         return self
+
+    def extend(self, source):
+        """
+        Extend the curent sphere by adding the source one
+        :param source:
+        :return:
+        """
+        self.center.add(source.center).divideScalar(2)
+        self.radius = self.radius + source.radius + self.center.distanceTo(source.center)/2
