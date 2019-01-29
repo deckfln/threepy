@@ -196,7 +196,7 @@ class pyOpenGLPrograms:
 
         return parameters
 
-    def getProgramCode(self, material, parameters ):
+    def getProgramCode(self, material, parameters, instance=False):
         array = []
 
         if parameters['shaderID']:
@@ -214,8 +214,8 @@ class pyOpenGLPrograms:
             array.append(str(parameters[parameter]))
 
         array.append(str(material.onBeforeCompile))
-
         array.append(str(self.renderer.gammaOutput))
+        array.append(str(instance))
 
         return "\n".join(array)
 

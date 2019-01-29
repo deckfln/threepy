@@ -110,7 +110,7 @@ class Mesh(Object3D):
 
         def _uvIntersection(point, p1, p2, p3, uv1, uv2, uv3):
             tr = Triangle(p1, p2, p3)
-            barycoord = tr.getBarycoord(point, p1, p2, p3, barycoord)
+            tr.getBarycoord(point, barycoord)
 
             uv1.multiplyScalar(barycoord.x)
             uv2.multiplyScalar(barycoord.y)
@@ -163,7 +163,7 @@ class Mesh(Object3D):
 
                 triangle = Triangle(vA, vB, vC)
                 face = Face3(a, b, c)
-                Triangle.getNormal(vA, vB, vC, face.normal)
+                triangle.getNormal(face.normal)
 
                 intersection.face = face
             return intersection
@@ -233,7 +233,7 @@ class Mesh(Object3D):
                         b = index.getX( i + 1 )
                         c = index.getX( i + 2 )
 
-                        intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+                        intersection = _checkBufferGeometryIntersection( self, None, raycaster, ray, position, uv, a, b, c )
 
                         if intersection:
                             intersection.faceIndex = math.floor( i / 3 )    # // triangle number in indices buffer semantics

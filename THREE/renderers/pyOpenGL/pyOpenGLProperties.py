@@ -30,13 +30,13 @@ class pyOpenGLProperties:
     def __init__(self):
         self.properties = {}
 
-    def get(self, object ):
-        uuid = object.uuid
+    def get(self, object, instance=False):
+        uuid = "%s:%s" % (object.uuid, instance)
         if uuid in self.properties:
-            return self.properties[ uuid ]
+            return self.properties[uuid]
 
         map = _map(object)
-        self.properties[ uuid ] = map
+        self.properties[uuid] = map
 
         return map
 

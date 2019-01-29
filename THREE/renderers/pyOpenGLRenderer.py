@@ -1139,7 +1139,7 @@ class pyOpenGLRenderer:
 
     def _initMaterial(self, material, fog, object, instance=False):
         global ShaderLib
-        materialProperties = self.properties.get(material)
+        materialProperties = self.properties.get(material, instance)
 
         lights = self.currentRenderState.lights
         shadowsArray = self.currentRenderState.shadowsArray
@@ -1149,7 +1149,7 @@ class pyOpenGLRenderer:
         parameters = self.programCache.getParameters(material, lights.state, shadowsArray, fog,
                                                      self._clipping.numPlanes, self._clipping.numIntersection, object)
 
-        code = self.programCache.getProgramCode(material, parameters)
+        code = self.programCache.getProgramCode(material, parameters, instance)
 
         program = materialProperties.program
         programChange = True
@@ -1199,7 +1199,7 @@ class pyOpenGLRenderer:
 
             material.onBeforeCompile(materialProperties.shader)
             # Computing code again as onBeforeCompile may have changed the shaders
-            code = self.programCache.getProgramCode( material, parameters )
+            code = self.programCache.getProgramCode( material, parameters, instance )
             program = self.programCache.acquireProgram(material, materialProperties.shader, parameters, code, instance)
 
             materialProperties.program = program
@@ -1279,7 +1279,7 @@ class pyOpenGLRenderer:
         """
         self._usedTextureUnits = 0
 
-        materialProperties = self.properties.get(material)
+        materialProperties = self.properties.get(material, instance)
         lights = self.currentRenderState.lights
         lightsHash = materialProperties.lightsHash
         lightsStateHash = lights.state.hash
