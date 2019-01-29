@@ -72,7 +72,7 @@ class Raycaster:
 
         return intersects
 
-    def intersectObjects(self, objects, recursive=False, intersects=[] ):
+    def intersectObjects(self, objects, recursive, intersects):
         if isinstance(objects, list) == False:
             print( 'THREE.Raycaster.intersectObjects: objects is not an Array.' )
             return intersects
