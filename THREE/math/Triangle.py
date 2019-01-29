@@ -114,8 +114,8 @@ class Triangle:
     def getPlane(self, target):
         return target.setFromCoplanarPoints( self.a, self.b, self.c )
 
-    def getBarycoord(self, target):
-        return self._getBarycoord(self.a, self.b, self.c, target, target)
+    def getBarycoord(self, point, target):
+        return self._getBarycoord(point, self.a, self.b, self.c, target)
 
     def containsPoint(self, point ):
         return self._containsPoint( point, self.a, self.b, self.c)
