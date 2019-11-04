@@ -284,14 +284,22 @@ class TransformControls(Object3D, EventManager):
             if axis.find('Z') == -1:
                 self.pointEnd.z = self.pointStart.z
 
+            if axis.find('Y') >= 0:
+                object.userData["magnet"] = 'Y'
+
             # Apply translate
 
             if space == 'local':
-                object.position.copy(self.pointEnd).sub(self.pointStart).applyQuaternion(_quaternionStart)
+                _tempVector.copy(self.pointEnd).sub(self.pointStart).applyQuaternion(_quaternionStart)
             else:
-                object.position.copy(self.pointEnd).sub(self.pointStart)
+                _tempVector.copy(self.pointEnd).sub(self.pointStart)
 
-            object.position.add(_positionStart)
+            _tempVector.add(_positionStart)
+
+            # magnet applied
+            if self.domElement.AABBmagnet(_tempVector, object):
+                return
+            object.position.copy(_tempVector)
 
             # Apply translation snap
 

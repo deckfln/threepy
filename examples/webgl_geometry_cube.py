@@ -44,12 +44,13 @@ def init(p):
     p.mesh = THREE.Mesh(geometry, material)
     p.scene.add(p.mesh)
 
+    """
     p.mesh1 = THREE.Mesh(geometry, material)
     p.mesh1.position.x = 50
     p.mesh1.position.y = 50
     p.mesh1.name = "extras"
     p.scene.add(p.mesh1)
-
+    """
     p.renderer = p.renderer = THREE.pyOpenGLRenderer({'antialias': True})
     p.renderer.setSize( window.innerWidth, window.innerHeight )
 

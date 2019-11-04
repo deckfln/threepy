@@ -101,4 +101,3 @@ void M4x4(float *ae, float *be, float *te)
     _mm_store_ps(te+4, rm[1]);
     _mm_store_ps(te+8, rm[2]);
     _mm_store_ps(te+12, rm[3]);
-}

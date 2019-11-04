@@ -438,14 +438,14 @@ class Geometry(pyOpenGLObject):
             face.vertexNormals = face.__originalVertexNormals
 
     def computeBoundingBox(self):
-        if self.boundingBox == None:
+        if self.boundingBox is None:
             self.boundingBox = Box3()
 
         self.boundingBox.setFromPoints( self.vertices )
 
     def computeBoundingSphere(self):
-        if self.boundingSphere == None:
-            self.boundingSphere = Sphere()
+        if self.boundingSphere is None:
+            self.boundingSphere = BoundingSphere()
 
         self.boundingSphere.setFromPoints( self.vertices )
 

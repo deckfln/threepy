@@ -16,6 +16,7 @@ class PerspectiveCamera(Camera):
 
     def __init__(self, fov=50, aspect=1, near=0.1, far=2000):
         super().__init__()
+        self.set_class(isPerspectiveCamera)
         self.type = 'PerspectiveCamera'
 
         self.fov = fov

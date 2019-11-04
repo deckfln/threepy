@@ -55,11 +55,11 @@ class Raycaster:
         self.ray.set( origin, direction )
 
     def setFromCamera(self, coords, camera ):
-        if camera and camera.isPerspectiveCamera:
+        if camera and camera.my_class(isPerspectiveCamera):
             self.ray.origin.setFromMatrixPosition( camera.matrixWorld )
             self.ray.direction.set( coords.x, coords.y, 0.5 ).unproject( camera ).sub( self.ray.origin ).normalize()
 
-        elif camera and camera.isOrthographicCamera:
+        elif camera and camera.my_class(isOrthographicCamera):
             self.ray.origin.set( coords.x, coords.y, ( camera.near + camera.far ) / ( camera.near - camera.far ) ).unproject( camera )  # // set origin in plane of camera
             self.ray.direction.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld )
 

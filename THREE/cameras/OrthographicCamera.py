@@ -22,6 +22,7 @@ class OrthographicCamera(Camera):
 
     def __init__(self, left, right, top, bottom, near=0.1, far=2000):
         super().__init__()
+        self.set_class(isOrthographicCamera)
 
         self.type = 'OrthographicCamera'
 

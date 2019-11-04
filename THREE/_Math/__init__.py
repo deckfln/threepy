@@ -3,14 +3,14 @@ import array
 import sys
 import random
 
-from THREE.cython.cthree import cMath_clamp
+#from THREE.cython.cthree import cMath_clamp
 
 DEG2RAD = math.pi / 180
 RAD2DEG = 180 / math.pi
 LOG2E = 1.4426950408889634
 LN2 = 0.6931471805599453
 
-cython = True
+_cython = False
 
 _lut = [('0' if i < 16 else '') + hex(i) for i in range(256)]
 
@@ -36,7 +36,7 @@ def _clamp( value, mi, mx ):
 
 
 def clamp( value, mi, mx ):
-    if cython:
+    if _cython:
         return cMath_clamp( value, mi, mx )
     else:
         return _clamp(value, mi, mx)

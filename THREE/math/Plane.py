@@ -5,7 +5,7 @@
 """
 from THREE.math.Matrix3 import *
 
-_cython = True
+_cython = False
 
 
 class Plane:

@@ -13,7 +13,7 @@ import THREE._Math as _Math
 from THREE.pyOpenGLObject import *
 from THREE.cython.cVector3 import *
 
-_cython = True
+_cython = False
 
 _matrix4 = None
 
@@ -121,6 +121,7 @@ class Vector3(pyOpenGLObject):
             cVector3_copy(self, v)
         else:
             self._copy(v)
+        self.updated = True
         return self
 
     def add(self, v, w=None):

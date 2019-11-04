@@ -1,7 +1,6 @@
 """
 placeholder to simulate javascript feature like "isObject"
 """
-from numba import *
 import numpy as np
 from numpy import uintp
 
@@ -72,7 +71,11 @@ isLineCurve3 = np.uint64(134217728)
 
 isLineSegments = np.uint64(17179869184)
 isLineLoop = np.uint64(34359738368)
+
 isCamera = np.uint64(1099511627776)
+isPerspectiveCamera = np.uint64(2199023255552)
+isOrthographicCamera = np.uint64(4398046511104)
+
 isDirectionalLight = np.uint64(2199023255552)
 isSpotLight = np.uint64(4398046511104)
 isRectAreaLight = np.uint64(8796093022208)
@@ -107,8 +110,10 @@ class pyOpenGLObject:
         self._onDispose = None
         self.class_code = np.uint64(0)
 
+    """
     def addEventListener(self, event, func):
         self._onDispose = func
+    """
 
     def is_a(self, kind):
         return hasattr(self, "is"+kind)

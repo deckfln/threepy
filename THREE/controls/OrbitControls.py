@@ -474,7 +474,7 @@ class OrbitControls(EventManager):
 
         element = self.domElement
 
-        if self.object.isPerspectiveCamera:
+        if self.object.my_class(isPerspectiveCamera):
             # // perspective
             position = self.object.position
             offset.copy( position ).sub( self.target )
@@ -487,7 +487,7 @@ class OrbitControls(EventManager):
             self.panLeft( 2 * deltaX * targetDistance / element.clientHeight, self.object.matrix )
             self.panUp( 2 * deltaY * targetDistance / element.clientHeight, self.object.matrix )
 
-        elif self.object.isOrthographicCamera:
+        elif self.object.my_class(isOrthographicCamera):
             # // orthographic
             self.panLeft( deltaX * ( self.object.right - self.object.left ) / self.object.zoom / element.clientWidth, self.object.matrix )
             self.panUp( deltaY * ( self.object.top - self.object.bottom ) / self.object.zoom / element.clientHeight, self.object.matrix )
@@ -498,10 +498,10 @@ class OrbitControls(EventManager):
             self.enablePan = False
 
     def dollyIn(self, dollyScale ):
-        if self.object.isPerspectiveCamera:
+        if self.object.my_class(isPerspectiveCamera):
             self.scale /= dollyScale
 
-        elif self.object.isOrthographicCamera:
+        elif self.object.my_class(isOrthographicCamera):
             self.object.zoom = max( self.minZoom, min( self.maxZoom, self.object.zoom * dollyScale ) )
             self.object.updateProjectionMatrix()
             self.zoomChanged = True
@@ -511,10 +511,10 @@ class OrbitControls(EventManager):
             self.enableZoom = False
 
     def dollyOut(self, dollyScale ):
-        if self.object.isPerspectiveCamera:
+        if self.object.my_class(isPerspectiveCamera):
             self.scale *= dollyScale
 
-        elif self.object.isOrthographicCamera:
+        elif self.object.my_class(isOrthographicCamera):
             self.object.zoom = max( self.minZoom, min( self.maxZoom, self.object.zoom / dollyScale ) )
             self.object.updateProjectionMatrix()
             self.zoomChanged = True

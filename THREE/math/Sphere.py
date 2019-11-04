@@ -5,10 +5,10 @@
  */
 """
 from THREE.math.Box3 import *
-from THREE.cython.cSphere import cSphere_applyMatrix4, cSphere_isIncludedIn, cSphere_applyMatrix4To
 
-
-_cython = True
+_cython = False
+if _cython:
+    from THREE.cython.cSphere import cSphere_applyMatrix4, cSphere_isIncludedIn, cSphere_applyMatrix4To
 
 
 class Sphere:

@@ -233,7 +233,7 @@ class Mesh(Object3D):
                         b = index.getX( i + 1 )
                         c = index.getX( i + 2 )
 
-                        intersection = _checkBufferGeometryIntersection( self, None, raycaster, ray, position, uv, a, b, c )
+                        intersection = _checkBufferGeometryIntersection( self, material, raycaster, ray, position, uv, a, b, c )
 
                         if intersection:
                             intersection.faceIndex = math.floor( i / 3 )    # // triangle number in indices buffer semantics
@@ -261,14 +261,14 @@ class Mesh(Object3D):
                                 intersects.append(intersection)
                 else:
                     start = max(0, drawRange.start)
-                    end = min(index.count, (drawRange.start + drawRange.count))
+                    end = min(position.count, (drawRange.start + drawRange.count))
 
                     for i in range(start, end, 3):
                         a = i
                         b = i + 1
                         c = i + 2
 
-                        intersection = _checkBufferGeometryIntersection( self, raycaster, ray, position, uv, a, b, c )
+                        intersection = _checkBufferGeometryIntersection( self, material, raycaster, ray, position, uv, a, b, c )
 
                         if intersection:
                             intersection.faceIndex = math.floor(i / 3)  # triangle number in non - indexed buffer semantics

@@ -14,11 +14,13 @@
 """
 import math
 from THREE.pyOpenGLObject import *
-from THREE.cython.cthree import *
 from THREE.math.Vector3 import *
-from THREE.cython.cMatrix4 import *
 
-_cython = True
+_cython = False
+
+if _cython:
+    from THREE.cython.cthree import *
+    from THREE.cython.cMatrix4 import *
 
 _temp = np.array([0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
 

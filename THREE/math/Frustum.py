@@ -7,9 +7,10 @@
 """
 from THREE.math.Plane import *
 from THREE.objects.BoundingSphere import *
-from THREE.cython.cFrustum import cFrustum_intersectsSphere
 
-_cython = True
+_cython = False
+if _cython:
+    from THREE.cython.cFrustum import cFrustum_intersectsSphere
 
 _p = Vector3()
 _sphere = BoundingSphere()
@@ -109,7 +110,7 @@ class Frustum:
 
             _sphere.applyMatrix4To(object.matrixWorld, geometry.boundingSphere)
 
-            self._cache[object.id] = self.intersectsSphere( _sphere)
+            self._cache[object.id] = self.intersectsSphere(_sphere, geometry.boundingSphere)
         return self._cache[object.id]
 
     def intersectsOctree(self, octree):
@@ -123,7 +124,7 @@ class Frustum:
 
         return self._cache[octree.id]
 
-    def intersectsSphereOctree(self, sphere ):
+    def intersectsSphereOctree(self, sphere):
         """
         Optimization based on http://blog.bwhiting.co.uk/?p=355
         :param sphere:
@@ -154,15 +155,15 @@ class Frustum:
 
         return self.intersectsSphere( sphere )
 
-    def intersectsSphere(self, sphere):
+    def intersectsSphere(self, sphere, source):
         global _cython
 
         if _cython:
-            return cFrustum_intersectsSphere(self, sphere)
+            return cFrustum_intersectsSphere(self, sphere, source)
         else:
-            return self._intersectsSphere(sphere)
+            return self._intersectsSphere(sphere, source)
 
-    def _intersectsSphere(self, sphere ):
+    def _intersectsSphere(self, sphere, source):
         """
         Optimization based on http://blog.bwhiting.co.uk/?p=355
         :param sphere:
@@ -172,24 +173,24 @@ class Frustum:
         center = sphere.center
         negRadius = - sphere.radius
 
-        if sphere.cache >= 0:
-            plane = planes[sphere.cache]
+        if source.cache >= 0:
+            plane = planes[source.cache]
             distance = plane.distanceToPoint(center)
             if distance < negRadius:
                 return False
 
         for p in range(6):
-            if p == sphere.cache:
+            if p == source.cache:
                 continue
 
             plane = planes[p]
             distance = plane.distanceToPoint( center )
 
             if distance < negRadius:
-                sphere.cache = p
+                source.cache = p
                 return False
 
-        sphere.cache = -1
+        source.cache = -1
         return True
 
     def intersectsBox(self, box):

@@ -9,12 +9,14 @@
 
 from THREE.math.Vector3 import *
 from THREE.Constants import *
-from THREE.cython.cthree import *
 import numpy as np
 
 from THREE.cython.cQuaternion import cQuaternion_setFromRotationMatrix, cQuaternion_multiplyQuaternions, cQuaternion_slerpFlat
 
-_cython = True
+_cython = False
+if _cython:
+    from THREE.cython.cthree import *
+
 _v1 = Vector3()
 _temp = np.zeros(4, np.float32)
 

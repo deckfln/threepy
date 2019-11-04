@@ -27,7 +27,7 @@ class OctahedronGeometry(Geometry):
 # // OctahedronBufferGeometry
 
 class OctahedronBufferGeometry(PolyhedronBufferGeometry):
-    def __init__(self, radius, detail ):
+    def __init__(self, radius=1, detail=1 ):
         vertices = [
             1, 0, 0,   - 1, 0, 0,    0, 1, 0,    0, - 1, 0,    0, 0, 1,    0, 0, - 1
         ]

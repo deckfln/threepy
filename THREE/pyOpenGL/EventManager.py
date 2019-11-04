@@ -1,7 +1,9 @@
 """
 
 """
+import sys
 import time
+import traceback
 
 
 class Event:
@@ -53,15 +55,23 @@ class EventManager:
     def animate(self, params):
         self.animationRequest(params)
 
-    def dispatchEvent(self, event=None, params=None):
-        type = event['type']
-
-        if type in self.callbacks:
-            callbacks = self.callbacks[type][:] # get a copy of the list
-
-            if len(callbacks) > 0:
+    def dispatchEvent(self, event, params=None):
+        try:
+            if isinstance(event, Event):
+                type = event.type
+                eventObject = event
+            else:
+                type = event['type']
                 eventObject = Event(event)
-                for c in callbacks:
-                    c(eventObject, params)
+
+            if type in self.callbacks:
+                callbacks = self.callbacks[type][:]  # get a copy of the list
+
+                if len(callbacks) > 0:
+                    for c in callbacks:
+                        c(eventObject, params)
+        except:
+            traceback.print_exc(file=sys.stdout)
+            raise RuntimeError("render")
 
         # print("event %s in %f s" % (event, t1 - t0))

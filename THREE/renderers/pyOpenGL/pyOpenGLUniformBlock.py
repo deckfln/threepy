@@ -10,8 +10,11 @@ import numpy as np
 from OpenGL.GL import *
 from ctypes import sizeof, c_float, c_void_p, c_uint, string_at, memmove
 
-_cython=True
-from cthree import cUpdateValueArrayElement, cUpdateValueMat3ArrayElement
+_cython = False
+if _cython:
+    from cthree import cUpdateValueArrayElement, cUpdateValueMat3ArrayElement
+
+from THREE.math.Matrix4 import *
 
 
 _binding_point = 0
@@ -503,7 +506,7 @@ class pyOpenGLUniformBlocks:
         for block in self.uniform_blocks.values():
             block.unlock()
 
-        # glBindBuffer(GL_UNIFORM_BUFFER, 0)
+        glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
     def update(self, block=None):
         return

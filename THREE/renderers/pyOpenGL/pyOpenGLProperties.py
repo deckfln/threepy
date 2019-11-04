@@ -41,10 +41,10 @@ class pyOpenGLProperties:
         return map
 
     def remove(self, object):
-        property = self.properties[object.uuid]
-        del property.object
-
-        del self.properties[object.uuid]
+        if object.uuid in self.properties:
+            property = self.properties[object.uuid]
+            del property.object
+            del self.properties[object.uuid]
 
     def clear(self):
         self.properties = {}

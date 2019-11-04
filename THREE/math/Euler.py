@@ -10,6 +10,8 @@ from THREE.math.Matrix4 import *
 from THREE.math.Quaternion import *
 from THREE.pyOpenGLObject import *
 
+_cython = False
+
 _matrix4 = Matrix4()
 
 
@@ -89,7 +91,10 @@ class Euler(pyOpenGLObject):
 
     def setFromRotationMatrix(self, m, order=None, update=True):
         self._order = order or self._order
-        cEuler_setFromRotationMatrix(self, m.elements, self._order)
+        if _cython:
+            cEuler_setFromRotationMatrix(self, m.elements, self._order)
+        else:
+            self._setFromRotationMatrix(m, order)
 
         if update and self.onChangeCallback:
             self.onChangeCallback(self)
