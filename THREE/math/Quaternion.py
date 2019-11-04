@@ -87,9 +87,9 @@ class Quaternion:
         if _cython:
             cQuaternion_slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
         else:
-            self._slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
+           Quaternion._slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t)
 
-    def _slerpFlat(self, dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t):
+    def _slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t):
         # // fuzz-free, array-based Quaternion SLERP operation
 
         x0 = src0[srcOffset0 + 0]
